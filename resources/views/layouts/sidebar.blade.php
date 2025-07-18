@@ -1,4 +1,8 @@
-<!-- start: sidebar -->
+@php
+
+$currentRoute = request()->route()->getName();
+
+@endphp
 <aside id="sidebar-left" class="sidebar-left">
 
     <div class="sidebar-header">
@@ -21,113 +25,33 @@
                             <span>Dashboard</span>
                         </a>                        
                     </li>
-                    <li class="nav-parent">
-                        <a class="nav-link" href="#">
-                            <i class="bx bx-cart-alt" aria-hidden="true"></i>
-                            <span>eCommerce</span>
-                        </a>
-                        <ul class="nav nav-children">
-                            <li>
-                                <a class="nav-link" href="ecommerce-dashboard.html">
-                                    Dashboard
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="ecommerce-products-list.html">
-                                    Products List
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="ecommerce-products-form.html">
-                                    Products Form
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="ecommerce-category-list.html">
-                                    Categories List
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="ecommerce-category-form.html">
-                                    Category Form
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="ecommerce-coupons-list.html">
-                                    Coupons List
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="ecommerce-coupons-form.html">
-                                    Coupons Form
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="ecommerce-orders-list.html">
-                                    Orders List
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="ecommerce-orders-detail.html">
-                                    Orders Detail
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="ecommerce-customers-list.html">
-                                    Customers List
-                                </a>
-                            </li>
-                            <li>
-                                <a class="nav-link" href="ecommerce-customers-form.html">
-                                    Customers Form
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
+                    <!-- <li>
                         <a class="nav-link" href="mailbox-folder.html">
                             <span class="float-end badge badge-primary">182</span>
                             <i class="bx bx-envelope" aria-hidden="true"></i>
                             <span>Mailbox</span>
                         </a>                        
-                    </li>
-                    <li class="nav-parent nav-expanded nav-active">
+                    </li> -->
+                    <li class="nav-parent  {{ request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>
-                            <span>Layouts</span>
+                            <span>Main Setting</span>
                         </a>
                         <ul class="nav nav-children">
-                            <li>
-                                <a class="nav-link" href="index.html">
-                                    Landing Page
+                            <li class="{{ request()->routeIs('company.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('company.index')}}">
+                                    Company
                                 </a>
                             </li>
-                            <li class="nav-active">
-                                <a class="nav-link" href="layouts-default.html">
-                                    Default
+                            <li class="{{ request()->routeIs('branch.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('branch.index')}}">
+                                    Branch
                                 </a>
                             </li>
-                            <li>
-                                <a class="nav-link" href="layouts-modern.html">
-                                    Modern
+                            <li class="{{ request()->routeIs('bank.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('bank.index')}}">
+                                    Bank
                                 </a>
-                            </li>
-                            <li class="nav-parent">
-                                <a>
-                                    Boxed
-                                </a>
-                                <ul class="nav nav-children">
-                                    <li>
-                                        <a class="nav-link" href="layouts-boxed.html">
-                                            Static Header
-                                        </a>
-                                    </li>
-                                    <li>
-                                        <a class="nav-link" href="layouts-boxed-fixed-header.html">
-                                            Fixed Header
-                                        </a>
-                                    </li>
-                                </ul>
                             </li>
                         </ul>
                     </li>

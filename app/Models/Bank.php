@@ -14,11 +14,5 @@ class Bank extends Model
     protected $fillable = [
         'bank_name',
         'short_name',
-        'created_by_id'
     ];
-
-    public function created_by()
-    {
-        return $this->belongsTo('App\Models\User','created_by_id');
-    }
 }
