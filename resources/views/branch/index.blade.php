@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Bank</h2>
+    <h2>Branch</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -12,25 +12,25 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align: right;">
-                <a class="btn btn-xs btn-square btn-primary" href="{{route('bank.create')}}">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" href="{{route('branch.create')}}">Create</a>
             </div>
             <div class="card-body">
                 <table class="table table-bordered table-striped mb-0" id="datatable-default">
                     <thead>
                         <tr>
-                            <th>Bank Name</th>
-                            <th>Bank Short Name</th>
+                            <th>Branch Name</th>
+                            <th>Branch Code</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($bank as $s)
+                        @foreach($branch as $s)
                             <tr>
-                                <td>{{$s->bank_name??''}}</td>
-                                <td>{{$s->short_name??''}}</td>
+                                <td>{{$s->branch_name??''}}</td>
+                                <td>{{$s->branch_code??''}}</td>
                                 <td>
-                                    <a href="{{ route('bank.edit',$s) }}" title="Edit"><i class="bx bx-edit-alt"></i></a>
-                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('bank.destroy',$s) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
+                                    <a href="{{ route('branch.edit',$s) }}" title="Edit"><i class="bx bx-edit-alt"></i></a>
+                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('branch.destroy',$s) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
                                 </td>
                             </tr>
                         @endforeach

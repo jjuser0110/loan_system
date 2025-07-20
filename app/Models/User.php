@@ -58,39 +58,4 @@ class User extends Authenticatable
     {
         return $this->belongsTo('App\Models\Role');
     }
-
-    public function user_wallet_logs()
-    {
-        return $this->morphMany('App\Models\UserWalletLog', 'content');
-    }
-
-    public function wallet_logs()
-    {
-        return $this->hasMany('App\Models\UserWalletLog')->orderBy('created_at','DESC');
-    }
-
-    public function package()
-    {
-        return $this->hasOne('App\Models\Package');
-    }
-
-    public function package_invoices()
-    {
-        return $this->hasMany('App\Models\PackageInvoice');
-    }
-
-    public function follow_ups()
-    {
-        return $this->hasMany('App\Models\FollowUp', 'customer_id');
-    }
-
-    public function last_package_invoice()
-    {
-        return $this->hasOne('App\Models\PackageInvoice')->orderBy('id', 'DESC')->latest();
-    }
-
-    public function last_invoice()
-    {
-        return $this->hasOne('App\Models\Invoice')->orderBy('id', 'DESC')->latest();
-    }
 }

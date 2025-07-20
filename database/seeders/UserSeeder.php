@@ -14,13 +14,13 @@ class UserSeeder extends Seeder
     public function run()
     {
         $user = User::where('username','superadmin')->first();
-        $role = Bouncer::role()->where('name','admin')->first();
+        $role = Bouncer::role()->where('name','superadmin')->first();
         if(!isset($user)){
             $data = [
                 'name'     => 'Superadmin',
                 'username'     => 'superadmin',
-                'email'     => 'superadmin@game.com',
-                'password'     => Hash::make('admin123456'),
+                'email'     => 'superadmin@gmail.com',
+                'password'     => Hash::make('admin99999'),
                 'role_id'     => $role->id,
                 'is_active'     => 1,
             ];
@@ -32,14 +32,14 @@ class UserSeeder extends Seeder
         $bouncerRole = $user->getRoles()->first();
         Bouncer::allow($bouncerRole)->to($abilities);
 
-        $user = User::where('username','admin')->first();
-        $role = Bouncer::role()->where('name','admin')->first();
+        $user = User::where('username','systemadmin')->first();
+        $role = Bouncer::role()->where('name','superadmin')->first();
         if(!isset($user)){
             $data = [
-                'name'     => 'Admin',
-                'username'     => 'admin',
-                'email'     => 'admin@game.com',
-                'password'     => Hash::make('admin123456'),
+                'name'     => 'System Admin',
+                'username'     => 'system',
+                'email'     => 'system@gmail.com',
+                'password'     => Hash::make('admin99999'),
                 'role_id'     => $role->id,
                 'is_active'     => 1,
             ];

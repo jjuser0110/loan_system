@@ -27,7 +27,6 @@ class BankController extends Controller
 
     public function store(Request $request)
     {
-        $request->merge(['created_by_id'=>Auth::user()->id]);
         $bank = Bank::create($request->all());
 
         return redirect()->route('bank.index')->withSuccess('Data saved');
@@ -40,16 +39,12 @@ class BankController extends Controller
 
     public function update(Request $request, Bank $bank)
     {
-        // dd($request->all());
         $bank->update($request->all());
         return redirect()->route('bank.index')->withSuccess('Data updated');
     }
 
     public function destroy(Bank $bank)
     {
-        // if (count($bank->bankSettings) > 0 || count($bank->userBanks) > 0) {
-        //     return redirect()->route('bank.index')->withErrors('Unable to delete');
-        // }
         $bank->delete();
 
         return redirect()->route('bank.index')->withSuccess('Data deleted');

@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Bank @if (isset($bank)) Edit @else Create @endif</h2>
+    <h2>Branch @if (isset($branch)) Edit @else Create @endif</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -11,21 +11,21 @@
 <div class="row">
     <div class="col-lg-12 mb-3">
         <section class="card">
-            <form class="theme-form mega-form" enctype="multipart/form-data" @if (isset($bank)) method="post" action="{{ route('bank.update',$bank) }}" @else method="post" action="{{ route('bank.store') }}" @endif onsubmit="return onSubmitForm()">
+            <form class="theme-form mega-form" enctype="multipart/form-data" @if (isset($branch)) method="post" action="{{ route('branch.update',$branch) }}" @else method="post" action="{{ route('branch.store') }}" @endif onsubmit="return onSubmitForm()">
                 @csrf
                 <div class="card-body">
                     <h6>Account Information</h6>
                     <div class="mb-3">
-                        <label class="col-form-label">Name</label>
-                        <input class="form-control" type="text" name="bank_name" placeholder="bank name" value="{{$bank->bank_name??''}}" required>
+                        <label class="col-form-label">Branch Name</label>
+                        <input class="form-control" type="text" name="branch_name" placeholder="branch name" value="{{$branch->branch_name??''}}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="col-form-label">Short Name</label>
-                        <input class="form-control" type="text" name="short_name" placeholder="short name" value="{{$bank->short_name??''}}" required>
+                        <label class="col-form-label">Branch Code</label>
+                        <input class="form-control" type="text" name="branch_code" placeholder="branch code" value="{{$branch->branch_code??''}}" required>
                     </div>
                 </div>
                 <div class="card-footer text-end">
-                    <a href="{{route('bank.index')}}" class="btn btn-secondary">Back</a>
+                    <a href="{{route('branch.index')}}" class="btn btn-secondary">Back</a>
                     <button type="submit" class="btn btn-primary">Submit</button>
                     <!-- <button class="btn btn-secondary">Cancel</button> -->
                 </div>

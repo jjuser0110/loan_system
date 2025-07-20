@@ -35,6 +35,7 @@
 <script src="{{ asset('porto-assets/vendor/jqvmap/maps/continents/jquery.vmap.europe.js') }}"></script>
 <script src="{{ asset('porto-assets/vendor/jqvmap/maps/continents/jquery.vmap.north-america.js') }}"></script>
 <script src="{{ asset('porto-assets/vendor/jqvmap/maps/continents/jquery.vmap.south-america.js') }}"></script>
+<script src="{{ asset('porto-assets/vendor/select2/js/select2.js') }}"></script>
 
 <!-- Theme Base, Components and Settings -->
 <script src="{{ asset('porto-assets/js/theme.js') }}"></script>
