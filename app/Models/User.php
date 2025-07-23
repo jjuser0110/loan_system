@@ -23,16 +23,13 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'code',
         'password',
         'remember_token',
         'username',
         'role_id',
         'is_active',
-        'contact_no',
-        'referral_code',
-        'wallet',
-        'upline',
+        'branch_id',
+        'company_id',
     ];
 
     /**
@@ -57,5 +54,15 @@ class User extends Authenticatable
     public function role()
     {
         return $this->belongsTo('App\Models\Role');
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo('App\Models\Branch');
+    }
+
+    public function company()
+    {
+        return $this->belongsTo('App\Models\Company');
     }
 }

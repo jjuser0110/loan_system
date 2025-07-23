@@ -25,19 +25,39 @@ $currentRoute = request()->route()->getName();
                             <span>Dashboard</span>
                         </a>                        
                     </li>
-                    <!-- <li>
-                        <a class="nav-link" href="mailbox-folder.html">
-                            <span class="float-end badge badge-primary">182</span>
-                            <i class="bx bx-envelope" aria-hidden="true"></i>
-                            <span>Mailbox</span>
+                    <li class="{{ request()->routeIs('customer.*') ? 'nav-active' : ''}}">
+                        <a class="nav-link" href="{{route('customer.index')}}">
+                            <i class="bx bx-home-alt" aria-hidden="true"></i>
+                            <span>Customer List</span>
                         </a>                        
-                    </li> -->
-                    <li class="nav-parent  {{ request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') ? 'nav-expanded nav-active' : ''}}">
+                    </li>
+                    @if(Auth::user()->role_id != 4)
+                    <li class="nav-parent  {{ request()->routeIs('staff.*') ? 'nav-expanded nav-active' : ''}}">
+                        <a class="nav-link" href="#">
+                            <i class="bx bx-layout" aria-hidden="true"></i>
+                            <span>Setting</span>
+                        </a>
+                        <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('staff.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('staff.index')}}">
+                                    Company Staff
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    @endif
+                    @if(Auth::user()->role_id == 1)
+                    <li class="nav-parent  {{ request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>
                             <span>Main Setting</span>
                         </a>
                         <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('cadmin.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('cadmin.index')}}">
+                                    Company Admin
+                                </a>
+                            </li>
                             <li class="{{ request()->routeIs('company.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('company.index')}}">
                                     Company
@@ -55,6 +75,7 @@ $currentRoute = request()->route()->getName();
                             </li>
                         </ul>
                     </li>
+                    @endif
                 </ul>
             </nav>
 
