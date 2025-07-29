@@ -1,4 +1,13 @@
 @extends('layouts.app')
+<style>
+    .modal-block {
+            max-width: 1000px;
+            margin: 20px auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+    </style>
 
 @section('content')
 <header class="page-header">
@@ -269,23 +278,33 @@
                                 <table class="table table-bordered table-striped mb-0" id="datatable-default">
                                     <thead>
                                         <tr>
+                                            <th>Reference</th>
+                                            <th>New IC</th>
                                             <th>Name</th>
-                                            <th>Username</th>
-                                            <th>Branch</th>
+                                            <th>Mobile</th>
+                                            <th>Telephone</th>
+                                            <th>Job</th>
                                             <th>Company</th>
-                                            <th>Status</th>
-                                            <th>Action</th>
+                                            <th>House Ownership</th>
+                                            <th>Monthly Income</th>
+                                            <th>City</th>
+                                            <th>State</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                            <tr>
-                                                <td>abc123</td>
-                                                <td>abc123</td>
-                                                <td>abc123</td>
-                                                <td>abc123</td>
-                                                <td>abc123</td>
-                                                <td>abc123</td>
-                                            </tr>
+                                        <tr>
+                                            <td>abc123</td>
+                                            <td>abc123</td>
+                                            <td>abc123</td>
+                                            <td>abc123</td>
+                                            <td>abc123</td>
+                                            <td>abc123</td>
+                                            <td>abc123</td>
+                                            <td>abc123</td>
+                                            <td>abc123</td>
+                                            <td>abc123</td>
+                                            <td>abc123</td>
+                                        </tr>
                                     </tbody>
                                 </table>
                             </div>
@@ -299,18 +318,18 @@
     </div>
 
     <!-- Modal Form -->
-    <div id="modalForm" class="modal-block modal-block-primary mfp-hide">
-        <section class="card">
-            <header class="card-header">
-                <h2 class="card-title">Reference Form</h2>
-            </header>
-            <div class="card-body">
-                <form>
-                    <div class="form-row">
-                        <div class="row mb-2">
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label for="inputState">Reference</label>
-                                <select id="inputState" class="form-control">
+        <div id="modalForm" class="modal-block modal-block-primary mfp-hide">
+            <section class="card">
+                <header class="card-header">
+                    <h2 class="card-title">Reference Form</h2>
+                </header>
+                <div class="card-body">
+                    <form>
+                        <!-- Reference and Reference New IC -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="inputReference" class="form-label">Reference</label>
+                                <select id="inputReference" class="form-select">
                                     <option selected>Spouse</option>
                                     <option>Guarantor</option>
                                     <option>Father</option>
@@ -319,64 +338,117 @@
                                     <option>Sister</option>
                                 </select>
                             </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label for="inputZip">Job Type</label>
-                                <input type="text" class="form-control" id="inputZip">
+                            <div class="col-md-6">
+                                <label for="inputReferenceIC" class="form-label">Reference New IC</label>
+                                <input type="text" class="form-control" id="inputReferenceIC">
                             </div>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label for="inputEmail4">Reference New IC</label>
-                            <input type="email" class="form-control" id="inputEmail4" placeholder="Email">
+                        
+                        <!-- Reference Name -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="inputReferenceName" class="form-label">Reference Name</label>
+                                <input type="text" class="form-control" id="inputReferenceName" placeholder="Reference name">
+                            </div>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label for="inputEmail4">Reference Name</label>
-                            <input type="email" class="form-control" id="inputEmail4" placeholder="Email">
+                        
+                        <!-- Telephone and Mobile -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="inputMobile" class="form-label">Mobile</label>
+                                <input type="tel" class="form-control" id="inputMobile" placeholder="Mobile number">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="inputTelephone" class="form-label">Telephone</label>
+                                <input type="tel" class="form-control" id="inputTelephone" placeholder="Telephone number">
+                            </div>
                         </div>
-                        <div class="form-group col-md-6">
-                            <label for="inputEmail4">Reference New IC</label>
-                            <input type="email" class="form-control" id="inputEmail4" placeholder="Email">
+                        
+                        <!-- Job and Company -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="inputJob" class="form-label">Job</label>
+                                <input type="text" class="form-control" id="inputJob" placeholder="Job title">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="inputCompany" class="form-label">Company</label>
+                                <input type="text" class="form-control" id="inputCompany" placeholder="Company name">
+                            </div>
                         </div>
-                        <div class="form-group col-md-6 mb-3 mb-lg-0">
-                            <label for="inputPassword4">Password</label>
-                            <input type="password" class="form-control" id="inputPassword4" placeholder="Password">
+                        
+                        <!-- House Ownership and Monthly Income -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="inputHouseOwnership" class="form-label">House Ownership</label>
+                                <input type="text" class="form-control" id="inputHouseOwnership" placeholder="House ownership status">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="inputMonthlyIncome" class="form-label">Monthly Income</label>
+                                <input type="number" class="form-control" id="inputMonthlyIncome" placeholder="Monthly income">
+                            </div>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="inputAddress">Address</label>
-                        <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
-                    </div>
-                    <div class="form-group">
-                        <label for="inputAddress2">Address 2</label>
-                        <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor">
-                    </div>
-                    <div class="form-row">
-                        <div class="form-group col-md-6">
-                            <label for="inputCity">City</label>
-                            <input type="text" class="form-control" id="inputCity">
+                        
+                        <!-- Address -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="inputAddress" class="form-label">Address</label>
+                                <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
+                            </div>
                         </div>
-                        <div class="form-group col-md-4">
-                            <label for="inputState">State</label>
-                            <select id="inputState" class="form-control">
-                                <option selected>Choose...</option>
-                                <option>...</option>
-                            </select>
+                        
+                        <!-- Address 2 -->
+                        <div class="row mb-3">
+                            <div class="col-md-12">
+                                <label for="inputAddress2" class="form-label">Address 2</label>
+                                <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor">
+                            </div>
                         </div>
-                        <div class="form-group col-md-2">
-                            <label for="inputZip">Zip</label>
-                            <input type="text" class="form-control" id="inputZip">
+                        
+                        <!-- City, State, and Zip -->
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="inputCity" class="form-label">City</label>
+                                <input type="text" class="form-control" id="inputCity" placeholder="City">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="inputState" class="form-label">State</label>
+                                <select id="inputState" class="form-select">
+                                    <option selected>Choose...</option>
+                                    <option>Johor</option>
+                                    <option>Kedah</option>
+                                    <option>Kelantan</option>
+                                    <option>Melaka</option>
+                                    <option>Negeri Sembilan</option>
+                                    <option>Pahang</option>
+                                    <option>Perak</option>
+                                    <option>Perlis</option>
+                                    <option>Penang</option>
+                                    <option>Sabah</option>
+                                    <option>Sarawak</option>
+                                    <option>Selangor</option>
+                                    <option>Terengganu</option>
+                                    <option>Kuala Lumpur</option>
+                                    <option>Labuan</option>
+                                    <option>Putrajaya</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label for="inputZip" class="form-label">Zip</label>
+                                <input type="text" class="form-control" id="inputZip" placeholder="12345">
+                            </div>
                         </div>
-                    </div>
-                </form>
-            </div>
-            <footer class="card-footer">
-                <div class="row">
-                    <div class="col-md-12 text-end">
-                        <button class="btn btn-primary modal-confirm">Submit</button>
-                        <button class="btn btn-default modal-dismiss">Cancel</button>
-                    </div>
+                    </form>
                 </div>
-            </footer>
-        </section>
+                <footer class="card-footer">
+                    <div class="row">
+                        <div class="col-md-12 text-end">
+                            <button class="btn btn-primary modal-confirm">Submit</button>
+                            <button class="btn btn-secondary modal-dismiss">Cancel</button>
+                        </div>
+                    </div>
+                </footer>
+            </section>
+        </div>
     </div>
 </div>
 <!-- end: page -->
