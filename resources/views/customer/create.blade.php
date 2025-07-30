@@ -270,46 +270,46 @@
                 </div>
                 <div id="reference" class="tab-pane">
                     <div class="col-lg-12 mb-3">
-                        <section class="card">
-                            <div class="card-header" style="text-align: left;">
+        <section class="card">
+            <div class="card-header" style="text-align: left;">
                                 <a class="btn btn-xs btn-square btn-primary" href="#modalForm">Add Reference</a>
                             </div>
-                            <div class="card-body">
-                                <table class="table table-bordered table-striped mb-0" id="datatable-default">
-                                    <thead>
-                                        <tr>
-                                            <th>Reference</th>
-                                            <th>New IC</th>
-                                            <th>Name</th>
-                                            <th>Mobile</th>
-                                            <th>Telephone</th>
-                                            <th>Job</th>
-                                            <th>Company</th>
-                                            <th>House Ownership</th>
-                                            <th>Monthly Income</th>
-                                            <th>City</th>
-                                            <th>State</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>abc123</td>
-                                            <td>abc123</td>
-                                            <td>abc123</td>
-                                            <td>abc123</td>
-                                            <td>abc123</td>
-                                            <td>abc123</td>
-                                            <td>abc123</td>
-                                            <td>abc123</td>
-                                            <td>abc123</td>
-                                            <td>abc123</td>
-                                            <td>abc123</td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </section>
-                    </div>    
+            <div class="card-body">
+                <table class="table table-bordered table-striped mb-0" id="datatable-default">
+                    <thead>
+                        <tr>
+                            <th>Reference</th>
+                            <th>New IC</th>
+                            <th>Name</th>
+                            <th>Mobile</th>
+                            <th>Job</th>
+                            <th>Company Name</th>
+                            <th>House Ownership</th>
+                            <th>Monthly Income</th>
+                            <th>City</th>
+                            <th>State</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Guarantor</td>
+                            <td>1234567890</td>
+                            <td>Test</td>
+                            <td>123456</td>
+                            <td>Manager</td>
+                            <td>SDNBHDabc123abc123abc123</td>
+                            <td>abc123</td>
+                            <td>12345</td>
+                            <td>city 1</td>
+                            <td>state 1</td>
+                            <td></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </div>   
                 </div>
             </div>
         </div>
@@ -454,7 +454,23 @@
 <!-- end: page -->
 @endsection
 
+@section('page-js')
+    <script src="{{ asset('porto-assets/vendor/select2/js/select2.js') }}"></script>
+    <script src="{{ asset('porto-assets/vendor/datatables/media/js/jquery.dataTables.min.js') }}"></script>
+    <script src="{{ asset('porto-assets/vendor/datatables/media/js/dataTables.bootstrap5.min.js') }}"></script>
+    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/dataTables.buttons.min.js') }}"></script>
+    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.bootstrap4.min.js') }}"></script>
+    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.html5.min.js') }}"></script>
+    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.print.min.js') }}"></script>
+    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/JSZip-2.5.0/jszip.min.js') }}"></script>
+    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/pdfmake.min.js') }}"></script>
+    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/vfs_fonts.js') }}"></script>
+@endsection
+
 @section('scripts')
+    <script src="{{ asset('porto-assets/js/examples/examples.datatables.default.js') }}"></script>
+    <script src="{{ asset('porto-assets/js/examples/examples.datatables.row.with.details.js') }}"></script>
+    <script src="{{ asset('porto-assets/js/examples/examples.datatables.tabletools.js') }}"></script>
     <script>
         function onSubmitForm() {
             var form = document.querySelector('form');
