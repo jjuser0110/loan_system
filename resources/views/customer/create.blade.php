@@ -21,10 +21,10 @@
         <section class="card">
             <div class="card-body">
                 <div class="thumb-info mb-3">
-                    <img src="{{asset('porto-assets/img/!logged-user.jpg')}}" class="rounded img-fluid" alt="John Doe">
+                    <img id="previewImage" src="{{ asset('porto-assets/img/!logged-user.jpg') }}" class="rounded img-fluid" alt="Profile Image">
                 </div>
                 <div class="clearfix">
-                    <input type="file" class="form-control" id="profileImage" name="profileImage" accept="image/*">
+                    <input type="file" class="form-control" id="profileImage" name="profileImage" accept="image/*" onchange="previewPhoto(event)">
                 </div>
             </div>
         </section>
@@ -74,13 +74,11 @@
                             </div>
                         </div>
                         <div class="row mb-2">
-                            <div class="form-group col">
+                            <div class="form-group col-md-6">
                                 <label for="inputAddress">Customer Name</label>
                                 <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
                             </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col">
+                            <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label for="inputAddress">NRIC</label>
                                 <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
                             </div>
@@ -90,7 +88,8 @@
                                 <label for="inputState">Gender</label>
                                 <select id="inputState" class="form-control">
                                     <option selected>Choose...</option>
-                                    <option>...</option>
+                                    <option>Male</option>
+                                    <option>Female</option>
                                 </select>
                             </div>
                             <div class="form-group col-md-4 border-top-0 pt-0">
@@ -101,9 +100,15 @@
                                 </select>
                             </div>
                             <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">DOB</label>
-                                <input type="text" class="form-control" id="inputZip">
+                                <label for="inputZip">Date Of Birth</label>
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </span>
+                                    <input type="text" data-plugin-datepicker class="form-control">
+                                </div>
                             </div>
+
                         </div>
                         <div class="row mb-2">
                             <div class="form-group col">
@@ -182,7 +187,7 @@
                             </div>
                             <div class="form-group col-md-4">
                                 <label>Monthly Income</label>
-                                <input type="text" class="form-control" name="" placeholder="Monthly Income" >
+                                <input type="number" class="form-control" name="" placeholder="Monthly Income" >
                             </div>
                         </div>
                         <div class="row mb-2">
@@ -229,9 +234,9 @@
                             <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label for="inputState">Employer</label>
                                 <select id="inputState" class="form-control">
-                                    <option selected>Private</option>
+                                    <option selected>Choose...</option>
+                                    <option>Private</option>
                                     <option>Government</option>
-                                    <option>...</option>
                                 </select>
                             </div>
                             <div class="form-group col-md-6 border-top-0 pt-0">
@@ -242,21 +247,41 @@
                         <div class="row mb-2">
                             <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label for="inputZip">Start Working Date</label>
-                                <input type="text" class="form-control" id="inputZip">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </span>
+                                    <input type="text" data-plugin-datepicker class="form-control">
+                                </div>
                             </div>
                             <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label for="inputZip">End Working Date</label>
-                                <input type="text" class="form-control" id="inputZip">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </span>
+                                    <input type="text" data-plugin-datepicker class="form-control" placeholder="Optional">
+                                </div>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label for="inputZip">Salary Date</label>
-                                <input type="text" class="form-control" id="inputZip">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </span>
+                                    <input type="text" data-plugin-datepicker class="form-control">
+                                </div>
                             </div>
                             <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label for="inputZip">2nd Salary Date</label>
-                                <input type="text" class="form-control" id="inputZip">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-calendar-alt"></i>
+                                    </span>
+                                    <input type="text" data-plugin-datepicker class="form-control">
+                                </div>
                             </div>
                         </div>
 
@@ -503,7 +528,19 @@
                 $.magnificPopup.close();
             });
         });
+        
+        function previewPhoto(event) {
+            const input = event.target;
+            const preview = document.getElementById('previewImage');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
     </script>
-    
 	<script src="js/examples/examples.modals.js"></script>
 @endsection
