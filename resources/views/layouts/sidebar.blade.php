@@ -73,6 +73,16 @@ $currentRoute = request()->route()->getName();
                                     Bank
                                 </a>
                             </li>
+                            <li class="{{ request()->routeIs('race.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('race.index')}}">
+                                    Race
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('marital_status.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('marital_status.index')}}">
+                                    Marital Status
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     @endif

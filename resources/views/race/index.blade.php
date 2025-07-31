@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Customer</h2>
+    <h2>Race</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -12,31 +12,32 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align: right;">
-                <a class="btn btn-xs btn-square btn-primary" href="{{route('customer.create')}}">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" href="{{route('race.create')}}">Create</a>
             </div>
             <div class="card-body">
                 <table class="table table-bordered table-striped mb-0" id="datatable-default">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>NRIC Number</th>
-                            <th>Email</th>
-                            <th>Mobile</th>
-                            <th>Status</th>
+                            <th>Race Name</th>
                             <th>Action</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach($customer as $s)
+                        @foreach($race as $s)
                             <tr>
-                                <td>{{$s->customer_name??''}}</td>
-                                <td>{{$s->nric_number??''}}</td>
-                                <td>{{$s->email??''}}</td>
-                                <td>{{$s->mobile??''}}</td>
-                                <td><?php echo isset($s)&&$s->is_active == 1?'<span style="color:green">Active</span>':'<span style="color:red">Inactive</span>'?></td>
+                                <td>{{ $s->race_name ?? '' }}</td>
                                 <td>
-                                    <a href="{{ route('customer.edit',$s) }}" title="Edit"><i class="bx bx-edit-alt"></i></a>
-                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.destroy',$s) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
+                                    <a href="{{ route('race.edit', $s) }}" title="Edit">
+                                        <i class="bx bx-edit-alt"></i>
+                                    </a>
+
+                                    <form action="{{ route('race.destroy', $s) }}" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" style="border:none; background:none; padding:0;">
+                                            <i class="bx bx-trash text-danger"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach
