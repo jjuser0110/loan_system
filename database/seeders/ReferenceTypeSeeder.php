@@ -25,8 +25,7 @@ class ReferenceTypeSeeder extends Seeder
             ['reference_type' => 'Brother'],
             ['reference_type' => 'Sister'],
             ['reference_type' => 'Relative'],
-            ['reference_type' => 'Grandfather'],
-            ['reference_type' => 'Grandmother'],
+            ['reference_type' => 'Friend'],
         ];
 
         ReferenceType::insert($data);

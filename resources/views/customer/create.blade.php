@@ -7,6 +7,12 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         }
+
+        input::-ms-reveal,
+        input::-ms-clear,
+        input::-webkit-contacts-auto-fill-button {
+            display: none !important;
+        }
     </style>
 
 @section('content')
@@ -75,8 +81,9 @@
                                         <label for="company_code">Company Code</label>
                                         <select id="company_code" name="company_code" class="form-control" required>
                                             <option value="">Choose...</option>
-                                            <option value="CC001">CC001</option>
-                                            <option value="CC002">CC002</option>
+                                            @foreach($company as $row)
+                                                <option value="{{ $row->company_code }}">{{ $row->company_code }}</option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -146,7 +153,15 @@
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="house_ownership">House Ownership</label>
-                                        <input type="text" class="form-control" id="house_ownership" name="house_ownership" required>
+                                        <select id="house_ownership" name="house_ownership" class="form-control" required>
+                                            <option value="">Choose...</option>
+                                            @foreach($house_ownership as $houseOwnership)
+                                                <option value="{{ $houseOwnership->house_ownership }}"
+                                                    {{ strtolower($houseOwnership->house_ownership ?? '') == strtolower($houseOwnership->house_ownership) ? 'selected' : '' }}>
+                                                    {{ $houseOwnership->house_ownership }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="warga_negara">Warga Negara</label>
@@ -164,16 +179,16 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="email">Email</label>
-                                        <input type="email" class="form-control" id="email" name="email">
+                                        <label for="email">Mail</label>
+                                        <input type="email" class="form-control" id="email" name="email" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="telephone">Telephone</label>
-                                        <input type="text" class="form-control" id="telephone" name="telephone">
+                                        <input type="number" class="form-control" id="telephone" name="telephone">
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="mobile">Mobile</label>
-                                        <input type="text" class="form-control" id="mobile" name="mobile" required>
+                                        <input type="number" class="form-control" id="mobile" name="mobile" required>
                                     </div>
                                 </div>
                                 <div class="row mb-2">

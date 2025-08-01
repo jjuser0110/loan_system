@@ -1,12 +1,18 @@
 @extends('layouts.app')
 <style>
     .modal-block {
-            max-width: 2000px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+        max-width: 2000px;
+        margin: 20px auto;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    input::-ms-reveal,
+    input::-ms-clear,
+    input::-webkit-contacts-auto-fill-button {
+        display: none !important;
+    }
     </style>
 
 @section('content')
@@ -79,8 +85,12 @@
                                         <label for="company_code">Company Code</label>
                                         <select id="company_code" name="company_code" class="form-control" required>
                                             <option value="">Choose...</option>
-                                            <option value="CC001" {{ $customer->company_code == 'CC001' ? 'selected' : '' }}>CC001</option>
-                                            <option value="CC002" {{ $customer->company_code == 'CC002' ? 'selected' : '' }}>CC002</option>
+                                            @foreach($company as $row)
+                                                <option value="{{ $row->company_code }}"
+                                                    {{ old('company_code', $customer->company_code ?? '') == $row->company_code ? 'selected' : '' }}>
+                                                    {{ $row->company_code }}
+                                                </option>
+                                            @endforeach
                                         </select>
                                     </div>
                                 </div>
@@ -153,7 +163,15 @@
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="house_ownership">House Ownership</label>
-                                        <input type="text" class="form-control" id="house_ownership" name="house_ownership" value="{{ $customer->house_ownership }}" required>
+                                        <select id="house_ownership" name="house_ownership" class="form-control" required>
+                                            <option value="">Choose...</option>
+                                            @foreach($house_ownership as $houseOwnership)
+                                                <option value="{{ $houseOwnership->house_ownership }}"
+                                                    {{ strtolower($houseOwnership->house_ownership ?? '') == strtolower($houseOwnership->house_ownership) ? 'selected' : '' }}>
+                                                    {{ $houseOwnership->house_ownership }}
+                                                </option>
+                                            @endforeach
+                                        </select>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="warga_negara">Warga Negara</label>
@@ -171,16 +189,16 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="email">Email</label>
-                                        <input type="email" class="form-control" id="email" name="email" value="{{ $customer->email }}">
+                                        <label for="email">Mail</label>
+                                        <input type="email" class="form-control" id="email" name="email" autocomplete="off" value="{{ $customer->email }}" readonly onfocus="this.removeAttribute('readonly');">
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="telephone">Telephone</label>
-                                        <input type="text" class="form-control" id="telephone" name="telephone" value="{{ $customer->telephone }}">
+                                        <input type="number" class="form-control" id="telephone" name="telephone" value="{{ $customer->telephone }}">
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="mobile">Mobile</label>
-                                        <input type="text" class="form-control" id="mobile" name="mobile" value="{{ $customer->mobile }}" required>
+                                        <input type="number" class="form-control" id="mobile" name="mobile" value="{{ $customer->mobile }}" required>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
@@ -248,9 +266,9 @@
                                     <option value="">Choose...</option>
                                     @foreach($states as $state)
                                         <option value="{{ $state->state_name }}"
-                                        {{ strtolower($customer->company_state ?? '') == strtolower($state->state_name) ? 'selected' : '' }}>
-                                        {{ $state->state_name }}
-                                    </option>
+                                            {{ strtolower($customer->company_state ?? '') == strtolower($state->state_name) ? 'selected' : '' }}>
+                                            {{ $state->state_name }}
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
@@ -258,15 +276,15 @@
                         <div class="row mb-2">
                             <div class="form-group col-md-4 border-top-0 pt-0">
                                 <label>Office Telephone</label>
-                                <input type="text" class="form-control" name="company_telephone" value="{{ $customer->company_telephone }}">
+                                <input type="number" class="form-control" name="company_telephone" value="{{ $customer->company_telephone }}">
                             </div>
                             <div class="form-group col-md-4 border-top-0 pt-0">
                                 <label>Office Mobile</label>
-                                <input type="text" class="form-control" name="company_mobile" value="{{ $customer->company_mobile }}">
+                                <input type="number" class="form-control" name="company_mobile" value="{{ $customer->company_mobile }}">
                             </div>
                             <div class="form-group col-md-4 border-top-0 pt-0">
                                 <label>Fax</label>
-                                <input type="text" class="form-control" name="company_fax" value="{{ $customer->company_fax }}">
+                                <input type="number" class="form-control" name="company_fax" value="{{ $customer->company_fax }}">
                             </div>
                         </div>
                         <div class="row mb-2">
@@ -282,10 +300,18 @@
                         <div class="row mb-2">
                             <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label>Employer Type</label>
-                                <select name="employer" class="form-control">
+                                <select name="employer" class="form-control" required>
                                     <option value="">Choose...</option>
-                                    <option value="Private" {{ $customer->employer == 'Private' ? 'selected' : '' }}>Private</option>
+                                    <option value="Private Sector" {{ $customer->employer == 'Private Sector' ? 'selected' : '' }}>Private Sector</option>
                                     <option value="Government" {{ $customer->employer == 'Government' ? 'selected' : '' }}>Government</option>
+                                    <option value="Statutory Body" {{ $customer->employer == 'Statutory Body' ? 'selected' : '' }}>Statutory Body</option>
+                                    <option value="Public Listed Company" {{ $customer->employer == 'Public Listed Company' ? 'selected' : '' }}>Public Listed Company</option>
+                                    <option value="Multinational Corporation" {{ $customer->employer == 'Multinational Corporation' ? 'selected' : '' }}>Multinational Corporation</option>
+                                    <option value="Self-Employed" {{ $customer->employer == 'Self-Employed' ? 'selected' : '' }}>Self-Employed</option>
+                                    <option value="NGO" {{ $customer->employer == 'NGO' ? 'selected' : '' }}>Non-Governmental Organization (NGO)</option>
+                                    <option value="Military" {{ $customer->employer == 'Military' ? 'selected' : '' }}>Military / Armed Forces</option>
+                                    <option value="Retired" {{ $customer->employer == 'Retired' ? 'selected' : '' }}>Retired</option>
+                                    <option value="Unemployed" {{ $customer->employer == 'Unemployed' ? 'selected' : '' }}>Unemployed</option>
                                 </select>
                             </div>
                             <div class="form-group col-md-6 border-top-0 pt-0">
@@ -336,12 +362,12 @@
                                             <th>NRIC</th>
                                             <th>Name</th>
                                             <th>Mobile</th>
-                                            <th>Designation</th>
-                                            <th>Company Name</th>
                                             <th>House Ownership</th>
                                             <th>Monthly Income</th>
                                             <th>City</th>
                                             <th>State</th>
+                                            <th>Designation</th>
+                                            <th>Company Name</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -352,12 +378,12 @@
                                             <td>{{ $reference->new_ic }}</td>
                                             <td>{{ $reference->name }}</td>
                                             <td>{{ $reference->mobile }}</td>
-                                            <td>{{ $reference->designation ?? $reference->job }}</td>
-                                            <td>{{ $reference->company_name }}</td>
                                             <td>{{ $reference->house_ownership }}</td>
                                             <td>{{ $reference->monthly_income }}</td>
                                             <td>{{ $reference->city }}</td>
                                             <td>{{ $reference->state }}</td>
+                                            <td>{{ $reference->designation ?? $reference->job }}</td>
+                                            <td>{{ $reference->company_name }}</td>
                                             <td>
                                                 <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.reference.destroy', $reference->id) }}'}" title="Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
                                             </td>
@@ -434,18 +460,26 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label>Mobile</label>
-                            <input type="text" class="form-control" name="mobile" placeholder="Mobile number" required>
+                            <input type="number" class="form-control" name="mobile" placeholder="Mobile number" required>
                         </div>
                         <div class="col-md-6">
                             <label>Telephone</label>
-                            <input type="text" class="form-control" name="telephone" placeholder="Telephone number">
+                            <input type="number" class="form-control" name="telephone" placeholder="Telephone number">
                         </div>
                     </div>
 
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label>House Ownership</label>
-                            <input type="text" class="form-control" name="house_ownership">
+                            <select id="house_ownership" name="house_ownership" class="form-control" required>
+                                <option value="">Choose...</option>
+                                @foreach($house_ownership as $houseOwnership)
+                                    <option value="{{ $houseOwnership->house_ownership }}"
+                                        {{ strtolower($houseOwnership->house_ownership ?? '') == strtolower($houseOwnership->house_ownership) ? 'selected' : '' }}>
+                                        {{ $houseOwnership->house_ownership }}
+                                    </option>
+                                @endforeach
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label>Warga Negara</label>

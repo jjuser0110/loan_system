@@ -83,6 +83,11 @@ $currentRoute = request()->route()->getName();
                                     Marital Status
                                 </a>
                             </li>
+                            <li class="{{ request()->routeIs('house_ownership.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('house_ownership.index')}}">
+                                    House Ownership
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     @endif

@@ -13,6 +13,7 @@ use App\Models\State;
 use App\Models\ReferenceType;
 use App\Models\Reference;
 use App\Models\Customer;
+use App\Models\HouseOwnership;
 use Bouncer;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -29,17 +30,21 @@ class CustomerController extends Controller
 
     public function create()
     {
-        $company = Company::all();
+        $branchId = Auth::user()->branch_id;
+
+        $company = Company::where('branch_id', $branchId)->get();
         $races = Race::all();
         $marital_statuses = MaritalStatuses::all();
         $states = State::all();
         $reference_types = ReferenceType::all();
+        $house_ownership = HouseOwnerShip::all();
 
         return view('customer.create')
             ->with('company', $company)
             ->with('races', $races)
             ->with('marital_statues', $marital_statuses)
             ->with('states', $states)
+            ->with('house_ownership', $house_ownership)
             ->with('reference_types', $reference_types);
     }
 
@@ -88,15 +93,19 @@ class CustomerController extends Controller
 
     public function edit($id)
     {
+        $branchId = Auth::user()->branch_id;
+
+        $company = Company::where('branch_id', $branchId)->get();
         $customer = Customer::findOrFail($id);
         $races = Race::all();
         $states = State::all();
         $marital_statues = MaritalStatuses::all();
         $reference_types = ReferenceType::all();
+        $house_ownership = HouseOwnerShip::all();
         
         $references = Reference::where('customer_id', $id)->get();
         
-        return view('customer.edit', compact('customer', 'races', 'states', 'marital_statues', 'reference_types', 'references'));
+        return view('customer.edit', compact('customer', 'company', 'races', 'states', 'marital_statues', 'reference_types', 'references', 'house_ownership'));
     }
 
     public function update(Request $request, $id)
