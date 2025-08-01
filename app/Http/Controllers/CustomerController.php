@@ -11,6 +11,7 @@ use App\Models\Race;
 use App\Models\MaritalStatuses;
 use App\Models\State;
 use App\Models\ReferenceType;
+use App\Models\Reference;
 use App\Models\Customer;
 use Bouncer;
 use Illuminate\Support\Facades\Validator;
@@ -44,10 +45,10 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
-        // Handle profile image upload
         if ($request->hasFile('profile_image')) {
-            $profileImagePath = $request->file('profile_image')->store('customer_profiles', 'public');
-            $request->merge(['profile_image' => $profileImagePath]);
+            $file = $request->file('profile_image');
+            $path = $file->store('profile_images', 'public');
+            $customer->profile_image = $path;
         }
 
         $request->merge([
@@ -56,41 +57,92 @@ class CustomerController extends Controller
             'warganegara' => strtolower($request->warganegara),
         ]);
 
-        // Create customer record
         $customer = Customer::create($request->all());
 
-        return redirect()->route('customer.index')->withSuccess('Customer data saved successfully');
+        return redirect()->route('customer.edit', $customer->id)->withSuccess('Customer personal information saved successfully. Please add work and reference information.');
     }
 
-    public function edit(User $customer)
+    public function updateWork(Request $request, $id)
     {
-        $company = Company::all();
-        return view('customer.create')->with('customer',$customer)->with('company',$company);
+        $customer = Customer::findOrFail($id);
+        
+        $workData = $request->all();
+        $workData['company_city'] = strtolower($request->company_city);
+        $workData['company_state'] = strtolower($request->company_state);
+        
+        $customer->update($workData);
+        
+        return redirect()->back()->withSuccess('Work information saved successfully');
     }
 
-    public function update(Request $request, User $customer)
+    public function storeReference(Request $request)
     {
-        // dd($request->all());
-        if ($request->password == null) {
-            $data = $request->except('password');
-        } else {
-            if (strlen($request->password) < 8) {
-                return back()->withErrors(['password' => 'Password must be at least 8 characters.']);
-            }
+        $referenceData = $request->all();
+        $referenceData['city'] = strtolower($request->city);
+        $referenceData['company_city'] = strtolower($request->company_city);
+        
+        Reference::create($referenceData);
+        
+        return redirect()->back()->withSuccess('Reference information saved successfully');
+    }
 
-            $data = $request->all();
-            $data['password'] = Hash::make($request->password);
+    public function edit($id)
+    {
+        $customer = Customer::findOrFail($id);
+        $races = Race::all();
+        $states = State::all();
+        $marital_statues = MaritalStatuses::all();
+        $reference_types = ReferenceType::all();
+        
+        $references = Reference::where('customer_id', $id)->get();
+        
+        return view('customer.edit', compact('customer', 'races', 'states', 'marital_statues', 'reference_types', 'references'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $customer = Customer::findOrFail($id);
+
+        // Handle new profile image upload
+        if ($request->hasFile('profile_image')) {
+            $file = $request->file('profile_image');
+            $path = $file->store('profile_images', 'public'); // Save to storage/app/public/profile_images
+            $customer->profile_image = $path;
         }
 
-        $customer->update($data);
-        return redirect()->route('customer.index')->withSuccess('Data updated');
+        // Convert fields to lowercase before updating
+        $request->merge([
+            'city' => strtolower($request->city),
+            'state' => strtolower($request->state),
+            'warganegara' => strtolower($request->warganegara),
+        ]);
+
+        // Update other fields
+        $customer->update($request->except('profile_image'));
+
+        // Save profile_image if it was uploaded
+        $customer->save();
+
+        return redirect()->back()->withSuccess('Personal information saved successfully');
     }
 
-    public function destroy(User $customer)
+    public function destroy(Customer $customer)
     {
         $customer->delete();
 
         return redirect()->route('customer.index')->withSuccess('Data deleted');
+    }
+
+    public function destroyReference($id)
+    {
+        try {
+            $reference = Reference::findOrFail($id);
+            $reference->delete();
+            
+            return redirect()->back()->withSuccess('Reference deleted successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()->withError('Failed to delete reference');
+        }
     }
 
 }

@@ -36,7 +36,16 @@
                                 <td><?php echo isset($s)&&$s->is_active == 1?'<span style="color:green">Active</span>':'<span style="color:red">Inactive</span>'?></td>
                                 <td>
                                     <a href="{{ route('customer.edit',$s) }}" title="Edit"><i class="bx bx-edit-alt"></i></a>
-                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.destroy',$s) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
+                                    <form action="{{ route('customer.destroy', $s->id) }}"
+                                        method="POST"
+                                        style="display:inline;"
+                                        onsubmit="return confirm('Are you sure you want to delete this?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" title="Delete" style="border:none; background:none; padding:0; color:red; cursor:pointer;">
+                                            <i class="bx bx-trash"></i>
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach

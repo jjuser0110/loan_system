@@ -38,7 +38,7 @@ class Customer extends Model
         'designation',
         'monthly_income',
         'company_address',
-        'company_post_code',
+        'company_postcode',
         'company_city',
         'company_state',
         'company_telephone',

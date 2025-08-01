@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('references', function (Blueprint $table) {
             $table->id();
             $table->integer('customer_id');
-            $table->string('type');
+            $table->string('reference_type');
             $table->string('new_ic');
             $table->string('name');
             $table->string('gender');

@@ -21,13 +21,13 @@
         <div class="tabs">
             <ul class="nav nav-tabs">
                 <li class="nav-item active">
-                    <a class="nav-link active" data-bs-target="#personal" href="#personal" data-bs-toggle="tab">Personal</a>
+                    <a class="nav-link active" data-bs-target="#personal" href="#personal" data-bs-toggle="tab" id="tab-personal">Personal</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-target="#work" href="#work" data-bs-toggle="tab">Work</a>
+                    <a class="nav-link" href="#work" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">Work</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-target="#reference" href="#reference" data-bs-toggle="tab">Reference</a>
+                    <a class="nav-link" href="#reference" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">Reference</a>
                 </li>
             </ul>
             <div class="tab-content">
@@ -192,364 +192,7 @@
                         </div>
                     </form>
                 </div>
-                <div id="work" class="tab-pane">
-                    <form class="p-3">
-                        <h4 class="mb-3 font-weight-semibold text-dark">Work Information</h4>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-6">
-                                <label>Company Name</label>
-                                <input type="text" class="form-control" name="" placeholder="Company Name" >
-                            </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label>Biz Type</label>
-                                <input type="text" class="form-control" name="" placeholder="Business Type" >
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-6">
-                                <label>Designation</label>
-                                <input type="text" class="form-control" name="" placeholder="Designation..." >
-                            </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label>Monthly Income</label>
-                                <input type="number" class="form-control" name="" placeholder="Monthly Income" >
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col">
-                                <label for="inputAddress">Company Address</label>
-                                <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">Postcode</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">City</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="state_id">State</label>
-                                <select id="state_id" name="state_id" class="form-control" required>
-                                    <option value="" disabled selected>Choose...</option>
-                                    @foreach($states as $state)
-                                        <option value="{{ $state->id }}">{{ $state->state_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">Office Telephone</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">Office Mobile</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">Fax</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label for="inputZip">Vehicle No</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label for="inputZip">Vehicle Model</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label for="inputState">Employer</label>
-                                <select id="inputState" class="form-control">
-                                    <option selected>Choose...</option>
-                                    <option>Private</option>
-                                    <option>Government</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label for="inputZip">Job Type</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label for="inputZip">Start Working Date</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-calendar-alt"></i>
-                                    </span>
-                                    <input type="text" data-plugin-datepicker class="form-control">
-                                </div>
-                            </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label for="inputZip">End Working Date</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-calendar-alt"></i>
-                                    </span>
-                                    <input type="text" data-plugin-datepicker class="form-control" placeholder="Optional">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label for="inputZip">Salary Date</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-calendar-alt"></i>
-                                    </span>
-                                    <input type="text" data-plugin-datepicker class="form-control">
-                                </div>
-                            </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label for="inputZip">2nd Salary Date</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-calendar-alt"></i>
-                                    </span>
-                                    <input type="text" data-plugin-datepicker class="form-control">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-12 text-end mt-3">
-                                <button class="btn btn-primary modal-confirm">Save</button>
-                            </div>
-                        </div>
-
-                    </form>
-                </div>
-                <div id="reference" class="tab-pane">
-                    <div class="col-lg-12 mb-3">
-        <section class="card">
-            <div class="card-header" style="text-align: left;">
-                                <a class="btn btn-xs btn-square btn-primary" href="#modalForm">Add Reference</a>
-                            </div>
-            <div class="card-body">
-                <table class="table table-bordered table-striped mb-0" id="datatable-default">
-                    <thead>
-                        <tr>
-                            <th>Reference</th>
-                            <th>New IC</th>
-                            <th>Name</th>
-                            <th>Mobile</th>
-                            <th>Job</th>
-                            <th>Company Name</th>
-                            <th>House Ownership</th>
-                            <th>Monthly Income</th>
-                            <th>City</th>
-                            <th>State</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Guarantor</td>
-                            <td>1234567890</td>
-                            <td>Test</td>
-                            <td>123456</td>
-                            <td>Manager</td>
-                            <td>SDNBHDabc123abc123abc123</td>
-                            <td>abc123</td>
-                            <td>12345</td>
-                            <td>city 1</td>
-                            <td>state 1</td>
-                            <td></td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
-        </section>
-    </div>   
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-xl-3">
-    </div>
-
-    <!-- Modal Form -->
-        <div id="modalForm" class="modal-block modal-block-primary modal-block-lg mfp-hide">
-            <section class="card">
-                <header class="card-header">
-                    <h2 class="card-title">Reference Form</h2>
-                </header>
-                <div class="card-body">
-                    <form>
-                        <!-- Reference and Reference New IC -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="inputReference" class="form-label">Reference</label>
-                                <select id="state_id" name="state_id" class="form-control" required>
-                                    <option value="" disabled selected>Choose...</option>
-                                    @foreach($reference_types as $reference_type)
-                                        <option value="{{ $reference_type->id }}">{{ $reference_type->reference_type }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="inputReferenceIC" class="form-label">Reference New IC</label>
-                                <input type="text" class="form-control" id="inputReferenceIC">
-                            </div>
-                        </div>
-                        
-                        <!-- Reference Name -->
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <label for="inputReferenceName" class="form-label">Reference Name</label>
-                                <input type="text" class="form-control" id="inputReferenceName" placeholder="Reference name">
-                            </div>
-                        </div>
-
-                        <div class="row mb-2">
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputState">Gender</label>
-                                <select id="inputState" class="form-control">
-                                    <option selected>Choose...</option>
-                                    <option>Male</option>
-                                    <option>Female</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="state_id">State</label>
-                                <select id="state_id" name="state_id" class="form-control" required>
-                                    <option value="" disabled selected>Choose...</option>
-                                    @foreach($states as $state)
-                                        <option value="{{ $state->id }}">{{ $state->state_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">Date Of Birth</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">
-                                        <i class="fas fa-calendar-alt"></i>
-                                    </span>
-                                    <input type="text" data-plugin-datepicker class="form-control">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Telephone and Mobile -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="inputMobile" class="form-label">Mobile</label>
-                                <input type="tel" class="form-control" id="inputMobile" placeholder="Mobile number">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="inputTelephone" class="form-label">Telephone</label>
-                                <input type="tel" class="form-control" id="inputTelephone" placeholder="Telephone number">
-                            </div>
-                        </div>
-
-                        <!-- House Ownership and Monthly Income -->
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="inputZip">House Ownership</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                            <div class="col-md-6">
-                                <label for="inputZip">Warga Negara</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                        </div>
-                        
-                        <!-- Address -->
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <label for="inputAddress" class="form-label">Address</label>
-                                <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
-                            </div>
-                        </div>
-                        
-                        <!-- City, State, and Zip -->
-                        <div class="row mb-2">
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">Postcode</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">City</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="state_id">State</label>
-                                <select id="state_id" name="state_id" class="form-control" required>
-                                    <option value="" disabled selected>Choose...</option>
-                                    @foreach($states as $state)
-                                        <option value="{{ $state->id }}">{{ $state->state_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                        
-                        <!-- Job and Company -->
-                        <br><br>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-6">
-                                <label>Company Name</label>
-                                <input type="text" class="form-control" name="" placeholder="Company Name" >
-                            </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label>Biz Type</label>
-                                <input type="text" class="form-control" name="" placeholder="Business Type" >
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-6">
-                                <label>Designation</label>
-                                <input type="text" class="form-control" name="" placeholder="Designation..." >
-                            </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label>Monthly Income</label>
-                                <input type="number" class="form-control" name="" placeholder="Monthly Income" >
-                            </div>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-md-12">
-                                <label for="inputAddress" class="form-label">Company Address</label>
-                                <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St">
-                            </div>
-                        </div>
-                        <div class="row mb-2">
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">Postcode</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="inputZip">City</label>
-                                <input type="text" class="form-control" id="inputZip">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label for="state_id">State</label>
-                                <select id="state_id" name="state_id" class="form-control" required>
-                                    <option value="" disabled selected>Choose...</option>
-                                    @foreach($states as $state)
-                                        <option value="{{ $state->id }}">{{ $state->state_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-
-                    </form>
-                </div>
-                <footer class="card-footer">
-                    <div class="row">
-                        <div class="col-md-12 text-end">
-                            <button class="btn btn-secondary modal-dismiss">Cancel</button>
-                            <button class="btn btn-primary modal-confirm">Submit</button>
-                        </div>
-                    </div>
-                </footer>
-            </section>
         </div>
     </div>
 </div>
@@ -617,6 +260,21 @@
                 };
                 reader.readAsDataURL(input.files[0]);
             }
+        }
+
+        function submitReferenceForm() {
+        // Get the form inside the modal
+        const form = document.querySelector('#modalForm form');
+        form.submit();    
+        }
+
+        function warnAndStayOnPersonal(event) {
+            event.preventDefault(); // prevent tab switch
+            alert('Please complete personal information first.');
+
+            // Force switch to Personal tab
+            const tabTrigger = new bootstrap.Tab(document.querySelector('#tab-personal'));
+            tabTrigger.show();
         }
     </script>
 	<script src="js/examples/examples.modals.js"></script>
