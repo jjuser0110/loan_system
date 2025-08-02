@@ -14,6 +14,7 @@ use App\Models\ReferenceType;
 use App\Models\Reference;
 use App\Models\Customer;
 use App\Models\HouseOwnership;
+use App\Models\Asset;
 use Bouncer;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -102,10 +103,12 @@ class CustomerController extends Controller
         $marital_statues = MaritalStatuses::all();
         $reference_types = ReferenceType::all();
         $house_ownership = HouseOwnerShip::all();
+        $assets = Asset::all();
         
         $references = Reference::where('customer_id', $id)->get();
+        $assets = Asset::where('customer_id', $id)->get();
         
-        return view('customer.edit', compact('customer', 'company', 'races', 'states', 'marital_statues', 'reference_types', 'references', 'house_ownership'));
+        return view('customer.edit', compact('customer', 'company', 'races', 'states', 'marital_statues', 'reference_types', 'references', 'house_ownership', 'assets'));
     }
 
     public function update(Request $request, $id)
@@ -149,6 +152,27 @@ class CustomerController extends Controller
             $reference->delete();
             
             return redirect()->back()->withSuccess('Reference deleted successfully');
+        } catch (\Exception $e) {
+            return redirect()->back()->withError('Failed to delete reference');
+        }
+    }
+
+    public function storeAsset(Request $request)
+    {
+        $assetData = $request->all();
+        
+        Asset::create($assetData);
+        
+        return redirect()->back()->withSuccess('Asset added successfully');
+    }
+
+    public function destroyAsset($id)
+    {
+        try {
+            $asset = Asset::findOrFail($id);
+            $asset->delete();
+            
+            return redirect()->back()->withSuccess('Asset deleted successfully');
         } catch (\Exception $e) {
             return redirect()->back()->withError('Failed to delete reference');
         }

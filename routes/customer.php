@@ -13,4 +13,6 @@ Route::prefix('/customer')->as('customer.')->middleware(['auth'])->group(functio
     Route::put('{id}/work', 'CustomerController@updateWork')->name('work.store');
     Route::post('reference', 'CustomerController@storeReference')->name('reference.store');
     Route::get('reference/{reference}', 'CustomerController@destroyReference')->name('reference.destroy');
+    Route::post('asset/store', [CustomerController::class, 'storeAsset'])->name('asset.store');
+    Route::get('asset/{asset}', [CustomerController::class, 'destroyAsset'])->name('asset.destroy');
 });

@@ -35,6 +35,9 @@
                 <li class="nav-item">
                     <a class="nav-link" data-bs-target="#reference" href="#reference" data-bs-toggle="tab">Reference</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-target="#asset" href="#asset" data-bs-toggle="tab">Asset</a>
+                </li>
             </ul>
             <div class="tab-content">
                 <div id="personal" class="tab-pane active">
@@ -352,10 +355,10 @@
                     <div class="col-lg-12 mb-3">
                         <section class="card">
                             <div class="card-header" style="text-align: left;">
-                                <a class="btn btn-xs btn-square btn-primary" href="#modalForm">Add Reference</a>
+                                <a class="btn btn-xs btn-square btn-primary" href="#modalReferenceForm">Add Reference</a>
                             </div>
                             <div class="card-body">
-                                <table class="table table-bordered table-striped mb-0" id="datatable-default">
+                                <table class="table table-bordered table-striped mb-0" id="datatable-reference">
                                     <thead>
                                         <tr>
                                             <th>Reference Type</th>
@@ -395,18 +398,52 @@
                         </section>
                     </div>   
                 </div>
+
+                <!-- ASSET TAB -->
+                <div id="asset" class="tab-pane">
+                    <div class="col-lg-12 mb-3">
+                        <section class="card">
+                            <div class="card-header" style="text-align: left;">
+                                <a class="btn btn-xs btn-square btn-primary" href="#modalAssetForm">Add Asset</a>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered table-striped mb-0" id="datatable-asset">
+                                    <thead>
+                                        <tr>
+                                            <th>Item</th>
+                                            <th>Remark</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($assets as $asset)
+                                            <tr>
+                                                <td>{{ $asset->item }}</td>
+                                                <td>{{ $asset->remark }}</td>
+                                                <td>
+                                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.asset.destroy', $asset->id) }}'}" title="Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>   
+                </div>
+
             </div>
         </div>
     </div>
 
     <!-- Reference Modal Form -->
-    <div id="modalForm" class="modal-block modal-block-primary modal-block-lg mfp-hide">
+    <div id="modalReferenceForm" class="modal-block modal-block-primary modal-block-lg mfp-hide">
         <section class="card">
             <header class="card-header">
                 <h2 class="card-title">Reference Form</h2>
             </header>
             <div class="card-body">
-                <form method="POST" action="{{ route('customer.reference.store') }}">
+                <form method="POST" action="{{ route('customer.reference.store') }}" id="referenceForm">
                     @csrf
                     <input type="hidden" name="customer_id" value="{{ $customer->id }}">
                     
@@ -579,6 +616,43 @@
             </footer>
         </section>
     </div>
+
+    <!-- Asset Modal Form -->
+    <div id="modalAssetForm" class="modal-block modal-block-primary modal-block-sm mfp-hide">
+        <section class="card">
+            <header class="card-header">
+                <h2 class="card-title">Asset Form</h2>
+            </header>
+            <div class="card-body">
+                <form method="POST" action="{{ route('customer.asset.store') }}" id="assetForm">
+                    @csrf
+                    <input type="hidden" name="customer_id" value="{{ $customer->id }}">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label>Item</label>
+                            <input type="text" class="form-control" name="item" placeholder="Enter item name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label>Remark</label>
+                            <textarea class="form-control" name="remark" rows="4" placeholder="Enter remarks here..."></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <footer class="card-footer">
+                <div class="row">
+                    <div class="col-md-12 text-end">
+                        <button class="btn btn-secondary modal-dismiss">Cancel</button>
+                        <button class="btn btn-primary modal-confirm" onclick="submitAssetForm()">Submit</button>
+                    </div>
+                </div>
+            </footer>
+        </section>
+    </div>
 </div>
 @endsection
 
@@ -611,8 +685,19 @@
         }
 
         $(document).ready(function() {
-            // Initia``lize Magnific Popup for modal
-            $('a[href="#modalForm"]').magnificPopup({
+            // Initialize DataTables for both reference and asset tables
+            $('#datatable-reference').DataTable();
+            $('#datatable-asset').DataTable();
+            
+            // Initialize Magnific Popup for reference modal
+            $('a[href="#modalReferenceForm"]').magnificPopup({
+                type: 'inline',
+                preloader: false,
+                modal: true
+            });
+            
+            // Initialize Magnific Popup for asset modal
+            $('a[href="#modalAssetForm"]').magnificPopup({
                 type: 'inline',
                 preloader: false,
                 modal: true
@@ -621,13 +706,6 @@
             // Handle modal close
             $(document).on('click', '.modal-dismiss', function (e) {
                 e.preventDefault();
-                $.magnificPopup.close();
-            });
-            
-            // Handle form submission
-            $(document).on('click', '.modal-confirm', function (e) {
-                e.preventDefault();
-                // Your form submission logic here
                 $.magnificPopup.close();
             });
         });
@@ -646,14 +724,24 @@
         }
 
         function submitReferenceForm() {
-        const form = document.querySelector('#modalForm form');
+            const form = document.getElementById('referenceForm');
 
-        if (form.checkValidity()) {
-            form.submit();
-        } else {
-            alert("Please fully fill the form");
+            if (form.checkValidity()) {
+                form.submit();
+            } else {
+                alert("Please fill all required fields in the reference form");
+            }
         }
-    }
+
+        function submitAssetForm() {
+            const form = document.getElementById('assetForm');
+
+            if (form.checkValidity()) {
+                form.submit();
+            } else {
+                alert("Please fill all required fields in the asset form");
+            }
+        }
     </script>
 	<script src="js/examples/examples.modals.js"></script>
 @endsection
