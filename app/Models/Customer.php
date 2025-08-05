@@ -16,13 +16,15 @@ class Customer extends Model
     protected $fillable = [
         'profile_image',
         'customer_code',
+        'company_id',
         'company_code',
         'customer_name',
         'nric_number',
         'gender',
         'race',
         'date_of_birth',
-        'address',
+        'address1',
+        'address2',
         'postcode',
         'city',
         'state',
@@ -37,7 +39,8 @@ class Customer extends Model
         'biz_type',
         'designation',
         'monthly_income',
-        'company_address',
+        'company_address1',
+        'company_address2',
         'company_postcode',
         'company_city',
         'company_state',
@@ -63,7 +66,6 @@ class Customer extends Model
         'deleted_at',
     ];
 
-    // Optional: Define relationships, e.g. with references
     public function references()
     {
         return $this->hasMany(Reference::class);

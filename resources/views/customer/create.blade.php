@@ -35,6 +35,9 @@
                 <li class="nav-item">
                     <a class="nav-link" href="#reference" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">Reference</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#asset" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">Asset</a>
+                </li>
             </ul>
             <div class="tab-content">
                 <div id="personal" class="tab-pane active">
@@ -50,7 +53,7 @@
                                             <img id="previewImage" src="{{ asset('porto-assets/img/!logged-user.jpg') }}" class="rounded img-fluid" alt="Profile Image">
                                         </div>
                                         <div class="clearfix">
-                                            <input type="file" class="form-control" id="profileImage" name="profile_image" accept="image/*" onchange="previewPhoto(event)" required>
+                                            <input type="file" class="form-control" id="profileImage" name="profile_image" accept="image/*" onchange="previewPhoto(event)">
                                         </div>
                                     </div>
                                 </section>
@@ -75,11 +78,11 @@
                                 <div class="row mb-2">
                                     <div class="form-group col-md-6">
                                         <label>Customer Code</label>
-                                        <input type="text" class="form-control" name="customer_code" placeholder="Customer Code" required>
+                                        <input type="text" class="form-control" name="customer_code" placeholder="Customer Code">
                                     </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
                                         <label for="company_code">Company Code</label>
-                                        <select id="company_code" name="company_code" class="form-control" required>
+                                        <select id="company_code" name="company_code" class="form-control">
                                             <option value="">Choose...</option>
                                             @foreach($company as $row)
                                                 <option value="{{ $row->company_code }}">{{ $row->company_code }}</option>
@@ -89,18 +92,21 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-6">
-                                        <label for="customer_name">Customer Name</label>
+                                        <label for="customer_name">Customer Name <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="Customer Name" required>
                                     </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
-                                        <label for="nric_number">NRIC Number</label>
-                                        <input type="text" class="form-control" id="nric_number" name="nric_number" required>
+                                    <label for="nric_number">NRIC Number</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="nric_number" name="nric_number">
+                                            <button class="btn btn-outline-secondary" type="button" id="alternativeIdBtn">Alternative ID</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="gender">Gender</label>
-                                        <select id="gender" name="gender" class="form-control" required>
+                                        <select id="gender" name="gender" class="form-control">
                                             <option value="">Choose...</option>
                                             <option value="Male">Male</option>
                                             <option value="Female">Female</option>
@@ -108,7 +114,7 @@
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="race">Race</label>
-                                        <select id="race" name="race" class="form-control" required>
+                                        <select id="race" name="race" class="form-control">
                                             <option value="">Choose...</option>
                                             @foreach($races as $raceItem)
                                                 <option value="{{ $raceItem->race_name }}">{{ $raceItem->race_name }}</option>
@@ -121,28 +127,34 @@
                                             <span class="input-group-text">
                                                 <i class="fas fa-calendar-alt"></i>
                                             </span>
-                                            <input type="date" name="date_of_birth" class="form-control" required>
+                                            <input type="date" name="date_of_birth" class="form-control">
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col">
-                                        <label for="address">Address</label>
-                                        <input type="text" class="form-control" id="address" name="address" placeholder="Address" required>
+                                        <label for="address1">Address 1</label>
+                                        <input type="text" class="form-control" id="address1" name="address1" placeholder="Address 1">
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="form-group col">
+                                        <label for="address1">Address 2</label>
+                                        <input type="text" class="form-control" id="address2" name="address2" placeholder="Address 2">
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="postcode">Postcode</label>
-                                        <input type="text" class="form-control" id="postcode" name="postcode" required>
+                                        <input type="number" class="form-control" id="postcode" name="postcode">
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="city">City</label>
-                                        <input type="text" class="form-control" id="city" name="city" required>
+                                        <input type="text" class="form-control" id="city" name="city">
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="state">State</label>
-                                        <select id="state" name="state" class="form-control" required>
+                                        <select id="state" name="state" class="form-control">
                                             <option value="">Choose...</option>
                                             @foreach($states as $stateItem)
                                                 <option value="{{ $stateItem->state_name }}">{{ $stateItem->state_name }}</option>
@@ -153,7 +165,7 @@
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="house_ownership">House Ownership</label>
-                                        <select id="house_ownership" name="house_ownership" class="form-control" required>
+                                        <select id="house_ownership" name="house_ownership" class="form-control">
                                             <option value="">Choose...</option>
                                             @foreach($house_ownership as $houseOwnership)
                                                 <option value="{{ $houseOwnership->house_ownership }}"
@@ -169,7 +181,7 @@
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="marital_status">Marital Status</label>
-                                        <select id="marital_status" name="marital_status" class="form-control" required>
+                                        <select id="marital_status" name="marital_status" class="form-control">
                                             <option value="">Choose...</option>
                                             @foreach($marital_statues as $marital_status)
                                                 <option value="{{ $marital_status->marital_status }}">{{ $marital_status->marital_status }}</option>
@@ -188,7 +200,7 @@
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="mobile">Mobile</label>
-                                        <input type="number" class="form-control" id="mobile" name="mobile" required>
+                                        <input type="number" class="form-control" id="mobile" name="mobile">
                                     </div>
                                 </div>
                                 <div class="row mb-2">
@@ -291,6 +303,13 @@
             const tabTrigger = new bootstrap.Tab(document.querySelector('#tab-personal'));
             tabTrigger.show();
         }
+    </script>
+
+    <script>
+        document.getElementById('alternativeIdBtn').addEventListener('click', function() {
+            alert('Alternative ID clicked!');
+            // You can replace this with modal popup or logic to choose an alternative ID
+        });
     </script>
 	<script src="js/examples/examples.modals.js"></script>
 @endsection

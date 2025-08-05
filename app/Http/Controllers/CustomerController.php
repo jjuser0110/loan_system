@@ -49,23 +49,56 @@ class CustomerController extends Controller
             ->with('reference_types', $reference_types);
     }
 
-    public function store(Request $request)
-    {
-        if ($request->hasFile('profile_image')) {
-            $file = $request->file('profile_image');
-            $path = $file->store('profile_images', 'public');
-            $customer->profile_image = $path;
-        }
-
-        $request->merge([
-            'city' => strtolower($request->city),
-            'state' => strtolower($request->state),
-            'warganegara' => strtolower($request->warganegara),
+    public function store(Request $request) 
+    { 
+        // Validate only required fields
+        $request->validate([
+            'customer_name' => 'required|string|max:255',
         ]);
 
-        $customer = Customer::create($request->all());
+        // Handle profile image upload
+        if ($request->hasFile('profile_image')) { 
+            $file = $request->file('profile_image'); 
+            $path = $file->store('profile_images', 'public'); 
+        } 
 
-        return redirect()->route('customer.edit', $customer->id)->withSuccess('Customer personal information saved successfully. Please add work and reference information.');
+        // Get company_id and company_code if company is selected
+        $company = null;
+        if ($request->company_code) {
+            $company = Company::where('company_code', $request->company_code)->first();
+            if (!$company) {
+                return redirect()->back()->withErrors(['company_code' => 'Selected company not found.']);
+            }
+        }
+
+        // Prepare data for creation
+        $customerData = $request->all();
+        
+        // Store both company_id and company_code if company is selected
+        if ($company) {
+            $customerData['company_id'] = $company->id;
+            $customerData['company_code'] = $company->company_code;
+        }
+        
+        // Convert fields to lowercase if they exist
+        if ($request->city) {
+            $customerData['city'] = strtolower($request->city);
+        }
+        if ($request->state) {
+            $customerData['state'] = strtolower($request->state);
+        }
+        if ($request->warganegara) {
+            $customerData['warganegara'] = strtolower($request->warganegara);
+        }
+        
+        // Add profile image path if uploaded
+        if (isset($path)) {
+            $customerData['profile_image'] = $path;
+        }
+
+        $customer = Customer::create($customerData);
+
+        return redirect()->route('customer.edit', $customer->id)->withSuccess('Customer personal information saved successfully. Please add work and reference information.'); 
     }
 
     public function updateWork(Request $request, $id)
@@ -112,31 +145,62 @@ class CustomerController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $customer = Customer::findOrFail($id);
+{
+    // Validate only required fields
+    $request->validate([
+        'customer_name' => 'required|string|max:255',
+    ]);
 
-        // Handle new profile image upload
-        if ($request->hasFile('profile_image')) {
-            $file = $request->file('profile_image');
-            $path = $file->store('profile_images', 'public'); // Save to storage/app/public/profile_images
-            $customer->profile_image = $path;
+    $customer = Customer::findOrFail($id);
+
+    // Get company_id and company_code if company is selected
+    $company = null;
+    if ($request->company_code) {
+        $company = Company::where('company_code', $request->company_code)->first();
+        if (!$company) {
+            return redirect()->back()->withErrors(['company_code' => 'Selected company not found.']);
         }
-
-        // Convert fields to lowercase before updating
-        $request->merge([
-            'city' => strtolower($request->city),
-            'state' => strtolower($request->state),
-            'warganegara' => strtolower($request->warganegara),
-        ]);
-
-        // Update other fields
-        $customer->update($request->except('profile_image'));
-
-        // Save profile_image if it was uploaded
-        $customer->save();
-
-        return redirect()->back()->withSuccess('Personal information saved successfully');
     }
+
+    // Handle new profile image upload
+    if ($request->hasFile('profile_image')) {
+        $file = $request->file('profile_image');
+        $path = $file->store('profile_images', 'public');
+        $customer->profile_image = $path;
+    }
+
+    // Prepare data for update
+    $updateData = $request->except('profile_image');
+    
+    // Store both company_id and company_code if company is selected
+    if ($company) {
+        $updateData['company_id'] = $company->id;
+        $updateData['company_code'] = $company->company_code;
+    } else {
+        // If no company selected, set both to null
+        $updateData['company_id'] = null;
+        $updateData['company_code'] = null;
+    }
+    
+    // Convert fields to lowercase before updating if they exist
+    if ($request->city) {
+        $updateData['city'] = strtolower($request->city);
+    }
+    if ($request->state) {
+        $updateData['state'] = strtolower($request->state);
+    }
+    if ($request->warganegara) {
+        $updateData['warganegara'] = strtolower($request->warganegara);
+    }
+
+    // Update other fields
+    $customer->update($updateData);
+
+    // Save profile_image if it was uploaded (already handled above)
+    $customer->save();
+
+    return redirect()->back()->withSuccess('Personal information saved successfully');
+}
 
     public function destroy(Customer $customer)
     {
