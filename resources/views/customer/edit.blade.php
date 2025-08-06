@@ -13,7 +13,25 @@
     input::-webkit-contacts-auto-fill-button {
         display: none !important;
     }
-    </style>
+    
+    .action-buttons {
+        display: flex;
+        gap: 5px;
+        align-items: center;
+    }
+    
+    .action-buttons a {
+        padding: 5px 8px;
+        border-radius: 4px;
+        text-decoration: none;
+        color: #fff;
+        font-size: 12px;
+    }
+    
+    .btn-view { background-color: #28a745; }
+    .btn-edit { background-color: #007bff; }
+    .btn-delete { background-color: #dc3545; }
+</style>
 
 @section('content')
 <header class="page-header">
@@ -80,139 +98,139 @@
                             <!-- Information Section - 70% width -->
                             <div class="col-lg-9 col-md-8 col-sm-12">
                                 <div class="row mb-2">
-    <div class="form-group col-md-6">
-        <label>Customer Code</label>
-        <input type="text" class="form-control" name="customer_code" placeholder="Customer Code" value="{{ $customer->customer_code }}">
-    </div>
-    <div class="form-group col-md-6 border-top-0 pt-0">
-        <label for="company_code">Company Code</label>
-        <select id="company_code" name="company_code" class="form-control">
-            <option value="">Choose...</option>
-            @foreach($company as $row)
-                <option value="{{ $row->company_code }}"
-                    {{ old('company_code', $customer->company_code ?? '') == $row->company_code ? 'selected' : '' }}>
-                    {{ $row->company_code }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-</div>
-<div class="row mb-2">
-    <div class="form-group col-md-6">
-        <label for="customer_name">Customer Name</label>
-        <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="Customer Name" value="{{ $customer->customer_name }}" required>
-    </div>
-    <div class="form-group col-md-6 border-top-0 pt-0">
-    <label for="nric_number">NRIC Number</label>
-    <div class="input-group">
-        <input type="text" class="form-control" id="nric_number" name="nric_number" value="{{ $customer->nric_number }}">
-        <button class="btn btn-outline-secondary" type="button" id="alternativeIdBtn">Alternative ID</button>
-    </div>
-</div>
-</div>
-<div class="row mb-2">
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="gender">Gender</label>
-        <select id="gender" name="gender" class="form-control">
-            <option value="">Choose...</option>
-            <option value="Male" {{ $customer->gender == 'Male' ? 'selected' : '' }}>Male</option>
-            <option value="Female" {{ $customer->gender == 'Female' ? 'selected' : '' }}>Female</option>
-        </select>
-    </div>
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="race">Race</label>
-        <select id="race" name="race" class="form-control">
-            <option value="">Choose...</option>
-            @foreach($races as $raceItem)
-                <option value="{{ $raceItem->race_name }}" {{ $customer->race == $raceItem->race_name ? 'selected' : '' }}>{{ $raceItem->race_name }}</option>
-            @endforeach
-        </select>
-    </div>
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="date_of_birth">Date Of Birth</label>
-        <div class="input-group">
-            <span class="input-group-text">
-                <i class="fas fa-calendar-alt"></i>
-            </span>
-            <input type="date" name="date_of_birth" class="form-control" value="{{ $customer->date_of_birth }}">
-        </div>
-    </div>
-</div>
-<div class="row mb-2">
-    <div class="form-group col">
-        <label for="address">Address 1</label>
-        <input type="text" class="form-control" id="address1" name="address1" placeholder="Address1" value="{{ $customer->address1 }}">
-    </div>
-</div>
-<div class="row mb-2">
-    <div class="form-group col">
-        <label for="address">Address 2</label>
-        <input type="text" class="form-control" id="address2" name="address2" placeholder="Address2" value="{{ $customer->address2 }}">
-    </div>
-</div>
-<div class="row mb-2">
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="postcode">Postcode</label>
-        <input type="number" class="form-control" id="postcode" name="postcode" value="{{ $customer->postcode }}">
-    </div>
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="city">City</label>
-        <input type="text" class="form-control" id="city" name="city" value="{{ $customer->city }}">
-    </div>
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="state">State</label>
-        <select id="state" name="state" class="form-control">
-            <option value="">Choose...</option>
-            @foreach($states as $state)
-                <option value="{{ $state->state_name }}"
-                {{ strtolower($customer->state ?? '') == strtolower($state->state_name) ? 'selected' : '' }}>
-                {{ $state->state_name }}
-            </option>
-            @endforeach
-        </select>
-    </div>
-</div>
-<div class="row mb-2">
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="house_ownership">House Ownership</label>
-        <select id="house_ownership" name="house_ownership" class="form-control">
-            <option value="">Choose...</option>
-            @foreach($house_ownership as $houseOwnership)
-                <option value="{{ $houseOwnership->house_ownership }}"
-                    {{ strtolower($customer->house_ownership ?? '') == strtolower($houseOwnership->house_ownership) ? 'selected' : '' }}>
-                    {{ $houseOwnership->house_ownership }}
-                </option>
-            @endforeach
-        </select>
-    </div>
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="warga_negara">Warga Negara</label>
-        <input type="text" class="form-control" id="warganegara" name="warganegara" value="{{ $customer->warganegara }}">
-    </div>
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="marital_status">Marital Status</label>
-        <select id="marital_status" name="marital_status" class="form-control">
-            <option value="">Choose...</option>
-            @foreach($marital_statues as $marital_status)
-                <option value="{{ $marital_status->marital_status }}" {{ $customer->marital_status == $marital_status->marital_status ? 'selected' : '' }}>{{ $marital_status->marital_status }}</option>
-            @endforeach
-        </select>
-    </div>
-</div>
-<div class="row mb-2">
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="email">Mail</label>
-        <input type="email" class="form-control" id="email" name="email" autocomplete="off" value="{{ $customer->email }}" readonly onfocus="this.removeAttribute('readonly');">
-    </div>
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="telephone">Telephone</label>
-        <input type="number" class="form-control" id="telephone" name="telephone" value="{{ $customer->telephone }}">
-    </div>
-    <div class="form-group col-md-4 border-top-0 pt-0">
-        <label for="mobile">Mobile</label>
-        <input type="number" class="form-control" id="mobile" name="mobile" value="{{ $customer->mobile }}">
-    </div>
-</div>
+                                    <div class="form-group col-md-6">
+                                        <label>Customer Code</label>
+                                        <input type="text" class="form-control" name="customer_code" placeholder="Customer Code" value="{{ $customer->customer_code }}">
+                                    </div>
+                                    <div class="form-group col-md-6 border-top-0 pt-0">
+                                        <label for="company_code">Company Code</label>
+                                        <select id="company_code" name="company_code" class="form-control">
+                                            <option value="">Choose...</option>
+                                            @foreach($company as $row)
+                                                <option value="{{ $row->company_code }}"
+                                                    {{ old('company_code', $customer->company_code ?? '') == $row->company_code ? 'selected' : '' }}>
+                                                    {{ $row->company_code }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="form-group col-md-6">
+                                        <label for="customer_name">Customer Name <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="Customer Name" value="{{ $customer->customer_name }}" required>
+                                    </div>
+                                    <div class="form-group col-md-6 border-top-0 pt-0">
+                                    <label for="nric_number">NRIC Number <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="nric_number" name="nric_number" value="{{ $customer->nric_number }}">
+                                        <button class="btn btn-outline-secondary" type="button" id="alternativeIdBtn">Alternative ID</button>
+                                    </div>
+                                </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="gender">Gender</label>
+                                        <select id="gender" name="gender" class="form-control">
+                                            <option value="">Choose...</option>
+                                            <option value="Male" {{ $customer->gender == 'Male' ? 'selected' : '' }}>Male</option>
+                                            <option value="Female" {{ $customer->gender == 'Female' ? 'selected' : '' }}>Female</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="race">Race</label>
+                                        <select id="race" name="race" class="form-control">
+                                            <option value="">Choose...</option>
+                                            @foreach($races as $raceItem)
+                                                <option value="{{ $raceItem->race_name }}" {{ $customer->race == $raceItem->race_name ? 'selected' : '' }}>{{ $raceItem->race_name }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="date_of_birth">Date Of Birth</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text">
+                                                <i class="fas fa-calendar-alt"></i>
+                                            </span>
+                                            <input type="date" name="date_of_birth" class="form-control" value="{{ $customer->date_of_birth }}">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="form-group col">
+                                        <label for="address">Address 1</label>
+                                        <input type="text" class="form-control" id="address1" name="address1" placeholder="Address1" value="{{ $customer->address1 }}">
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="form-group col">
+                                        <label for="address">Address 2</label>
+                                        <input type="text" class="form-control" id="address2" name="address2" placeholder="Address2" value="{{ $customer->address2 }}">
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="postcode">Postcode</label>
+                                        <input type="number" class="form-control" id="postcode" name="postcode" value="{{ $customer->postcode }}">
+                                    </div>
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="city">City</label>
+                                        <input type="text" class="form-control" id="city" name="city" value="{{ $customer->city }}">
+                                    </div>
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="state">State</label>
+                                        <select id="state" name="state" class="form-control">
+                                            <option value="">Choose...</option>
+                                            @foreach($states as $state)
+                                                <option value="{{ $state->state_name }}"
+                                                {{ strtolower($customer->state ?? '') == strtolower($state->state_name) ? 'selected' : '' }}>
+                                                {{ $state->state_name }}
+                                            </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="house_ownership">House Ownership</label>
+                                        <select id="house_ownership" name="house_ownership" class="form-control">
+                                            <option value="">Choose...</option>
+                                            @foreach($house_ownership as $houseOwnership)
+                                                <option value="{{ $houseOwnership->house_ownership }}"
+                                                    {{ strtolower($customer->house_ownership ?? '') == strtolower($houseOwnership->house_ownership) ? 'selected' : '' }}>
+                                                    {{ $houseOwnership->house_ownership }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="warga_negara">Warga Negara</label>
+                                        <input type="text" class="form-control" id="warganegara" name="warganegara" value="{{ $customer->warganegara }}">
+                                    </div>
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="marital_status">Marital Status</label>
+                                        <select id="marital_status" name="marital_status" class="form-control">
+                                            <option value="">Choose...</option>
+                                            @foreach($marital_statues as $marital_status)
+                                                <option value="{{ $marital_status->marital_status }}" {{ $customer->marital_status == $marital_status->marital_status ? 'selected' : '' }}>{{ $marital_status->marital_status }}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="email">Mail</label>
+                                        <input type="email" class="form-control" id="email" name="email" autocomplete="off" value="{{ $customer->email }}" readonly onfocus="this.removeAttribute('readonly');">
+                                    </div>
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="telephone">Telephone</label>
+                                        <input type="number" class="form-control" id="telephone" name="telephone" value="{{ $customer->telephone }}">
+                                    </div>
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="mobile">Mobile</label>
+                                        <input type="number" class="form-control" id="mobile" name="mobile" value="{{ $customer->mobile }}">
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -397,7 +415,14 @@
                                             <td>{{ $reference->designation ?? $reference->job }}</td>
                                             <td>{{ $reference->company_name }}</td>
                                             <td>
-                                                <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.reference.destroy', $reference->id) }}'}" title="Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
+                                                <div class="action-buttons">
+                                                    <a href="javascript:void(0)" onclick="editReference({{ $reference->id }})" class="btn-edit" title="Edit">
+                                                        <i class="bx bx-edit"></i>
+                                                    </a>
+                                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.reference.destroy', $reference->id) }}'}" title="Delete" class="btn-delete" style="cursor:pointer">
+                                                        <i class="bx bx-trash"></i>
+                                                    </a>
+                                                </div>
                                             </td>
                                         </tr>
                                         @endforeach
@@ -429,10 +454,17 @@
                                             <tr>
                                                 <td>{{ $asset->item }}</td>
                                                 <td class="remark-display">
-    {!! nl2br(e($asset->remark)) !!}
-</td>
+                                                    {!! nl2br(e($asset->remark)) !!}
+                                                </td>
                                                 <td>
-                                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.asset.destroy', $asset->id) }}'}" title="Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
+                                                    <div class="action-buttons">
+                                                        <a href="javascript:void(0)" onclick="editAsset({{ $asset->id }})" class="btn-edit" title="Edit">
+                                                            <i class="bx bx-edit"></i>
+                                                        </a>
+                                                        <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.asset.destroy', $asset->id) }}'}" title="Delete" class="btn-delete" style="cursor:pointer">
+                                                            <i class="bx bx-trash"></i>
+                                                        </a>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         @endforeach
@@ -447,7 +479,7 @@
         </div>
     </div>
 
-    <!-- Reference Modal Form -->
+    <!-- Reference Modal Form (Add) -->
     <div id="modalReferenceForm" class="modal-block modal-block-primary modal-block-lg mfp-hide">
         <section class="card">
             <header class="card-header">
@@ -460,7 +492,7 @@
                     
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label>Reference Type</label>
+                            <label>Reference Type <span class="text-danger">*</span></label>
                             <select name="reference_type" class="form-control" required>
                             <option value="" disabled selected>Choose...</option>
                             @foreach($reference_types as $type)
@@ -469,14 +501,14 @@
                         </select>
                         </div>
                         <div class="col-md-6">
-                            <label>Reference NRIC</label>
+                            <label>Reference NRIC <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="new_ic" required>
                         </div>
                     </div>
                     
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label>Reference Name</label>
+                            <label>Reference Name <span class="text-danger">*</span></label>
                             <input type="text" class="form-control" name="name" placeholder="Reference name" required>
                         </div>
                     </div>
@@ -508,7 +540,7 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label>Mobile</label>
-                            <input type="number" class="form-control" name="mobile" placeholder="Mobile number" required>
+                            <input type="number" class="form-control" name="mobile" placeholder="Mobile number">
                         </div>
                         <div class="col-md-6">
                             <label>Telephone</label>
@@ -519,11 +551,10 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label>House Ownership</label>
-                            <select id="house_ownership" name="house_ownership" class="form-control" required>
+                            <select id="house_ownership" name="house_ownership" class="form-control">
                                 <option value="">Choose...</option>
                                 @foreach($house_ownership as $houseOwnership)
-                                    <option value="{{ $houseOwnership->house_ownership }}"
-                                        {{ strtolower($houseOwnership->house_ownership ?? '') == strtolower($houseOwnership->house_ownership) ? 'selected' : '' }}>
+                                    <option value="{{ $houseOwnership->house_ownership }}">
                                         {{ $houseOwnership->house_ownership }}
                                     </option>
                                 @endforeach
@@ -562,8 +593,7 @@
                             <select name="state" class="form-control">
                                 <option value="">Choose...</option>
                                 @foreach($states as $state)
-                                        <option value="{{ $state->state_name }}"
-                                        {{ strtolower($reference->state ?? '') == strtolower($state->state_name) ? 'selected' : '' }}>
+                                    <option value="{{ $state->state_name }}">
                                         {{ $state->state_name }}
                                     </option>
                                 @endforeach
@@ -620,8 +650,7 @@
                             <select name="company_state" class="form-control">
                                 <option value="">Choose...</option>
                                 @foreach($states as $state)
-                                        <option value="{{ $state->state_name }}"
-                                        {{ strtolower($reference->company_state ?? '') == strtolower($state->state_name) ? 'selected' : '' }}>
+                                    <option value="{{ $state->state_name }}">
                                         {{ $state->state_name }}
                                     </option>
                                 @endforeach
@@ -641,8 +670,198 @@
         </section>
     </div>
 
+    <!-- Reference Edit Modal -->
+    <div id="modalReferenceEditForm" class="modal-block modal-block-primary modal-block-lg mfp-hide">
+        <section class="card">
+            <header class="card-header">
+                <h2 class="card-title">Edit Reference</h2>
+            </header>
+            <div class="card-body">
+                <form method="POST" id="referenceEditForm">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="customer_id" value="{{ $customer->id }}">
+                    <input type="hidden" id="edit_reference_id" name="reference_id">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label>Reference Type <span class="text-danger">*</span></label>
+                            <select name="reference_type" id="edit_reference_type" class="form-control" required>
+                                <option value="" disabled>Choose...</option>
+                                @foreach($reference_types as $type)
+                                    <option value="{{ $type->reference_type }}">{{ $type->reference_type }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Reference NRIC <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_new_ic" name="new_ic" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label>Reference Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="edit_name" name="name" placeholder="Reference name" required>
+                        </div>
+                    </div>
+
+                    <div class="row mb-2">
+                        <div class="form-group col-md-4 border-top-0 pt-0">
+                            <label>Gender</label>
+                            <select name="gender" id="edit_gender" class="form-control">
+                                <option value="">Choose...</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4 border-top-0 pt-0">
+                            <label>Race</label>
+                            <select name="race" id="edit_race" class="form-control">
+                                <option value="">Choose...</option>
+                                @foreach($races as $race)
+                                    <option value="{{ $race->race_name }}">{{ $race->race_name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="form-group col-md-4 border-top-0 pt-0">
+                            <label>Date Of Birth</label>
+                            <input type="date" name="date_of_birth" id="edit_date_of_birth" class="form-control">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label>Mobile</label>
+                            <input type="number" class="form-control" id="edit_mobile" name="mobile" placeholder="Mobile number">
+                        </div>
+                        <div class="col-md-6">
+                            <label>Telephone</label>
+                            <input type="number" class="form-control" id="edit_telephone" name="telephone" placeholder="Telephone number">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label>House Ownership</label>
+                            <select name="house_ownership" id="edit_house_ownership" class="form-control" required>
+                                <option value="">Choose...</option>
+                                @foreach($house_ownership as $houseOwnership)
+                                    <option value="{{ $houseOwnership->house_ownership }}">
+                                        {{ $houseOwnership->house_ownership }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label>Warga Negara</label>
+                            <input type="text" class="form-control" id="edit_warganegara" name="warganegara">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label>Address 1</label>
+                            <input type="text" class="form-control" id="edit_address1" name="address1" placeholder="Address 1">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label>Address 2</label>
+                            <input type="text" class="form-control" id="edit_address2" name="address2" placeholder="Address 2">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-2">
+                        <div class="form-group col-md-4 border-top-0 pt-0">
+                            <label>Postcode</label>
+                            <input type="number" class="form-control" id="edit_postcode" name="postcode">
+                        </div>
+                        <div class="form-group col-md-4 border-top-0 pt-0">
+                            <label>City</label>
+                            <input type="text" class="form-control" id="edit_city" name="city">
+                        </div>
+                        <div class="form-group col-md-4 border-top-0 pt-0">
+                            <label>State</label>
+                            <select name="state" id="edit_state" class="form-control">
+                                <option value="">Choose...</option>
+                                @foreach($states as $state)
+                                    <option value="{{ $state->state_name }}">
+                                        {{ $state->state_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <!-- Work Information -->
+                    <div class="row mb-2">
+                        <div class="form-group col-md-6">
+                            <label>Company Name</label>
+                            <input type="text" class="form-control" id="edit_company_name" name="company_name" placeholder="Company Name">
+                        </div>
+                        <div class="form-group col-md-6 border-top-0 pt-0">
+                            <label>Business Type</label>
+                            <input type="text" class="form-control" id="edit_biz_type" name="biz_type" placeholder="Business Type">
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="form-group col-md-6">
+                            <label>Designation</label>
+                            <input type="text" class="form-control" id="edit_designation" name="designation" placeholder="Designation...">
+                        </div>
+                        <div class="form-group col-md-6 border-top-0 pt-0">
+                            <label>Monthly Income</label>
+                            <input type="number" class="form-control" id="edit_monthly_income" name="monthly_income" placeholder="Monthly Income">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label>Company Address 1</label>
+                            <input type="text" class="form-control" id="edit_company_address1" name="company_address1" placeholder="Company Address 1">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label>Company Address 2</label>
+                            <input type="text" class="form-control" id="edit_company_address2" name="company_address2" placeholder="Company Address 2">
+                        </div>
+                    </div>
+                    <div class="row mb-2">
+                        <div class="form-group col-md-4 border-top-0 pt-0">
+                            <label>Company Postcode</label>
+                            <input type="number" class="form-control" id="edit_company_postcode" name="company_postcode">
+                        </div>
+                        <div class="form-group col-md-4 border-top-0 pt-0">
+                            <label>Company City</label>
+                            <input type="text" class="form-control" id="edit_company_city" name="company_city">
+                        </div>
+                        <div class="form-group col-md-4 border-top-0 pt-0">
+                            <label>Company State</label>
+                            <select name="company_state" id="edit_company_state" class="form-control">
+                                <option value="">Choose...</option>
+                                @foreach($states as $state)
+                                    <option value="{{ $state->state_name }}">
+                                        {{ $state->state_name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <footer class="card-footer">
+                <div class="row">
+                    <div class="col-md-12 text-end">
+                        <button class="btn btn-secondary modal-dismiss">Cancel</button>
+                        <button class="btn btn-primary" onclick="submitReferenceEditForm()">Update</button>
+                    </div>
+                </div>
+            </footer>
+        </section>
+    </div>
     
-    <!-- Asset Modal Form -->
+    <!-- Asset Modal Form (Add) -->
     <div id="modalAssetForm" class="modal-block modal-block-primary modal-block-sm mfp-hide">
         <section class="card">
             <header class="card-header">
@@ -678,6 +897,46 @@
             </footer>
         </section>
     </div>
+
+    <!-- Asset Edit Modal -->
+    <div id="modalAssetEditForm" class="modal-block modal-block-primary modal-block-sm mfp-hide">
+        <section class="card">
+            <header class="card-header">
+                <h2 class="card-title">Edit Asset</h2>
+            </header>
+            <div class="card-body">
+                <form method="POST" id="assetEditForm">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="customer_id" value="{{ $customer->id }}">
+                    <input type="hidden" id="edit_asset_id" name="asset_id">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label>Item</label>
+                            <input type="text" class="form-control" id="edit_item" name="item" placeholder="Enter item name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label>Remark</label>
+                            <textarea class="form-control" id="edit_remark" name="remark" rows="4" placeholder="Enter remarks here..." style="white-space: pre-wrap;"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <footer class="card-footer">
+                <div class="row">
+                    <div class="col-md-12 text-end">
+                        <button class="btn btn-secondary modal-dismiss">Cancel</button>
+                        <button class="btn btn-primary" onclick="submitAssetEditForm()">Update</button>
+                    </div>
+                </div>
+            </footer>
+        </section>
+    </div>
+
 </div>
 @endsection
 
@@ -699,6 +958,28 @@
     <script src="{{ asset('porto-assets/js/examples/examples.datatables.row.with.details.js') }}"></script>
     <script src="{{ asset('porto-assets/js/examples/examples.datatables.tabletools.js') }}"></script>
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const tabLinks = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
+
+            tabLinks.forEach(function (link) {
+                link.addEventListener('shown.bs.tab', function (event) {
+                    const hash = event.target.getAttribute('href');
+                    history.pushState(null, null, hash);
+                });
+            });
+
+            const hash = window.location.hash;
+            if (hash) {
+                const triggerEl = document.querySelector(`.nav-link[href="${hash}"]`);
+                if (triggerEl) {
+                    const tab = new bootstrap.Tab(triggerEl);
+                    tab.show();
+                }
+            }
+        });
+    </script>
+
+    <script>
         function onSubmitForm() {
             var form = document.querySelector('form');
             if (form.checkValidity()) {
@@ -714,14 +995,13 @@
             $('#datatable-reference').DataTable();
             $('#datatable-asset').DataTable();
             
-            // Initialize Magnific Popup for reference modal
+            // Initialize Magnific Popup for all modals
             $('a[href="#modalReferenceForm"]').magnificPopup({
                 type: 'inline',
                 preloader: false,
                 modal: true
             });
             
-            // Initialize Magnific Popup for asset modal
             $('a[href="#modalAssetForm"]').magnificPopup({
                 type: 'inline',
                 preloader: false,
@@ -750,34 +1030,125 @@
 
         function submitReferenceForm() {
             const form = document.getElementById('referenceForm');
+            form.submit();
+        }
 
+        // Reference Functions
+        function editReference(id) {
+            $.magnificPopup.close();
+            
+            $.get(`{{ url('customer/reference') }}/${id}/edit`, function(response) {
+                // Populate edit form with data
+                $('#edit_reference_id').val(response.reference.id);
+                $('#edit_reference_type').val(response.reference.reference_type);
+                $('#edit_new_ic').val(response.reference.new_ic);
+                $('#edit_name').val(response.reference.name);
+                $('#edit_gender').val(response.reference.gender);
+                $('#edit_race').val(response.reference.race);
+                $('#edit_date_of_birth').val(response.reference.date_of_birth);
+                $('#edit_mobile').val(response.reference.mobile);
+                $('#edit_telephone').val(response.reference.telephone);
+                $('#edit_house_ownership').val(response.reference.house_ownership);
+                $('#edit_warganegara').val(response.reference.warganegara);
+                $('#edit_address1').val(response.reference.address1);
+                $('#edit_address2').val(response.reference.address2);
+                $('#edit_postcode').val(response.reference.postcode);
+                $('#edit_city').val(response.reference.city);
+                $('#edit_state').val(response.reference.state);
+                $('#edit_company_name').val(response.reference.company_name);
+                $('#edit_biz_type').val(response.reference.biz_type);
+                $('#edit_designation').val(response.reference.designation);
+                $('#edit_monthly_income').val(response.reference.monthly_income);
+                $('#edit_company_address1').val(response.reference.company_address1);
+                $('#edit_company_address2').val(response.reference.company_address2);
+                $('#edit_company_postcode').val(response.reference.company_postcode);
+                $('#edit_company_city').val(response.reference.company_city);
+                $('#edit_company_state').val(response.reference.company_state);
+                
+                // Set form action
+                $('#referenceEditForm').attr('action', `{{ url('customer/reference') }}/${id}`);
+                
+                // Open edit modal
+                $.magnificPopup.open({
+                    items: {
+                        src: '#modalReferenceEditForm'
+                    },
+                    type: 'inline',
+                    preloader: false,
+                    modal: true
+                });
+            }).fail(function() {
+                alert('Error loading reference data');
+            });
+        }
+
+        function submitReferenceEditForm() {
+            const form = document.getElementById('referenceEditForm');
             if (form.checkValidity()) {
                 form.submit();
             } else {
-                alert("Please fill all required fields in the reference form");
+                alert("Please fill all required fields");
             }
         }
 
+        // Asset Functions
         function submitAssetForm() {
             // Get the form data
             const form = document.getElementById('assetForm');
             const formData = new FormData(form);
+
+            if (form.checkValidity()) {
+                form.submit();
+            } else {
+                alert("Please fill all required fields in the asset form");
+            }
+        }
+
+        function editAsset(id) {
+            $.magnificPopup.close();
             
-            // Submit the form via AJAX or regular form submission
-            form.submit();
+            $.get(`{{ url('customer/asset') }}/${id}/edit`, function(response) {
+                // Populate edit form with data
+                $('#edit_asset_id').val(response.asset.id);
+                $('#edit_item').val(response.asset.item);
+                $('#edit_remark').val(response.asset.remark);
+                
+                // Set form action
+                $('#assetEditForm').attr('action', `{{ url('customer/asset') }}/${id}`);
+                
+                // Open edit modal
+                $.magnificPopup.open({
+                    items: {
+                        src: '#modalAssetEditForm'
+                    },
+                    type: 'inline',
+                    preloader: false,
+                    modal: true
+                });
+            }).fail(function() {
+                alert('Error loading asset data');
+            });
+        }
+
+        function submitAssetEditForm() {
+            const form = document.getElementById('assetEditForm');
+            if (form.checkValidity()) {
+                form.submit();
+            } else {
+                alert("Please fill all required fields");
+            }
         }
 
         function displayRemark(remark) {
             // Convert line breaks to HTML <br> tags for display
             return remark.replace(/\n/g, '<br>');
         }
-    </script>
 
-    <script>
         document.getElementById('alternativeIdBtn').addEventListener('click', function() {
             alert('Alternative ID clicked!');
             // You can replace this with modal popup or logic to choose an alternative ID
         });
     </script>
-	<script src="js/examples/examples.modals.js"></script>
+
+    <script src="js/examples/examples.modals.js"></script>
 @endsection

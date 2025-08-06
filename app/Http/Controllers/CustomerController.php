@@ -111,7 +111,7 @@ class CustomerController extends Controller
         
         $customer->update($workData);
         
-        return redirect()->back()->withSuccess('Work information saved successfully');
+        return redirect()->to(url()->previous() . '#work')->withSuccess('Work information saved successfully');
     }
 
     public function storeReference(Request $request)
@@ -122,7 +122,38 @@ class CustomerController extends Controller
         
         Reference::create($referenceData);
         
-        return redirect()->back()->withSuccess('Reference information saved successfully');
+        return redirect()->to(url()->previous() . '#reference')->withSuccess('Reference information saved successfully');
+    }
+
+    public function editReference($id)
+    {
+        $reference = Reference::findOrFail($id);
+        $customer = Customer::findOrFail($reference->customer_id);
+        $races = Race::all();
+        $states = State::all();
+        $reference_types = ReferenceType::all();
+        $house_ownership = HouseOwnership::all();
+        
+        return response()->json([
+            'reference' => $reference,
+            'races' => $races,
+            'states' => $states,
+            'reference_types' => $reference_types,
+            'house_ownership' => $house_ownership
+        ]);
+    }
+
+    public function updateReference(Request $request, $id)
+    {
+        $reference = Reference::findOrFail($id);
+        
+        $referenceData = $request->all();
+        $referenceData['city'] = strtolower($request->city);
+        $referenceData['company_city'] = strtolower($request->company_city);
+        
+        $reference->update($referenceData);
+        
+        return redirect()->to(url()->previous() . '#reference')->withSuccess('Reference information updated successfully');
     }
 
     public function edit($id)
@@ -145,62 +176,62 @@ class CustomerController extends Controller
     }
 
     public function update(Request $request, $id)
-{
-    // Validate only required fields
-    $request->validate([
-        'customer_name' => 'required|string|max:255',
-    ]);
+    {
+        // Validate only required fields
+        $request->validate([
+            'customer_name' => 'required|string|max:255',
+        ]);
 
-    $customer = Customer::findOrFail($id);
+        $customer = Customer::findOrFail($id);
 
-    // Get company_id and company_code if company is selected
-    $company = null;
-    if ($request->company_code) {
-        $company = Company::where('company_code', $request->company_code)->first();
-        if (!$company) {
-            return redirect()->back()->withErrors(['company_code' => 'Selected company not found.']);
+        // Get company_id and company_code if company is selected
+        $company = null;
+        if ($request->company_code) {
+            $company = Company::where('company_code', $request->company_code)->first();
+            if (!$company) {
+                return redirect()->back()->withErrors(['company_code' => 'Selected company not found.']);
+            }
         }
-    }
 
-    // Handle new profile image upload
-    if ($request->hasFile('profile_image')) {
-        $file = $request->file('profile_image');
-        $path = $file->store('profile_images', 'public');
-        $customer->profile_image = $path;
-    }
+        // Handle new profile image upload
+        if ($request->hasFile('profile_image')) {
+            $file = $request->file('profile_image');
+            $path = $file->store('profile_images', 'public');
+            $customer->profile_image = $path;
+        }
 
-    // Prepare data for update
-    $updateData = $request->except('profile_image');
-    
-    // Store both company_id and company_code if company is selected
-    if ($company) {
-        $updateData['company_id'] = $company->id;
-        $updateData['company_code'] = $company->company_code;
-    } else {
-        // If no company selected, set both to null
-        $updateData['company_id'] = null;
-        $updateData['company_code'] = null;
-    }
-    
-    // Convert fields to lowercase before updating if they exist
-    if ($request->city) {
-        $updateData['city'] = strtolower($request->city);
-    }
-    if ($request->state) {
-        $updateData['state'] = strtolower($request->state);
-    }
-    if ($request->warganegara) {
-        $updateData['warganegara'] = strtolower($request->warganegara);
-    }
+        // Prepare data for update
+        $updateData = $request->except('profile_image');
+        
+        // Store both company_id and company_code if company is selected
+        if ($company) {
+            $updateData['company_id'] = $company->id;
+            $updateData['company_code'] = $company->company_code;
+        } else {
+            // If no company selected, set both to null
+            $updateData['company_id'] = null;
+            $updateData['company_code'] = null;
+        }
+        
+        // Convert fields to lowercase before updating if they exist
+        if ($request->city) {
+            $updateData['city'] = strtolower($request->city);
+        }
+        if ($request->state) {
+            $updateData['state'] = strtolower($request->state);
+        }
+        if ($request->warganegara) {
+            $updateData['warganegara'] = strtolower($request->warganegara);
+        }
 
-    // Update other fields
-    $customer->update($updateData);
+        // Update other fields
+        $customer->update($updateData);
 
-    // Save profile_image if it was uploaded (already handled above)
-    $customer->save();
+        // Save profile_image if it was uploaded (already handled above)
+        $customer->save();
 
-    return redirect()->back()->withSuccess('Personal information saved successfully');
-}
+        return redirect()->back()->withSuccess('Personal information saved successfully');
+    }
 
     public function destroy(Customer $customer)
     {
@@ -215,7 +246,7 @@ class CustomerController extends Controller
             $reference = Reference::findOrFail($id);
             $reference->delete();
             
-            return redirect()->back()->withSuccess('Reference deleted successfully');
+            return redirect()->to(url()->previous() . '#reference')->withSuccess('Reference deleted successfully');
         } catch (\Exception $e) {
             return redirect()->back()->withError('Failed to delete reference');
         }
@@ -227,7 +258,25 @@ class CustomerController extends Controller
         
         Asset::create($assetData);
         
-        return redirect()->back()->withSuccess('Asset added successfully');
+        return redirect()->to(url()->previous() . '#asset')->withSuccess('Asset added successfully');
+    }
+
+    public function editAsset($id)
+    {
+        $asset = Asset::findOrFail($id);
+        
+        return response()->json([
+            'asset' => $asset
+        ]);
+    }
+
+    public function updateAsset(Request $request, $id)
+    {
+        $asset = Asset::findOrFail($id);
+        
+        $asset->update($request->all());
+        
+        return redirect()->to(url()->previous() . '#asset')->withSuccess('Asset updated successfully');
     }
 
     public function destroyAsset($id)
@@ -236,10 +285,9 @@ class CustomerController extends Controller
             $asset = Asset::findOrFail($id);
             $asset->delete();
             
-            return redirect()->back()->withSuccess('Asset deleted successfully');
+            return redirect()->to(url()->previous() . '#asset')->withSuccess('Asset deleted successfully');
         } catch (\Exception $e) {
-            return redirect()->back()->withError('Failed to delete reference');
+            return redirect()->back()->withError('Failed to delete asset');
         }
     }
-
 }

@@ -96,7 +96,7 @@
                                         <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="Customer Name" required>
                                     </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
-                                    <label for="nric_number">NRIC Number</label>
+                                    <label for="nric_number">NRIC Number <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="nric_number" name="nric_number">
                                             <button class="btn btn-outline-secondary" type="button" id="alternativeIdBtn">Alternative ID</button>

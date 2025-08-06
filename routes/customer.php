@@ -11,8 +11,16 @@ Route::prefix('/customer')->as('customer.')->middleware(['auth'])->group(functio
     Route::get('{id}/edit', 'CustomerController@edit')->name('edit');
     Route::delete('/destroy/{customer}', 'CustomerController@destroy')->name('destroy');
     Route::put('{id}/work', 'CustomerController@updateWork')->name('work.store');
+    
+    // Reference routes
     Route::post('reference', 'CustomerController@storeReference')->name('reference.store');
+    Route::get('reference/{reference}/edit', 'CustomerController@editReference')->name('reference.edit');
+    Route::put('reference/{reference}', 'CustomerController@updateReference')->name('reference.update');
     Route::get('reference/{reference}', 'CustomerController@destroyReference')->name('reference.destroy');
+    
+    // Asset routes
     Route::post('asset/store', [CustomerController::class, 'storeAsset'])->name('asset.store');
+    Route::get('asset/{asset}/edit', [CustomerController::class, 'editAsset'])->name('asset.edit');
+    Route::put('asset/{asset}', [CustomerController::class, 'updateAsset'])->name('asset.update');
     Route::get('asset/{asset}', [CustomerController::class, 'destroyAsset'])->name('asset.destroy');
 });
