@@ -28,6 +28,10 @@
 <script src="{{ asset('porto-assets/vendor/modernizr/modernizr.js') }}"></script>
 
 <style>
+    :root{
+        --background-outstanding: #fff0f0
+    }
+
     .brown{
         color:brown;
     }   
@@ -65,5 +69,101 @@
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
+    }
+
+    .cus-action-wrapper{
+        display: flex;
+        align-items: center;
+        gap: 5px
+    }
+    .cus-action-icon{
+        height: 22px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px;
+        border-radius: 5px; 
+        color: white;
+        transition: 0.3s;
+    }
+
+    .cus-action-icon:hover{
+        transform: translateY(-2px);
+        color: white
+    }
+
+    .cus-action-icon.info{
+        background: #0088CC
+    }
+
+    .cus-action-icon.danger{
+        background: #cc0000
+    }
+
+    .cus-action-icon.success{
+        background: #00c221
+    }
+
+    .cus-action-icon.warning{
+        background: #ffc800
+    }
+
+    ..cus-display-only label, .cus-input-show label{
+        font-size: 12px !important
+    }
+
+    .cus-display-only input, .cus-input-show input{
+        min-height: auto !important;
+        padding: 5px !important;
+        line-height: 1 !important;
+        font-size: 12px !important;
+        font-weight: 600
+    }
+
+    .cus-summary{
+        vertical-align: middle !important
+    }
+
+    .cus-summary .summary{
+        min-height: auto!important
+    }
+
+    .cus-summary .title{
+        margin-bottom: 5px !important
+    }
+
+    .cus-summary .summary-footer{
+        margin-top:5px;
+        text-align: left
+    }
+
+    #form-loan-overview .card-body{
+        box-shadow: none;
+        border: 1px solid #f1f1f1
+    }
+
+    .dataTables_wrapper .cus-table.dataTable{
+        margin-top: 15px !important
+    }
+
+    .cus-table th{
+        font-size: 12px !important;
+        font-weight: 600
+    }
+
+    .cus-table td{
+        font-size: 12px !important;
+    }
+
+    .p-note{
+        color: red;
+        margin: 0;
+        padding-top: 2px;
+        font-size: 12px;
+        margin-left: 5px;
+    }
+
+    .swal2-container{
+        z-index: 9999999
     }
 </style>

@@ -70,4 +70,9 @@ class Customer extends Model
     {
         return $this->hasMany(Reference::class);
     }
+
+    public function company()
+    {
+        return $this->belongsTo(Company::class);
+    }
 }

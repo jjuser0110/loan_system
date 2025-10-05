@@ -1,0 +1,1060 @@
+@extends('layouts.app')
+<style>
+    #btn-search{
+        white-space: nowrap
+    }
+
+    #input-search{
+        width: 100%;
+        max-width: 275px
+    }
+
+    #search-wrapper{
+        display: flex;
+        gap: 5px;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    #btn-search{
+        flex: 0 1 32px;height:100%
+    }
+
+    @media screen and (max-width:500px) {
+        #input-search{
+            flex: 1 1 60%;
+        }
+    }
+
+    #loan-dropdown{
+        width: 275px
+    }
+
+    .tab-content{
+        padding: 0 !important;
+    }
+
+    .tab-pane{
+        padding: 15px !important;
+    }
+</style>
+@section('content')
+<header class="page-header">
+    <h2>Loan Detail</h2> 
+</header>
+@include('layouts.flash-message')
+<div class="row">
+    <section class="card">
+        <form class="theme-form mega-form" action="{{ route('loan.single_loan') }}" method="get">
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-12">
+                        <label id="label-search" class="col-form-label">Loan Code</label>
+                        <div id="search-wrapper">
+                            <input type="text" id="input-search" class="form-control" name="loan_code" value="{{ $loan?->loan_code ?? '' }}">
+                            <button type="submit" class="btn btn-primary" id="btn-search"><i class="fas fa-search"></i></button>
+                        </div>
+                       <div id="loan-dropdown" class="dropdown-menu col-md-5 col-10" style="display:none; max-height: 200px; overflow-y: auto; padding:0;"></div>
+                    </div>
+                </div>
+            </div>
+         </form>
+    </section>
+</div>
+<div class="row" style="padding-top:0;"> 
+    <div class="col-sm-12 col-xl-12">
+        <div class="tabs">
+            <ul class="nav nav-tabs">
+                <li class="nav-item active">
+                    <a class="nav-link active" data-bs-target="#overview" href="#overview" data-bs-toggle="tab">Overview</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-target="#loan" href="#loan" data-bs-toggle="tab">Information</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-target="#payment" href="#payment" data-bs-toggle="tab">Payment</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-target="#schedule" href="#schedule" data-bs-toggle="tab">Schedule</a>
+                </li>
+            </ul>
+             <div class="tab-content">
+                <div id="overview" class="tab-pane active">
+                    <div class="col-lg-12">
+                        <section class="card cus-display-only">
+                            @if(!$loan)
+                            <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">No loan found</p>
+                            @else
+                            <form class="theme-form mega-form" id="form-loan-overview">
+                                <div class="row">
+                                    <div class="col-xl-3">
+                                        <section class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="widget-summary cus-summary">
+                                                    <div class="widget-summary-col">
+                                                        <div class="summary">
+                                                            <h4 class="title">Loan Amount</h4>
+                                                            <div class="info">
+                                                                <strong class="amount">RM {{ $loan->loan_amount }}</strong>
+                                                            </div>
+                                                        </div>
+                                                        <div class="summary-footer">
+                                                            <a class="text-muted text-uppercase">{{ $loan->interest_group }} | {{ $loan->interest_rate.'%'}}</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+
+                                    <div class="col-xl-3">
+                                        <section class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="widget-summary cus-summary">
+                                                    <div class="widget-summary-col">
+                                                        <div class="summary">
+                                                            <h4 class="title">Balance</h4>
+                                                            <div class="info">
+                                                                <strong class="amount">RM {{ $loan->balance }}</strong>
+                                                            </div>
+                                                        </div>
+                                                        <div class="summary-footer">
+                                                            <a class="text-muted text-uppercase">Capital: RM{{ $loan->capital }}</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+
+                                    <div class="col-xl-3">
+                                        <section class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="widget-summary cus-summary">
+                                                    <div class="widget-summary-col">
+                                                        <div class="summary">
+                                                            <h4 class="title">Outstanding</h4>
+                                                            <div class="info">
+                                                                <strong class="amount">RM {{ $loan->outstanding }}</strong>
+                                                            </div>
+                                                        </div>
+                                                        <div class="summary-footer">
+                                                            <a class="text-muted text-uppercase">Next: {{ $loan->next_due_amount }} ({{ $loan->next_due_date}})</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+
+                                    <div class="col-xl-3">
+                                        <section class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="widget-summary cus-summary">
+                                                    <div class="widget-summary-col">
+                                                        @if($loan->interest_group == 'SKIM B')
+                                                        <div class="summary">
+                                                            <h4 class="title">Total Payment</h4>
+                                                            <div class="info">
+                                                                <strong class="amount">RM {{ number_format(($loan->installment * ($loan->loan_term - 2)) + $loan->first_payment + $loan->last_payment,2,'.',',') }}</strong>
+                                                            </div>
+                                                        </div>
+                                                        @else
+                                                        <div class="summary">
+                                                            <h4 class="title">Payment</h4>
+                                                            <div class="info">
+                                                                <strong class="amount">RM {{ ($loan->balance/100) * $loan->interest_rate }}/m</strong>
+                                                            </div>
+                                                        </div>
+                                                        @endif
+                                                        <div class="summary-footer">
+                                                            <a class="text-muted text-uppercase">Paid: RM {{ $loan->paid }}</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+
+                                    <div class="col-xl-3">
+                                        <section class="card mb-3">
+                                            <div class="card-body" style="{{ $loan->total_late_charge - $loan->tota_late_paid > 0 ? 'background:var(--background-outstanding)' : '' }}">
+                                                <div class="widget-summary cus-summary">
+                                                    <div class="widget-summary-col">
+                                                        <div class="summary">
+                                                            <h4 class="title">Total Late</h4>
+                                                            <div class="info">
+                                                                <strong class="amount">RM {{ $loan->late }}</strong>
+                                                            </div>
+                                                        </div>
+                                                        <div class="summary-footer">
+                                                            <a class="text-muted text-uppercase">Paid: RM{{ $loan->late_paid }}</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+                                    
+                                    <div class="col-xl-3">
+                                        <section class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="widget-summary cus-summary">
+                                                    <div class="widget-summary-col">
+                                                        <div class="summary">
+                                                            <h4 class="title">Total Discount</h4>
+                                                            <div class="info">
+                                                                <strong class="amount">RM {{ $loan->discount }}</strong>
+                                                            </div>
+                                                        </div>
+                                                        <div class="summary-footer">
+                                                            <a class="text-muted text-uppercase">-</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+
+                                    <div class="col-xl-3">
+                                        <section class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="widget-summary cus-summary">
+                                                    <div class="widget-summary-col">
+                                                        <div class="summary">
+                                                            <h4 class="title">Total Profit</h4>
+                                                            <div class="info">
+                                                                <strong class="amount">RM <span style="vertical-align:unset" id="total-profit">Loading</span></strong>
+                                                            </div>
+                                                        </div>
+                                                        <div class="summary-footer">
+                                                            <a class="text-muted text-uppercase">-</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+                                </div>
+                            </form>
+                            @endif
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content">
+                <div id="loan" class="tab-pane">
+                    <div class="col-lg-12">
+                        <section class="card cus-display-only">
+                            @if(!$loan)
+                            <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">No loan found</p>
+                            @else
+                            <form class="theme-form mega-form">
+                                @csrf
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <h4 class="cus-header">Customer</h4>
+                                            <div class="row">
+                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
+                                                    <label class="col-form-label">Customer Code</label>
+                                                    <input type="text" class="form-control" value="{{ $loan?->customer->customer_code ?? '' }}" disabled>
+                                                </div>
+                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
+                                                    <label class="col-form-label">Customer Name</label>
+                                                    <input type="text" class="form-control" value="{{ $loan?->customer->customer_name ?? '' }}" disabled>
+                                                </div>
+                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
+                                                    <label class="col-form-label">NRIC Number</label>
+                                                    <input type="text" class="form-control" value="{{ $loan?->customer->nric_number ?? '' }}" disabled>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-6">
+                                            <h4 class="cus-header">Company</h4>
+                                            <div class="row">
+                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
+                                                    <label class="col-form-label">Company Code</label>
+                                                    <input type="text" class="form-control" value="{{ $loan?->company->company_code ?? '' }}" disabled>
+                                                </div>
+                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
+                                                    <label class="col-form-label">Company Name</label>
+                                                    <input type="text" class="form-control" value="{{ $loan?->company->company_name ?? '' }}" disabled>
+                                                </div>
+                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
+                                                    <label class="col-form-label">Branch</label>
+                                                    <input type="text" class="form-control" value="{{ $loan?->company?->branch->branch_name ?? '' }}" disabled>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <h4 class="cus-header">Loan {{ $loan?->loan_code ? "(".$loan->loan_code.")" : '' }} </h4>
+                                    <div class="row">
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Interest Group</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->interest_group ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Loan Amount</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->loan_amount ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Interest Rate</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->interest_rate.'%' ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Year Month</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->year_month ?? '' }}" disabled>
+                                        </div>
+
+                                        @if($loan?->interest_group == 'SKIM B')
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Loan Term</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->loan_term ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">First Payment</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->first_payment ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Last Payment</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->last_payment ?? '' }}" disabled>
+                                        </div>
+                                        @endif
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Installment</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->installment ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Processing Fee</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->processing_fee ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Stamp Fee</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->stamp_fee ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Capital</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->capital ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Alternate Code</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->alternate_code ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Receipt No</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->receipt_no ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Created At</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->created_at ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Created By</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->creator->username ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Last Update</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->updated_at ?? '' }}" disabled>
+                                        </div>
+
+                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
+                                            <label class="col-form-label">Updated By</label>
+                                            <input type="text" class="form-control" value="{{ $loan?->updater?->username ?? '' }}" disabled>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                            @endif
+                        </section>
+                    </div>
+                </div>
+            </div>
+
+             <div class="tab-content">
+                <div id="payment" class="tab-pane">
+                     <div class="col-lg-12">
+                        <section class="card">
+                            <div class="mb-3" style="text-align: right;">
+                                <a class="btn btn-xs btn-square btn-primary" onclick="new bootstrap.Modal('#modal-add-payment').show()">Create</a>
+                            </div>
+                            <table class="table cus-table table-bordered table-striped mb-0" id="table-payments">
+                                <thead>
+                                    <tr>
+                                        <th>Payment Code</th>
+                                        <th>Paid</th>
+                                        <th>Discount</th>
+                                        <th>Interest Paid</th>
+                                        <th>Late Paid</th>
+                                        <th>Bank/Cheque</th>
+                                        <th>Collection Type</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                
+                        </section>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="tab-content">
+                <div id="schedule" class="tab-pane">
+                    <div class="col-lg-12">
+                        <section class="card">
+                            <div class="mb-3" style="text-align: right;">
+                                <a class="btn btn-xs btn-square btn-primary" onclick="new bootstrap.Modal('#modal-add-schedule').show()">Create</a>
+                            </div>
+                            <table class="table cus-table table-bordered table-striped mb-0" id="table-payment-schedules">
+                                <thead>
+                                    <tr>
+                                        <th>Due Date</th>
+                                        <th>Payment</th>
+                                        <th>Paid</th>
+                                        <th>Discount</th>
+                                        <th>Interest</th>
+                                        <th>Interest Paid</th>
+                                        <th>Late</th>
+                                        <th>Late Paid</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-add-schedule" tabindex="-1" aria-labelledby="modalAddScheduleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAddScheduleLabel">Add Schedule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-schedule" method="POST" action="{{ route('schedule.store') }}">
+                    @csrf
+                    <input type="hidden" name="loan_code" value="{{ $loan->loan_code }}">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">Due Date</label>
+                            <input type="date" class="form-control" name="due_date" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">Add Interest</label>
+                            <input type="number" class="form-control" name="interest_amount" value="0">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">Add Payment (Capital)</label>
+                            <input type="number" class="form-control" name="payment_amount" value="0">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">Add Late</label>
+                            <input type="number" class="form-control" name="late_amount" value="0">
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-update-schedule" tabindex="-1" aria-labelledby="modalUpdateScheduleLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalUpdateScheduleLabel">Update Schedule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-update-schedule" method="POST" action="{{ route('schedule.store') }}">
+                    @csrf
+                    <input type="hidden" name="schedule_id" id="update-schedule-id">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">Due Date</label>
+                            <input type="date" class="form-control" name="due_date" id="update-schedule-date" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="col-form-label">Interest Amount</label>
+                            <input type="number" class="form-control" name="interest_amount" id="update-schedule-interest">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="col-form-label">Interest Paid</label>
+                            <input type="number" class="form-control" name="interest_paid_amount" id="update-schedule-interest-paid">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="col-form-label">Payment/Capital Amount</label>
+                            <input type="number" class="form-control" name="payment_amount" id="update-schedule-payment">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="col-form-label">Payment/Capital Paid</label>
+                            <input type="number" class="form-control" name="paid_amount" id="update-schedule-paid">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">Payment/Capital Discount</label>
+                            <input type="number" class="form-control" name="discount_amount" id="update-schedule-discount">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="col-form-label">Late Amount</label>
+                            <input type="number" class="form-control" name="late_amount" id="update-schedule-late">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="col-form-label">Late Paid</label>
+                            <input type="number" class="form-control" name="late_paid_amount" id="update-schedule-late-paid">
+                        </div>
+                    </div>
+                    
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-add-payment" tabindex="-1" aria-labelledby="modalAddPaymentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAddPaymentLabel">Add Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-payment">
+                    @csrf
+                    <input type="hidden" name="loan_code" value="{{ $loan->loan_code }}">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="col-form-label">Payment / Capital Amount</label>
+                            <input type="number" class="form-control" id="input-payment-amount" name="payment_amount" value="0">
+                            <p class="p-note" id="loan-payment-balance">{{ $loan->balance ?? '0.00' }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="col-form-label">Discount</label>
+                            <input type="number" class="form-control" name="discount_amount" value="0">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">Interest Amount</label>
+                            <input type="number" class="form-control" id="input-payment-interest" name="interest_paid_amount" value="0">
+                            <p class="p-note" id="loan-interest-balance">{{ $loan->interest_balance ?? '0.00' }}</p>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">Late Amount</label>
+                            <input type="number" class="form-control" id="input-payment-late" name="late_paid_amount" value="0">
+                            <p class="p-note" id="loan-late-balance">{{ $loan->late_balance ?? '0.00' }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">Collection</label>
+                        <select class="form-control" name="collection_type" required>
+                            <option value="Collection A">Collection A</option>
+                            <option value="Collection B">Collection B</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">Cheque</label>
+                        <input type="text" class="form-control" name="cheque" autocomplete="off">
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">Bank</label>
+                        <input type="text" class="form-control" name="bank" autocomplete="off">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modal-update-payment" tabindex="-1" aria-labelledby="modalUpdatePaymentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalUpdatePaymentLabel">Update Payment</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-update-payment">
+                    @csrf
+                    <input type="hidden" name="payment_id" id="update-payment-id">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="col-form-label">Payment / Capital Amount</label>
+                            <input type="number" class="form-control" id="update-payment-paid" name="payment_amount">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="col-form-label">Discount</label>
+                            <input type="number" class="form-control" id="update-payment-discount" name="discount_amount">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">Interest Amount</label>
+                            <input type="number" class="form-control" id="update-payment-interest" name="interest_paid_amount">
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">Late Amount</label>
+                            <input type="number" class="form-control" id="update-payment-late" name="late_paid_amount" value="0">
+                        </div>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">Collection</label>
+                        <select class="form-control" name="collection_type" id="update-payment-collection"required>
+                            <option value="Collection A">Collection A</option>
+                            <option value="Collection B">Collection B</option>
+                        </select>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">Cheque</label>
+                        <input type="text" class="form-control" name="cheque" id="update-payment-cheque" autocomplete="off">
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">Bank</label>
+                        <input type="text" class="form-control" name="bank" id="update-payment-bank" autocomplete="off">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Submit</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+@endsection
+
+@section('page-js')
+<script src="{{ asset('porto-assets/vendor/select2/js/select2.js') }}"></script>
+<script src="{{ asset('porto-assets/vendor/datatables/media/js/jquery.dataTables.min.js') }}"></script>
+<script src="{{ asset('porto-assets/vendor/datatables/media/js/dataTables.bootstrap5.min.js') }}"></script>
+<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/dataTables.buttons.min.js') }}"></script>
+<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.bootstrap4.min.js') }}"></script>
+<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.html5.min.js') }}"></script>
+<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.print.min.js') }}"></script>
+<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/JSZip-2.5.0/jszip.min.js') }}"></script>
+<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/pdfmake.min.js') }}"></script>
+<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/vfs_fonts.js') }}"></script>
+@endsection
+
+@section('scripts')
+<script src="{{ asset('porto-assets/js/examples/examples.datatables.default.js') }}"></script>
+<script src="{{ asset('porto-assets/js/examples/examples.datatables.row.with.details.js') }}"></script>
+<script src="{{ asset('porto-assets/js/examples/examples.datatables.tabletools.js') }}"></script>
+<script>
+    let table_schedule, table_payment;
+    $(document).ready(function () {
+        table_schedule = $('#table-payment-schedules').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "fixedHeader": false,
+            "ajax": {
+                "url": "{{ route('schedule.load_schedule',['loan_code'=>':loan_code']) }}".replace(':loan_code',"{{ $loan->loan_code }}"),
+                "type": "GET"
+            },
+            "order": [
+                [0, "asc"]
+            ],
+            "columns": [
+                {
+                    "data": "due_date"
+                },
+                {
+                    "data": "payment_amount"
+                },
+                {
+                    "data": "paid_amount"
+                },
+                {
+                    "data": "discount_amount"
+                },
+                {
+                    "data": "interest_amount"
+                },
+                {
+                    "data": "interest_paid_amount"
+                },
+                {
+                    "data": "late_amount"
+                },
+                {
+                    "data": "late_paid_amount"
+                },
+                {
+                    "data": null,
+                    "render": function(data, type, row, meta) {
+                        return`
+                            <div class="cus-action-wrapper">
+                                <a class="cus-action-icon info" title="Update Schedule" onclick="updateSchedule(${meta.row})"><i class="fas fa-edit"></i></a>
+                                <a class="cus-action-icon danger" title="Delete Schedule" onclick="deleteSchedule(${meta.row})"><i class="fas fa-trash-alt"></i></a>
+                            </div>
+                        `;
+                    }
+                }
+            ]
+        });
+
+        table_payment = $('#table-payments').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "fixedHeader": false,
+            "ajax": {
+                "url": "{{ route('payment.load_payment',['loan_code'=>':loan_code']) }}".replace(':loan_code',"{{ $loan->loan_code }}"),
+                "type": "GET"
+            },
+            "order": [
+                [0, "desc"]
+            ],
+            "columns": [
+                {
+                    "data": "payment_code"
+                },
+                {
+                    "data": "payment_amount"
+                },
+                {
+                    "data": "discount_amount"
+                },
+                {
+                    "data": "interest_paid_amount"
+                },
+                {
+                    "data": "late_paid_amount"
+                },
+                {
+                    "data": "bank"
+                },
+                {
+                    "data": "collection_type"
+                },
+                {
+                    "data": null,
+                    "render": function(data, type, row, meta) {
+                        return`
+                            <div class="cus-action-wrapper">
+                                <a class="cus-action-icon info" title="Update Payment" onclick="updatePayment(${meta.row})"><i class="fas fa-edit"></i></a>
+                                <a class="cus-action-icon danger" title="Delete Payment" onclick="deletePayment(${meta.row})"><i class="fas fa-trash-alt"></i></a>
+                            </div>
+                        `;
+                    }
+                }
+            ]
+        });
+    });
+
+    let searchTimeout;
+    const searchInput = document.getElementById('input-search');
+    const dropdown = document.getElementById('loan-dropdown');
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value;
+        clearTimeout(searchTimeout);
+        if (query.length < 3) {
+            dropdown.style.display = 'none';
+            return;
+        }
+        searchTimeout = setTimeout(() => {
+            searchLoans(query);
+        }, 500);
+    });
+
+    function searchLoans(query) {
+        fetch(`{{ route('loan.search_loan') }}?search=${encodeURIComponent(query)}`, {
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(loans => {
+            dropdown.innerHTML = '';
+            if (loans.length === 0) {
+                dropdown.innerHTML = '<div class="dropdown-item-text">No loan found</div>';
+            } else {
+                loans.forEach(loan => {
+                    const item = document.createElement('a');
+                    item.className = 'dropdown-item';
+                    item.href = '#';
+                    item.innerHTML = `<strong>${loan.loan_code}</strong>`;
+                    item.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        searchInput.value = loan.loan_code;
+                        dropdown.style.display = 'none';
+                    });
+                    dropdown.appendChild(item);
+                });
+            }   
+            dropdown.style.display = 'block';
+        })
+        .catch(error => {
+            dropdown.innerHTML = '<div class="dropdown-item-text text-danger">Search failed</div>';
+            dropdown.style.display = 'block';
+        });
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            dropdown.style.display = 'none';
+        }
+    });
+
+    function updateSchedule(rowIndex) {
+        const data = table_schedule.row(rowIndex).data();
+        document.getElementById('update-schedule-id').value = data.id;
+        document.getElementById('update-schedule-date').value = data.due_date;
+        document.getElementById('update-schedule-late').value = data.late_amount;
+        document.getElementById('update-schedule-payment').value = data.payment_amount;
+        document.getElementById('update-schedule-interest').value = data.interest_amount;
+        document.getElementById('update-schedule-paid').value = data.paid_amount;
+        document.getElementById('update-schedule-interest-paid').value = data.interest_paid_amount;
+        document.getElementById('update-schedule-late-paid').value = data.late_paid_amount;
+        document.getElementById('update-schedule-discount').value = data.discount_amount;
+        $('#modal-update-schedule').modal('show');
+    }
+
+    function deleteSchedule(rowIndex) {
+        const data = table_schedule.row(rowIndex).data();
+        function submitDelete(){
+            $.ajax({
+                url: "{{ route('schedule.delete') }}",
+                type: "POST",
+                data: {schedule_id:data.id},
+                headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
+                success: function (response) {
+                    if(response.success == true){
+                        setReloadSwal('success','',response.message);
+                    }
+                    else{
+                        setDefaultSwal('error','',response.message);
+                    }
+                },
+                error: function (xhr) {
+                    setDefaultSwal('error','','There is something wrong, please try again.');
+                }
+            });
+        }
+        setConfirmationSwal(
+            "Warning",
+            "This action will affect the entire loan and cannot be undone. Proceed?",
+            'Process',
+            'Cancel'
+        ).then((result) => {
+            if (result.isConfirmed) {
+                submitDelete();
+            }
+        });
+    }
+
+    function updatePayment(rowIndex) {
+        const data = table_payment.row(rowIndex).data();
+        document.getElementById('update-payment-id').value = data.id;
+        document.getElementById('update-payment-paid').value = data.payment_amount;
+        document.getElementById('update-payment-interest').value = data.interest_paid_amount;
+        document.getElementById('update-payment-late').value = data.late_paid_amount;
+        document.getElementById('update-payment-discount').value = data.discount_amount;
+        document.getElementById('update-payment-bank').value = data.bank;
+        document.getElementById('update-payment-cheque').value = data.cheque;
+        document.getElementById('update-payment-collection').value = data.collection_type;
+        $('#modal-update-payment').modal('show');
+    }
+
+    function deletePayment(rowIndex) {
+        const data = table_payment.row(rowIndex).data();
+        function submitDelete(){
+            $.ajax({
+                url: "{{ route('payment.delete') }}",
+                type: "POST",
+                data: {payment_id:data.id},
+                headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
+                success: function (response) {
+                    if(response.success == true){
+                        setReloadSwal('success','',response.message);
+                    }
+                    else{
+                        setDefaultSwal('error','',response.message);
+                    }
+                },
+                error: function (xhr) {
+                    setDefaultSwal('error','','There is something wrong, please try again.');
+                }
+            });
+        }
+        setConfirmationSwal(
+            "Warning",
+            "This action will affect the entire loan and cannot be undone. Proceed?",
+            'Process',
+            'Cancel'
+        ).then((result) => {
+            if (result.isConfirmed) {
+                submitDelete();
+            }
+        });
+    }
+
+    $('#form-add-schedule').on('submit', function (e) {
+        e.preventDefault();
+        let form = $(this);
+        let formData = new FormData(this);
+        $.ajax({
+            url: "{{ route('schedule.store') }}",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
+            success: function (response) {
+                if(response.success == true){
+                    setReloadSwal('success','',response.message);
+                }
+                else{
+                    setDefaultSwal('error','',response.message);
+                }
+            },
+            error: function (xhr) {
+                setDefaultSwal('There is something wrong, please try again.');
+            }
+        });
+    });
+
+    $('#form-update-schedule').on('submit', function (e) {
+        e.preventDefault();
+        let form = $(this);
+        let formData = new FormData(this);
+        $.ajax({
+            url: "{{ route('schedule.update') }}",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
+            success: function (response) {
+                if(response.success == true){
+                    setReloadSwal('success','',response.message);
+                }
+                else{
+                    setDefaultSwal('error','',response.message);
+                }
+            },
+            error: function (xhr) {
+                setDefaultSwal('error','','There is something wrong, please try again.');
+            }
+        });
+    });
+
+    $('#form-add-payment').on('submit', function (e) {
+        e.preventDefault();
+        let form = $(this);
+        let formData = new FormData(this);
+        $.ajax({
+            url:  "{{ route('payment.store') }}",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
+            success: function (response) {
+                if(response.success == true){
+                    setReloadSwal('success','',response.message);
+                }
+                else{
+                    setDefaultSwal('error','',response.message);
+                }
+            },
+            error: function (xhr) {
+                setDefaultSwal('There is something wrong, please try again.');
+            }
+        });
+    });
+
+    $('#form-update-payment').on('submit', function (e) {
+        e.preventDefault();
+        let form = $(this);
+        let formData = new FormData(this);
+        $.ajax({
+            url: "{{ route('payment.update') }}",
+            type: "POST",
+            data: formData,
+            processData: false,
+            contentType: false,
+            header: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
+            success: function (response) {
+                if(response.success == true){
+                    setReloadSwal('success','',response.message);
+                }
+                else{
+                    setDefaultSwal('error','',response.message);
+                }
+            },
+            error: function (xhr) {
+                setDefaultSwal('error','','There is something wrong, please try again.');
+            }
+        });
+    });
+
+    fetch(`{{ route('loan.fetch_profit',['loan_code'=>$loan->loan_code]) }}`, {
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('total-profit').innerHTML = data.total_profit ?? '0.00';
+    })
+    .catch(error => {
+        console.error('Search failed:', error);
+    });
+</script>
+@endsection

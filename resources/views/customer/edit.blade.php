@@ -56,6 +56,12 @@
                 <li class="nav-item">
                     <a class="nav-link" data-bs-target="#asset" href="#asset" data-bs-toggle="tab">Asset</a>
                 </li>
+                 <li class="nav-item">
+                    <a class="nav-link" data-bs-target="#loan" href="#loan" data-bs-toggle="tab">Loan</a>
+                </li>
+                 <!-- <li class="nav-item">
+                    <a class="nav-link" data-bs-target="#payment" href="#payment" data-bs-toggle="tab">Payment</a>
+                </li> -->
             </ul>
             <div class="tab-content">
                 <div id="personal" class="tab-pane active">
@@ -381,7 +387,7 @@
                 <div id="reference" class="tab-pane">
                     <div class="col-lg-12 mb-3">
                         <section class="card">
-                            <div class="card-header" style="text-align: left;">
+                            <div class="card-header" style="text-align: right;">
                                 <a class="btn btn-xs btn-square btn-primary" href="#modalReferenceForm">Add Reference</a>
                             </div>
                             <div class="card-body">
@@ -437,7 +443,7 @@
                 <div id="asset" class="tab-pane">
                     <div class="col-lg-12 mb-3">
                         <section class="card">
-                            <div class="card-header" style="text-align: left;">
+                            <div class="card-header" style="text-align: right;">
                                 <a class="btn btn-xs btn-square btn-primary" href="#modalAssetForm">Add Asset</a>
                             </div>
                             <div class="card-body">
@@ -474,6 +480,91 @@
                         </section>
                     </div>   
                 </div>
+
+                <!-- LOAN TAB -->
+                <div id="loan" class="tab-pane">
+                    <div class="col-lg-12 mb-3">
+                        <section class="card" style="overflow:auto">
+                            <div class="card-header" style="text-align: right;">
+                                <a class="btn btn-xs btn-square btn-primary" target="_blank" href="{{ route('loan.create',['customer_code'=>$customer->customer_code,'company_code'=>$customer->company_code]) }}">Add Loan</a>
+                            </div>
+                            <div class="card-body">
+                                <table class="table cus-table table-bordered table-striped mb-0" id="table-loan">
+                                    <thead>
+                                        <tr>
+                                            <th>Loan Code</th>
+                                            <th>Company</th>
+                                            <th>Interest Group</th>
+                                            <th>Interest Rate</th>
+                                            <th>Loan Amount</th>
+                                            <th>Installment</th>
+                                            <th>Loan Term</th>
+                                            <th>Capital</th>
+                                            <th>Created At</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>   
+                </div>
+
+                <!-- <div id="payment" class="tab-pane">
+                    <div class="col-lg-12 mb-3">
+                        <section class="card">
+                            <div class="card-header" style="text-align: left;">
+                                <a class="btn btn-xs btn-square btn-primary" href="#modalReferenceForm">Add Reference</a>
+                            </div>
+                            <div class="card-body">
+                                <table class="table table-bordered table-striped mb-0" id="datatable-reference">
+                                    <thead>
+                                        <tr>
+                                            <th>Reference Type</th>
+                                            <th>NRIC</th>
+                                            <th>Name</th>
+                                            <th>Mobile</th>
+                                            <th>House Ownership</th>
+                                            <th>Monthly Income</th>
+                                            <th>City</th>
+                                            <th>State</th>
+                                            <th>Designation</th>
+                                            <th>Company Name</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach($references as $reference)
+                                        <tr>
+                                            <td>{{ $reference->reference_type }}</td>
+                                            <td>{{ $reference->new_ic }}</td>
+                                            <td>{{ $reference->name }}</td>
+                                            <td>{{ $reference->mobile }}</td>
+                                            <td>{{ $reference->house_ownership }}</td>
+                                            <td>{{ $reference->monthly_income }}</td>
+                                            <td>{{ $reference->city }}</td>
+                                            <td>{{ $reference->state }}</td>
+                                            <td>{{ $reference->designation ?? $reference->job }}</td>
+                                            <td>{{ $reference->company_name }}</td>
+                                            <td>
+                                                <div class="action-buttons">
+                                                    <a href="javascript:void(0)" onclick="editReference({{ $reference->id }})" class="btn-edit" title="Edit">
+                                                        <i class="bx bx-edit"></i>
+                                                    </a>
+                                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.reference.destroy', $reference->id) }}'}" title="Delete" class="btn-delete" style="cursor:pointer">
+                                                        <i class="bx bx-trash"></i>
+                                                    </a>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>   
+                </div> -->
 
             </div>
         </div>
@@ -1013,6 +1104,83 @@
                 e.preventDefault();
                 $.magnificPopup.close();
             });
+
+            $('#table-loan').DataTable({
+                "processing": true,
+                "serverSide": true,
+                "fixedHeader": false,
+                "ajax": {
+                    "url": "{{ route('loan.load_loan',['customer_code'=>$customer->customer_code]) }}",
+                    "type": "GET",
+                },
+                "order": [
+                    [2, "desc"]
+                ],
+                "columns": [
+                    {
+                        "data": "loan_code"
+                    },
+                    {
+                        "data": "company_code",
+                        "render": function(data, type, row, meta) {
+                            return `<a style="text-decoration:none" onclick="e.preventDefault()">${row.company_code}<br>${row.company_name}</a>`;
+                        }
+                    },
+                    {
+                        "data": "interest_group"
+                    },
+                    {
+                        "data": "interest_rate",
+                        "render": function(data, type, row, meta) {
+                            return data+"%";
+                        }
+                    },
+                    {
+                        "data": "loan_amount",
+                    },
+                    {
+                        "data": "installment",
+                        "render": function(data, type, row, meta) {
+                            let installment = `${row.installment}`;
+                            if(row.interest_group == "SKIM B"){
+                                installment = `${row.installment}<br><span style="color:#7c7c7c;font-size:12px">First: ${row.first_payment}</span><br> <span style="color:#7c7c7c;font-size:12px">Last: ${row.last_payment}</span> `;
+                            }
+                            return `<a style="text-decoration:none" onclick="e.preventDefault()">${installment}</a>`;
+                        }
+                    },
+                    {
+                        "data": "loan_term",
+                        "render": function(data, type, row, meta) {
+                            return row.interest_group == 'SKIM B' ? row.loan_term : '-';
+                        }
+                    },
+                    {
+                        "data": "capital"
+                    },
+                    {
+                        "data": "created_at",
+                        "render": function(data, type, row, meta) {
+                            return formatDate(data);
+                        }
+                    },
+                    {
+                        "data": null,
+                        "render": function(data, type, row, meta) {
+                            
+                            let url = `
+                                <div class="cus-action-wrapper">
+                                    <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="View Detail"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="Create Payment"><i class="fas fa-money-check-alt"></i></a>
+                                    <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="Create Schedule"><i class="fas fa-calendar-alt"></i></a>
+                                </div>
+                                `;
+                            url = url.replaceAll(':loan_code', row.loan_code);
+                            return url;
+                        }
+                    }
+                ]
+            });
+    
         });
         
         function previewPhoto(event) {

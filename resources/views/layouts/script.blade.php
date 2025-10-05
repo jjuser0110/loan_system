@@ -36,6 +36,7 @@
 <script src="{{ asset('porto-assets/vendor/jqvmap/maps/continents/jquery.vmap.north-america.js') }}"></script>
 <script src="{{ asset('porto-assets/vendor/jqvmap/maps/continents/jquery.vmap.south-america.js') }}"></script>
 <script src="{{ asset('porto-assets/vendor/select2/js/select2.js') }}"></script>
+<script src="{{ asset('js/sweetalert2.min.js') }}"></script>
 
 <!-- Theme Base, Components and Settings -->
 <script src="{{ asset('porto-assets/js/theme.js') }}"></script>
@@ -61,5 +62,74 @@
     function hideLoading(){
         var overlay = document.getElementById('overlay');
         overlay.style.display = 'none';
+    }
+
+    function formatDate(dateString){
+        const date = new Date(dateString);
+        return date.getFullYear() + '-' +
+           ('0' + (date.getMonth() + 1)).slice(-2) + '-' +
+           ('0' + date.getDate()).slice(-2) + ' ' +
+           ('0' + date.getHours()).slice(-2) + ':' +
+           ('0' + date.getMinutes()).slice(-2);
+    }
+
+    function formatCredit(x) {
+        return parseFloat(x).toFixed(2);
+    }
+
+    function setDefaultSwal(icon, title, text){
+        Swal.fire({
+            icon: icon,
+            title: title,
+            text: text,
+            customClass: {
+                htmlContainer: 'cus-swal-html',
+                confirmButton: 'cus-swal-confirm',
+            }
+        })
+    }
+
+    function setReloadSwal(icon, title, text){
+        Swal.fire({
+            icon: icon,
+            title: title,
+            text: text,
+            customClass: {
+                htmlContainer: 'cus-swal-html',
+                confirmButton: 'cus-swal-confirm',
+            }
+        }).then(function() {
+            location.reload();
+        });
+    }
+
+    function setRedirectSwal(icon, title, text, link){
+        Swal.fire({
+            icon: icon,
+            title: title,
+            text:text,
+            showCancelButton: false,
+            confirmButtonText: 'OK'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = link;
+            }
+        });
+    }
+
+    function setConfirmationSwal(title, text, confirmText = "Yes", cancelText = "No") {
+        return Swal.fire({
+            title: title,
+            text: text,
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonText: confirmText,
+            cancelButtonText: cancelText,
+            customClass: {
+                htmlContainer: 'cus-swal-html',
+                confirmButton: 'cus-swal-confirm',
+                cancelButton: 'cus-swal-cancel',
+            }
+        });
     }
 </script>

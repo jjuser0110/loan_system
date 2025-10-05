@@ -15,6 +15,7 @@ use App\Models\Reference;
 use App\Models\Customer;
 use App\Models\HouseOwnership;
 use App\Models\Asset;
+use App\Models\Loan;
 use Bouncer;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -171,8 +172,9 @@ class CustomerController extends Controller
         
         $references = Reference::where('customer_id', $id)->get();
         $assets = Asset::where('customer_id', $id)->get();
+        $loans = Loan::where('customer_id',$id)->get();
         
-        return view('customer.edit', compact('customer', 'company', 'races', 'states', 'marital_statues', 'reference_types', 'references', 'house_ownership', 'assets'));
+        return view('customer.edit', compact('customer', 'company', 'races', 'states', 'marital_statues', 'reference_types', 'references', 'house_ownership', 'assets', 'loans'));
     }
 
     public function update(Request $request, $id)
