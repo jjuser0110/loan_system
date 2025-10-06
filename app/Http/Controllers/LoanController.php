@@ -380,7 +380,7 @@ class LoanController extends Controller
                 throw new Exception('Invalid customer code.');
             }
 
-            $prefix = $customer->company->company_code.'L' ?? $customer->company_code."LN";
+            $prefix = $customer->customer_code.'-' ?? $customer->company_code."LN";
             $loan_code = $this->getSequenceNumber($prefix,'loan_code');
             
             $processing_fee = $v['processing_fee'] ?? 0;
@@ -475,10 +475,13 @@ class LoanController extends Controller
     public function createPaymentSchedule(Loan $loan)
     {
         try{
+            $prefix = $loan->loan_code.'-S' ?? $customer->company_code."LN";
+            $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
             switch($loan->interest_group){
                 case 'SKIM A':
-                    $start_date = Carbon::parse($loan->date);
+                    $start_date = Carbon::parse($loan->year_month);
                     PaymentSchedule::create([
+                        'schedule_code'=>$schedule_code,
                         'loan_code'=>$loan->loan_code,
                         'company_id'=>$loan->company_id,
                         'customer_id'=>$loan->customer_id,
@@ -489,7 +492,7 @@ class LoanController extends Controller
                 break;
 
                 case 'SKIM B':
-                    $start_date = Carbon::parse($loan->date);
+                    $start_date = Carbon::parse($loan->year_month);
                     for ($i = 1; $i <= $loan->loan_term; $i++) {
                         $amount = $loan->installment;
                         if($i == 1){
@@ -568,7 +571,7 @@ class LoanController extends Controller
 
     public function update_outstanding(Loan $loan){
         $outstanding = $loan->balance + $loan->late_balance + $loan->interest_balance;
-        $loan->update(['outstanding'=>$outstanding]);
+        $loan->update(['outstanding'=>$outstanding, 'status'=>$outstanding > 0 ? 'Ongoing' : 'Fully Paid']);
     }
 
     public function update_loan_misc(Loan $loan){

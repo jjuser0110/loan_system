@@ -41,6 +41,7 @@
                 <table class="table cus-table table-bordered table-striped mb-0" id="table-payment-schedules">
                     <thead>
                         <tr>
+                            <th>Schedule Code</th>
                             <th>Due Date</th>
                             <th>Payment</th>
                             <th>Paid</th>
@@ -166,7 +167,10 @@
             ],
             "columns": [
                 {
-                "data": "due_date"
+                    "data": "schedule_code"
+                },
+                {
+                    "data": "due_date"
                 },
                 {
                     "data": "payment_amount"

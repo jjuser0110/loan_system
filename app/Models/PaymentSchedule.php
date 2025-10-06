@@ -20,6 +20,7 @@ class PaymentSchedule extends Model
     ];
 
     protected $fillable = [
+        'schedule_code',
         'loan_code',
         'company_id',
         'customer_id',

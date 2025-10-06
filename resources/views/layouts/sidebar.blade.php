@@ -60,6 +60,24 @@ $currentRoute = request()->route()->getName();
                             </li>
                         </ul>
                     </li>
+                    <li class="nav-parent {{ request()->routeIs('schedule.*') ? 'nav-expanded nav-active' : ''}}">
+                        <a class="nav-link" href="#">
+                            <i class="far fa-calendar" aria-hidden="true"></i>
+                            <span>Schedules</span>
+                        </a>
+                        <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('schedule.index') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('schedule.index')}}">
+                                    All Schedules
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('schedule.create') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('schedule.create')}}">
+                                    Create Schedule
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     <li class="nav-parent {{ request()->routeIs('payment.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="far fa-money-bill-alt" aria-hidden="true"></i>
@@ -74,25 +92,6 @@ $currentRoute = request()->route()->getName();
                             <li class="{{ request()->routeIs('payment.create') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('payment.create')}}">
                                     Create Payment
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-
-                    <li class="nav-parent {{ request()->routeIs('schedule.*') ? 'nav-expanded nav-active' : ''}}">
-                        <a class="nav-link" href="#">
-                            <i class="far fa-money-bill-alt" aria-hidden="true"></i>
-                            <span>Schedules</span>
-                        </a>
-                        <ul class="nav nav-children">
-                            <li class="{{ request()->routeIs('schedule.index') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{route('schedule.index')}}">
-                                    All Schedules
-                                </a>
-                            </li>
-                            <li class="{{ request()->routeIs('schedule.create') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{route('schedule.create')}}">
-                                    Create Schedule
                                 </a>
                             </li>
                         </ul>

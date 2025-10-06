@@ -49,13 +49,19 @@
         <form class="theme-form mega-form" action="{{ route('loan.single_loan') }}" method="get">
             <div class="card-body">
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-8">
                         <label id="label-search" class="col-form-label">Loan Code</label>
                         <div id="search-wrapper">
                             <input type="text" id="input-search" class="form-control" name="loan_code" value="{{ $loan?->loan_code ?? '' }}">
                             <button type="submit" class="btn btn-primary" id="btn-search"><i class="fas fa-search"></i></button>
                         </div>
                        <div id="loan-dropdown" class="dropdown-menu col-md-5 col-10" style="display:none; max-height: 200px; overflow-y: auto; padding:0;"></div>
+                    </div>
+                    <div class="col-md-4" style="display:flex;flex-wrap:nowrap; gap: 5px;justify-content:flex-end;text-align:right">
+                        <div>
+                            <label class="col-form-label" style="padding:0">Status</label>
+                            <h2 style="margin:0;color:{{ $loan->status == 'Ongoing' ? '#0000ff' :' #009400' }}">{{ $loan->status }}</h2>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -73,10 +79,10 @@
                     <a class="nav-link" data-bs-target="#loan" href="#loan" data-bs-toggle="tab">Information</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-target="#payment" href="#payment" data-bs-toggle="tab">Payment</a>
+                    <a class="nav-link" data-bs-target="#schedule" href="#schedule" data-bs-toggle="tab">Schedule</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-target="#schedule" href="#schedule" data-bs-toggle="tab">Schedule</a>
+                    <a class="nav-link" data-bs-target="#payment" href="#payment" data-bs-toggle="tab">Payment</a>
                 </li>
             </ul>
              <div class="tab-content">
@@ -170,6 +176,26 @@
                                                         @endif
                                                         <div class="summary-footer">
                                                             <a class="text-muted text-uppercase">Paid: RM {{ $loan->paid }}</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+                                    
+                                    <div class="col-xl-3">
+                                        <section class="card mb-3">
+                                            <div class="card-body" style="{{ $loan->total_late_charge - $loan->tota_late_paid > 0 ? 'background:var(--background-outstanding)' : '' }}">
+                                                <div class="widget-summary cus-summary">
+                                                    <div class="widget-summary-col">
+                                                        <div class="summary">
+                                                            <h4 class="title">Total Interest</h4>
+                                                            <div class="info">
+                                                                <strong class="amount">RM {{ $loan->interest }}</strong>
+                                                            </div>
+                                                        </div>
+                                                        <div class="summary-footer">
+                                                            <a class="text-muted text-uppercase">Paid: RM{{ $loan->interest_paid }}</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -310,7 +336,7 @@
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Year Month</label>
+                                            <label class="col-form-label">Start Date</label>
                                             <input type="text" class="form-control" value="{{ $loan?->year_month ?? '' }}" disabled>
                                         </div>
 
@@ -427,6 +453,7 @@
                             <table class="table cus-table table-bordered table-striped mb-0" id="table-payment-schedules">
                                 <thead>
                                     <tr>
+                                        <th>Schedule Code</th>
                                         <th>Due Date</th>
                                         <th>Payment</th>
                                         <th>Paid</th>
@@ -597,8 +624,8 @@
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">Collection</label>
                         <select class="form-control" name="collection_type" required>
-                            <option value="Collection A">Collection A</option>
-                            <option value="Collection B">Collection B</option>
+                            <option value="SKIM A">SKIM A</option>
+                            <option value="SKIM B">SKIM B</option>
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
@@ -655,8 +682,8 @@
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">Collection</label>
                         <select class="form-control" name="collection_type" id="update-payment-collection"required>
-                            <option value="Collection A">Collection A</option>
-                            <option value="Collection B">Collection B</option>
+                            <option value="SKIM A">SKIM A</option>
+                            <option value="SKIM B">SKIM B</option>
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
@@ -710,6 +737,9 @@
                 [0, "asc"]
             ],
             "columns": [
+                {
+                    "data": "schedule_code"
+                },
                 {
                     "data": "due_date"
                 },

@@ -163,7 +163,8 @@ class PaymentController extends Controller
                     ->orWhere('companies.company_name', 'like', "%{$search}%")
                     ->orWhere('companies.company_code', 'like', "%{$search}%")
                     ->orWhere('branches.branch_code', 'like', "%{$search}%")
-                    ->orWhere('branches.branch_name', 'like', "%{$search}%");
+                    ->orWhere('branches.branch_name', 'like', "%{$search}%")
+                    ->orWhere('payments.payment_code', 'like', "%{$search}%");
                 });
             }
             if(isset($request->loan_code)){
@@ -271,6 +272,8 @@ class PaymentController extends Controller
             if(!$loan){
                 throw new Exception('Loan not found.');
             }
+            $prefix = $loan->loan_code.'-P' ?? $customer->company_code."LN";
+            $payment_code = $this->getSequenceNumber($prefix,'payment_code');
             $payment_amount = $v['payment_amount'] ?? 0;
             $discount_amount = $v['discount_amount'] ?? 0;
             $total_payment = $payment_amount + $discount_amount;
@@ -508,7 +511,7 @@ class PaymentController extends Controller
             }
 
             Payment::create([
-                'payment_code'=>$this->getSequenceNumber('P'.str_pad($loan->company->company_id, 3, '0', STR_PAD_LEFT)."-",'payment'),
+                'payment_code'=>$payment_code,
                 'customer_id'=>$loan->customer_id,
                 'loan_id'=>$loan->id,
                 'late_paid_amount'=>$late_paid_amount,

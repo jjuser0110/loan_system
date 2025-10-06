@@ -4,57 +4,6 @@
     <h2>Payment</h2>
 </header>
 @include('layouts.flash-message')
-<div class="row mb-3" style="padding-top:40px;">
-    <div class="col-xl-3">
-        <section class="card card-featured-left card-featured-primary mb-3">
-            <div class="card-body">
-                <div class="widget-summary">
-                    <div class="widget-summary-col" style="vertical-align: middle">
-                        <div class="summary" style="min-height:1px">
-                            <h4 class="title" style="margin-bottom: 5px">Total Profits</h4>
-                            <div class="info">
-                                <strong class="amount">RM <span style="font-size:1.4rem;vertical-align:unset" id="total-profit">Loading...</span></strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-    <div class="col-xl-3">
-        <section class="card card-featured-left card-featured-secondary mb-3">
-            <div class="card-body">
-                <div class="widget-summary">
-                    <div class="widget-summary-col" style="vertical-align: middle">
-                        <div class="summary" style="min-height:1px">
-                            <h4 class="title" style="margin-bottom: 5px">Total Capital</h4>
-                            <div class="info">
-                                <strong class="amount">RM {{ number_format($total_capital,2,'.',',') }}</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-    <div class="col-xl-3">
-        <section class="card card-featured-left card-featured-secondary mb-3">
-            <div class="card-body">
-                <div class="widget-summary">
-                    <div class="widget-summary-col" style="vertical-align: middle">
-                        <div class="summary" style="min-height:1px">
-                            <h4 class="title" style="margin-bottom: 5px">Total Outstanding</h4>
-                            <div class="info">
-                                <strong class="amount">RM {{ number_format($outstanding,2,'.',',') }}</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </div>
-</div>
-
 <div class="row" style="padding-top:0">
     <div class="col-lg-12 mb-3">
         <section class="card">
@@ -119,8 +68,8 @@
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">Collection</label>
                         <select class="form-control" name="collection_type" id="update-payment-collection"required>
-                            <option value="Collection A">Collection A</option>
-                            <option value="Collection B">Collection B</option>
+                            <option value="SKIM A">SKIM A</option>
+                            <option value="SKIM B">SKIM B</option>
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">

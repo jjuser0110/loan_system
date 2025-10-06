@@ -53,8 +53,8 @@
                             <div class="col-md-12 mb-3">
                                 <label class="col-form-label">Collection</label>
                                 <select class="form-control" name="collection_type" required>
-                                    <option value="Collection A">Collection A</option>
-                                    <option value="Collection B">Collection B</option>
+                                    <option value="SKIM A">SKIM A</option>
+                                    <option value="SKIM B">SKIM B</option>
                                 </select>
                             </div>
 

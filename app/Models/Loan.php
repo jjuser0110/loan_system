@@ -66,7 +66,8 @@ class Loan extends Model
         'receipt_no',
         'updated_by',
         'created_by',
-        'closed'
+        'closed',
+        'status'
     ];
 
     public function company()

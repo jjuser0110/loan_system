@@ -74,6 +74,7 @@
                             <th>Loan Term</th>
                             <th>Capital</th>
                             <th>Created At</th>
+                            <th>Status</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -168,14 +169,20 @@
                     }
                 },
                 {
+                    "data": "status",
+                    "render": function(data, type, row, meta) {
+                        return `<span style="color:${data == "Ongoing" ? '#0000ff' : '#009400'}">${data}</span>`
+                    }
+                },
+                {
                     "data": null,
                     "render": function(data, type, row, meta) {
                         
                         let url = `
                             <div class="cus-action-wrapper">
                                 <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="View Detail"><i class="fas fa-eye"></i></a>
-                                <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="Create Payment"><i class="fas fa-money-check-alt"></i></a>
                                 <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="Create Schedule"><i class="fas fa-calendar-alt"></i></a>
+                                <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="Create Payment"><i class="fas fa-money-check-alt"></i></a>
                             </div>
                             `;
                         url = url.replaceAll(':loan_code', row.loan_code);

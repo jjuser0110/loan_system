@@ -33,7 +33,7 @@ class Controller extends BaseController
             $s = Sequence::lockForUpdate()->firstOrCreate(['prefix'=>$prefix,'type'=>$type],['last_number'=>0]);
             $s->last_number += 1;
             $s->save();
-            return $prefix.str_pad($s->last_number, 6, '0', STR_PAD_LEFT);
+            return $prefix.str_pad($s->last_number, 3, '0', STR_PAD_LEFT);
         });
     }
 

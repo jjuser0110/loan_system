@@ -85,7 +85,8 @@ class ScheduleController extends Controller
                     ->orWhere('companies.company_name', 'like', "%{$search}%")
                     ->orWhere('companies.company_code', 'like', "%{$search}%")
                     ->orWhere('branches.branch_code', 'like', "%{$search}%")
-                    ->orWhere('branches.branch_name', 'like', "%{$search}%");
+                    ->orWhere('branches.branch_name', 'like', "%{$search}%")
+                    ->orWhere('payment_schedules.schedule_code', 'like', "%{$search}%");
                 });
             }
             if(isset($request->loan_code)){
@@ -151,7 +152,10 @@ class ScheduleController extends Controller
                 throw new Exception('Total amount is 0.');
             }
             
+            $prefix = $loan->loan_code.'-SM' ?? $customer->company_code."LN";
+            $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
             $new = PaymentSchedule::create([
+                'schedule_code' => $schedule_code,
                 'loan_code' => $v['loan_code'],
                 'customer_id' => $loan->customer_id,
                 'company_id' => $loan->company_id,

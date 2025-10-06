@@ -34,7 +34,7 @@
                             
                             <div class="col-md-12 mb-3">
                                 <label class="col-form-label">Year / Month</label>
-                                <input type="month" class="form-control" name="year_month" required>
+                                <input type="date" class="form-control" name="year_month" required>
                             </div>
 
                             <div class="col-md-12 mb-3">
