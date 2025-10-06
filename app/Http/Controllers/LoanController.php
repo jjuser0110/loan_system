@@ -59,6 +59,9 @@ class LoanController extends Controller
                 $query = DB::table('loans')->where('company_id',$companyId);
                 break;
         }
+        if(isset($request->loan_code)){
+            $query->where('loan_code', $request->loan_code);
+        }
         $loans = $query->get();
         $total_profit = 0;
         foreach($loans as $l){

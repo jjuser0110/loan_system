@@ -129,7 +129,7 @@
                                     <div class="form-group col-md-6 border-top-0 pt-0">
                                     <label for="nric_number">NRIC Number <span class="text-danger">*</span></label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="nric_number" name="nric_number" value="{{ $customer->nric_number }}">
+                                        <input type="text" class="form-control" id="nric_number" name="nric_number" value="{{ $customer->nric_number }}" required>
                                         <button class="btn btn-outline-secondary" type="button" id="alternativeIdBtn">Alternative ID</button>
                                     </div>
                                 </div>

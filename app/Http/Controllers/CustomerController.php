@@ -20,6 +20,7 @@ use Bouncer;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class CustomerController extends Controller
 {
@@ -32,9 +33,23 @@ class CustomerController extends Controller
 
     public function create()
     {
-        $branchId = Auth::user()->branch_id;
+         switch(Auth::user()->role_id){
+            case 1:
+                $query = DB::table('companies');
+                break;
 
-        $company = Company::where('branch_id', $branchId)->get();
+            case 2:
+                $userBranchId = Auth::user()->branch_id;
+                $query = DB::table('companies')->where('branch_id',$userBranchId);
+                break;
+
+            default:
+                $companyId = Auth::user()->company_id;
+                $query = DB::table('companies')->where('id',$companyId);
+                break;
+        }
+   
+        $company = $query->get();
         $races = Race::all();
         $marital_statuses = MaritalStatuses::all();
         $states = State::all();
@@ -159,9 +174,23 @@ class CustomerController extends Controller
 
     public function edit($id)
     {
-        $branchId = Auth::user()->branch_id;
+        switch(Auth::user()->role_id){
+            case 1:
+                $query = DB::table('companies');
+                break;
 
-        $company = Company::where('branch_id', $branchId)->get();
+            case 2:
+                $userBranchId = Auth::user()->branch_id;
+                $query = DB::table('companies')->where('branch_id',$userBranchId);
+                break;
+
+            default:
+                $companyId = Auth::user()->company_id;
+                $query = DB::table('companies')->where('id',$companyId);
+                break;
+        }
+   
+        $company = $query->get();
         $customer = Customer::findOrFail($id);
         $races = Race::all();
         $states = State::all();
