@@ -528,11 +528,12 @@ class PaymentController extends Controller
             return response()->json(['success'=>true,'message'=>"Payment created."]);
         }
         catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollback();
             return response()->json([
                 'success' => false,
                 'message' => $e->validator->errors()->first()
             ]);
-            DB::rollback();
+           
         }
         catch(Exception $e){
             DB::rollback();
@@ -1209,8 +1210,7 @@ class PaymentController extends Controller
             DB::rollBack();
             return response()->json([
                 'success' => false,
-                'message' => 'Delete failed',
-                'errors' => [$e->getMessage()]
+                'message' => $e->getMessage()
             ]);
         }
     }
