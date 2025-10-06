@@ -37,7 +37,7 @@ class UserSeeder extends Seeder
         if(!isset($user)){
             $data = [
                 'name'     => 'System Admin',
-                'username'     => 'system',
+                'username'     => 'systemadmin',
                 'email'     => 'system@gmail.com',
                 'password'     => Hash::make('admin99999'),
                 'role_id'     => $role->id,
