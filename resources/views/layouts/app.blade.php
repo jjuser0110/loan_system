@@ -3,6 +3,15 @@
 	<head>
     @include('layouts.head')
     @include('layouts.css')
+	<style>
+		 .dt-row {
+			overflow-x: auto;
+		}
+		.cus-header{
+			color: #0088cc;
+			border-bottom: 2px solid;
+		}
+	</style>
 	</head>
 	<body>
 		<section class="body">

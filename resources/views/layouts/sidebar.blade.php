@@ -1,10 +1,7 @@
 @php
-
 $currentRoute = request()->route()->getName();
-
 @endphp
 <aside id="sidebar-left" class="sidebar-left">
-
     <div class="sidebar-header">
         <div class="sidebar-title">
             Navigation
@@ -17,19 +14,18 @@ $currentRoute = request()->route()->getName();
     <div class="nano">
         <div class="nano-content">
             <nav id="menu" class="nav-main" role="navigation">
-
                 <ul class="nav nav-main">
                     <li>
                         <a class="nav-link" href="{{route('home')}}">
                             <i class="bx bx-home-alt" aria-hidden="true"></i>
                             <span>Dashboard</span>
-                        </a>                        
+                        </a>
                     </li>
                     <li class="{{ request()->routeIs('customer.*') ? 'nav-active' : ''}}">
                         <a class="nav-link" href="{{route('customer.index')}}">
                             <i class="bx bx-home-alt" aria-hidden="true"></i>
                             <span>Customer List</span>
-                        </a>                        
+                        </a>
                     </li>
                     @if(Auth::user()->role_id != 4)
                     <li class="nav-parent  {{ request()->routeIs('staff.*') ? 'nav-expanded nav-active' : ''}}">
@@ -46,8 +42,62 @@ $currentRoute = request()->route()->getName();
                         </ul>
                     </li>
                     @endif
+                    <li class="nav-parent {{ request()->routeIs('loan.*') ? 'nav-expanded nav-active' : ''}}">
+                        <a class="nav-link" href="#">
+                            <i class="far fa-file-alt" aria-hidden="true"></i>
+                            <span>Loan</span>
+                        </a>
+                        <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('loan.index') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('loan.index')}}">
+                                    All Loans
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('loan.create') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('loan.create')}}">
+                                    Create Loan
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-parent {{ request()->routeIs('schedule.*') ? 'nav-expanded nav-active' : ''}}">
+                        <a class="nav-link" href="#">
+                            <i class="far fa-calendar" aria-hidden="true"></i>
+                            <span>Schedules</span>
+                        </a>
+                        <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('schedule.index') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('schedule.index')}}">
+                                    All Schedules
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('schedule.create') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('schedule.create')}}">
+                                    Create Schedule
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="nav-parent {{ request()->routeIs('payment.*') ? 'nav-expanded nav-active' : ''}}">
+                        <a class="nav-link" href="#">
+                            <i class="far fa-money-bill-alt" aria-hidden="true"></i>
+                            <span>Payment</span>
+                        </a>
+                        <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('payment.index') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('payment.index')}}">
+                                    All Payments
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('payment.create') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('payment.create')}}">
+                                    Create Payment
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     @if(Auth::user()->role_id == 1)
-                    <li class="nav-parent  {{ request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') ? 'nav-expanded nav-active' : ''}}">
+                    <li class="nav-parent {{ request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>
                             <span>Main Setting</span>
@@ -93,23 +143,16 @@ $currentRoute = request()->route()->getName();
                     @endif
                 </ul>
             </nav>
-
             <hr class="separator" />
         </div>
-
         <script>
-            // Maintain Scroll Position
             if (typeof localStorage !== 'undefined') {
                 if (localStorage.getItem('sidebar-left-position') !== null) {
                     var initialPosition = localStorage.getItem('sidebar-left-position'),
                         sidebarLeft = document.querySelector('#sidebar-left .nano-content');
-
                     sidebarLeft.scrollTop = initialPosition;
                 }
             }
         </script>
-
     </div>
-
 </aside>
-<!-- end: sidebar -->
