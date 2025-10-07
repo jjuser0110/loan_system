@@ -478,10 +478,10 @@ class LoanController extends Controller
     public function createPaymentSchedule(Loan $loan)
     {
         try{
-            $prefix = $loan->loan_code.'-S' ?? $customer->company_code."LN";
-            $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
             switch($loan->interest_group){
                 case 'SKIM A':
+                    $prefix = $loan->loan_code.'-S' ?? $customer->company_code."LN";
+                    $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
                     $start_date = Carbon::parse($loan->year_month);
                     PaymentSchedule::create([
                         'schedule_code'=>$schedule_code,
@@ -504,7 +504,10 @@ class LoanController extends Controller
                         else if($i == $loan->loan_term){
                             $amount = $loan->last_payment;
                         }
+                        $prefix = $loan->loan_code.'-S';
+                        $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
                         PaymentSchedule::create([
+                            'schedule_code' => $schedule_code,
                             'loan_code'=>$loan->loan_code,
                             'company_id'=>$loan->company_id,
                             'customer_id'=>$loan->customer_id,

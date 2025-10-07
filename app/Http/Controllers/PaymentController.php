@@ -387,7 +387,10 @@ class PaymentController extends Controller
                     if(!$nextSchedule){
                         $newInterestAmount = ($newBalance / 100) * $loan->interest_rate;
                         $lastSchedule = PaymentSchedule::where('loan_code',$loan->loan_code)->orderBy('due_date','desc')->first();
+                        $prefix = $loan->loan_code.'-S';
+                        $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
                         $nextSchedule = PaymentSchedule::create([
+                            'schedule_code' => $schedule_code,
                             'loan_code' => $loan->loan_code,
                             'company_id' => $loan->company_id,
                             'customer_id' => $loan->customer_id,
@@ -716,9 +719,11 @@ class PaymentController extends Controller
                         $lastSchedule = PaymentSchedule::where('loan_code', $loan->loan_code)
                             ->orderBy('due_date', 'desc')
                             ->first();
-                        
                         if ($lastSchedule) {
+                            $prefix = $loan->loan_code.'-S';
+                            $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
                             $nextSchedule = PaymentSchedule::create([
+                                'schedule_code'=>$schedule_code,
                                 'loan_code' => $loan->loan_code,
                                 'company_id' => $loan->company_id,
                                 'customer_id' => $loan->customer_id,
@@ -1048,9 +1053,12 @@ class PaymentController extends Controller
                     $lastSchedule = PaymentSchedule::where('loan_code', $loan->loan_code)
                         ->orderBy('due_date', 'desc')
                         ->first();
-                    
+
+                    $prefix = $loan->loan_code.'-S';
+                    $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
                     if ($lastSchedule) {
                         $nextSchedule = PaymentSchedule::create([
+                            'schedule_code' => $schedule_code,
                             'loan_code' => $loan->loan_code,
                             'company_id' => $loan->company_id,
                             'customer_id' => $loan->customer_id,
