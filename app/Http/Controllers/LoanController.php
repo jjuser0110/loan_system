@@ -72,7 +72,7 @@ class LoanController extends Controller
     
                 $total_loan = $l->first_payment + $l->last_payment + ($l->installment * ($l->loan_term - 2));
                 $profit_ratio = ($total_loan - $l->capital) / $total_loan;
-                $total_profit += ((($l->paid + $l->discount) * $profit_ratio) + $l->late_paid + $l->interest_paid) - $l->discount;
+                $total_profit += ((($l->paid) * $profit_ratio) + $l->late_paid + $l->interest_paid) - $l->discount;
             }
         }
         return response()->json(['success'=>true,'total_profit'=>number_format($total_profit,2,'.',',')]);
