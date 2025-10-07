@@ -54,7 +54,7 @@ class CustomerController extends Controller
         $marital_statuses = MaritalStatuses::all();
         $states = State::all();
         $reference_types = ReferenceType::all();
-        $house_ownership = HouseOwnerShip::all();
+        $house_ownership = HouseOwnership::all();
 
         return view('customer.create')
             ->with('company', $company)
@@ -196,7 +196,7 @@ class CustomerController extends Controller
         $states = State::all();
         $marital_statues = MaritalStatuses::all();
         $reference_types = ReferenceType::all();
-        $house_ownership = HouseOwnerShip::all();
+        $house_ownership = HouseOwnership::all();
         $assets = Asset::all();
         
         $references = Reference::where('customer_id', $id)->get();
