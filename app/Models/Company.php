@@ -15,6 +15,10 @@ class Company extends Model
         'branch_id',
         'company_name',
         'company_code',
+        'amount',
+        'stocka',
+        'stockb',
+        'stockbb',
     ];
 
     public function branch()
