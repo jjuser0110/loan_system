@@ -67,6 +67,7 @@ class Loan extends Model
         'updated_by',
         'created_by',
         'closed',
+        'payment_method_id',
         'status'
     ];
 
@@ -97,5 +98,15 @@ class Loan extends Model
 
     public function payment_schedules(){
         return $this->hasMany(PaymentSchedule::class, 'loan_code', 'loan_code');
+    }
+
+    public function payment_method_logs()
+    {
+        return $this->morphMany(PaymentMethodLog::class, 'content');
+    }
+
+    public function stock_logs()
+    {
+        return $this->morphMany(StockLog::class, 'content');
     }
 }

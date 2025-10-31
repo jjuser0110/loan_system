@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Loan;
 use App\Models\Payment;
+use App\Models\PaymentMethod;
 use App\Models\PaymentSchedule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -157,6 +158,9 @@ class LoanController extends Controller
     public function create(Request $request)
     {
         $customer = Customer::where('customer_code',$request->customer_code)->first();
+        if(isset($request->loan_code)){
+            $query->where('loan_code', $request->loan_code);
+        }
         if(isset($customer) && $this->accessToCustomer($customer)){
             $company = $customer->company;
         }
@@ -383,6 +387,16 @@ class LoanController extends Controller
                 throw new Exception('Invalid customer code.');
             }
 
+            $pym = PaymentMethod::where('id',$request->payment_method_id)->first();
+            if(!isset($pym)){
+                throw new Exception('Invalid payment method.');
+            }
+            if(Auth::user()->role_id > 1){
+                if($pym->branch_id != Auth::user()->branch_id && $pym->company_id != Auth::user()->company_id){
+                    throw new Exception('Invalid payment method #2. ');
+                }
+            }
+
             $prefix = $customer->customer_code.'-' ?? $customer->company_code."LN";
             $loan_code = $this->getSequenceNumber($prefix,'loan_code');
             
@@ -398,10 +412,11 @@ class LoanController extends Controller
 
             $c = bcadd($processing_fee, $stamp_fee, 2);
             $capital = bcsub($loan_amount, $c, 2);
+            $company = $customer->company;
             if($v['interest_group'] == 'SKIM A'){
                 $l = Loan::create([
                     'loan_code' => $loan_code,
-                    'company_id' => $customer->company->id,
+                    'company_id' => $company->id,
                     'customer_id' => $customer->id,
                     'year_month' => Carbon::parse($v['year_month'])->format('Y-m-d'),
                     'interest_group' => $v['interest_group'],
@@ -420,15 +435,31 @@ class LoanController extends Controller
                     'next_due_amount' => ($loan_amount/100) * $v['interest_rate'],
                     'alternate_code' => $alternate_code,
                     'receipt_no' => $receipt_no,
+                    'payment_method_id'=>$pym->id,
                     'created_by' => Auth::user()->id
                 ]);
+
+                $abefore = $company->stocka;
+                $aamount = $l->loan_amount;
+                $aafter = $company->stocka + $l->loan_amount;
+                $l->stock_logs()->create([
+                    'company_id'=>$company->id,
+                    'loan_id'=>$l->id,
+                    'type'=>'add',
+                    'description'=>'Payment Created',
+                    'stock_type'=>'a',
+                    'prev_amount'=>$abefore,
+                    'amount'=>$aamount,
+                    'total'=>$aafter
+                ]);
+                $company->update(['stocka'=>$aafter]);
             }
 
             else if($v['interest_group'] == 'SKIM B'){
                 $total_loan = $first_payment + $last_payment + ($installment * ($loan_term - 2));
                 $l = Loan::create([
                     'loan_code' => $loan_code,
-                    'company_id' => $customer->company->id,
+                    'company_id' => $company->id,
                     'customer_id' => $customer->id,
                     'year_month' => Carbon::parse($v['year_month'])->format('Y-m-d'),
                     'interest_group' => $v['interest_group'],
@@ -448,9 +479,55 @@ class LoanController extends Controller
                     'next_due_amount' => $first_payment,
                     'alternate_code' => $alternate_code,
                     'receipt_no' => $receipt_no,
+                    'payment_method_id'=>$pym->id,
                     'created_by' => Auth::user()->id
                 ]);
+
+                $bbefore = $company->stockb;
+                $bamount = $l->loan_amount;
+                $bafter = $company->stockb + $l->loan_amount;
+                $l->stock_logs()->create([
+                    'company_id'=>$company->id,
+                    'loan_id'=>$l->id,
+                    'type'=>'add',
+                    'stock_type'=>'b',
+                    'description'=>'Payment Created',
+                    'prev_amount'=>$bbefore,
+                    'amount'=>$bamount,
+                    'total'=>$bafter
+                ]);
+
+                $bbbefore = $company->stockbb;
+                $bbamount = $l->payment;
+                $bbafter = $company->stockbb + $l->payment;
+                $l->stock_logs()->create([
+                    'company_id'=>$company->id,
+                    'loan_id'=>$l->id,
+                    'type'=>'add',
+                    'stock_type'=>'bb',
+                    'description'=>'Payment Created',
+                    'prev_amount'=>$bbbefore,
+                    'amount'=>$bbamount,
+                    'total'=>$bbafter
+                ]);
+
+                $company->update(['stockb'=>$bafter, 'stockbb'=>$bbafter]);
             }
+            
+            $pym_amount = ($l->capital) * -1;
+            $pym_before = $pym->amount;
+            $pym_after = $pym->amount + $pym_amount;
+            $pym->update(['amount'=>$pym_after]);
+            $l->payment_method_logs()->create([
+                'payment_method_id' => $pym->id,
+                'type' => 'loan',
+                'description' => 'Loan Created',
+                'prev_amount' => $pym_before,
+                'amount' => $pym_amount,
+                'total' => $pym_after
+            ]);
+            
+
      
             if(!$this->createPaymentSchedule($l)){
                 throw new Exception('Failed to create payment schedule.');

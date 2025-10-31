@@ -28,15 +28,20 @@ $currentRoute = request()->route()->getName();
                         </a>
                     </li>
                     @if(Auth::user()->role_id != 4)
-                    <li class="nav-parent  {{ request()->routeIs('staff.*') ? 'nav-expanded nav-active' : ''}}">
+                    <li class="nav-parent  {{ request()->routeIs('staff.*') || request()->routeIs('payment_method.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>
                             <span>Setting</span>
                         </a>
                         <ul class="nav nav-children">
-                            <li class="{{ request()->routeIs('staff.*') ? 'nav-active' : ''}}">
+                            <li class="{{ request()->routeIs('staff.index') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('staff.index')}}">
                                     Company Staff
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('payment_method.index') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('payment_method.index')}}">
+                                    Payment Method
                                 </a>
                             </li>
                         </ul>

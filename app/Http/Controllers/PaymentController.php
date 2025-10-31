@@ -10,6 +10,9 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Loan;
 use App\Models\Payment;
+use App\Models\PaymentMethod;
+use App\Models\StockLog;
+use App\Models\PaymentMethodLog;
 use App\Models\PaymentSchedule;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -290,6 +293,36 @@ class PaymentController extends Controller
             if ($interest_paid_amount > $loan->interest_balance) {
                 throw new Exception('Interest payment exceeds remaining interest balance.');
             }
+
+            $p = Payment::create([
+                'payment_code'=>$payment_code,
+                'customer_id'=>$loan->customer_id,
+                'loan_id'=>$loan->id,
+                'late_paid_amount'=>$late_paid_amount,
+                'interest_paid_amount'=>$interest_paid_amount,
+                'payment_amount'=>$payment_amount,
+                'discount_amount'=>$discount_amount,
+                'collection_type'=>$v['collection_type'],
+                'cheque'=>$v['cheque'],
+                'bank'=>$v['bank'],
+                'created_by'=>Auth::user()->id
+            ]);
+
+            $pymt = PaymentMethod::where('id',$loan->payment_method_id)->first();
+            $pymt_before = $pymt->amount;
+            $pymt_after = $pymt->amount + ($late_paid_amount + $interest_paid_amount + $payment_amount);
+            $pymt->update(['amount'=>$pymt_after]);
+            $p->payment_method_logs()->create([
+                'type'=> 'payment',
+                'description'=>'Payment Created',
+                'prev_amount'=> $pymt_before,
+                'amount' => ($late_paid_amount + $interest_paid_amount + $payment_amount),
+                'total' => $pymt_after
+            ]);
+            $company = Company::where('id',$loan->company_id)->first();
+                if(!$company){
+                    throw new Exception('Failed to get company details.');
+                }
             if($loan->interest_group == "SKIM A"){
                 $schedules = PaymentSchedule::lockForUpdate()
                     ->where('loan_code',$loan->loan_code)
@@ -365,7 +398,19 @@ class PaymentController extends Controller
                 $interest_balance_change = 0;
                 $next_due_date = null;
                 $next_due_amount = null;
-                
+                $aamount = ($p->payment_amount + $p->discount_amount) * -1;
+                $new_stocka = $company->stocka + $aamount;
+                $loan->stock_logs()->create([
+                    'company_id'=>$company->id,
+                    'loan_id'=>$loan->id,
+                    'type'=>'deduct',
+                    'description'=>'Payment Created',
+                    'stock_type'=>'a',
+                    'prev_amount'=>$company->stocka,
+                    'amount'=>$aamount,
+                    'total'=>$new_stocka
+                ]);
+                $company->update(['stocka'=>$new_stocka]);
                 if($total_payment >= $loan->payment){
                     $removeTarget = PaymentSchedule::lockForUpdate()
                         ->where('loan_code',$loan->loan_code)
@@ -504,7 +549,36 @@ class PaymentController extends Controller
                     'late_paid' => $loan->late_paid + $late_paid_amount,
                     'late_balance' => $loan->late_balance - $late_paid_amount,
                     'discount' => $loan->discount + $discount_amount
+                ]); 
+                $bbamount = ($p->payment_amount + $p->discount_amount) * -1;
+                $new_stockbb = $company->stockbb + $bbamount;
+                $loan->stock_logs()->create([
+                    'company_id'=>$company->id,
+                    'loan_id'=>$loan->id,
+                    'type'=>'deduct',
+                    'description'=>'Payment Created',
+                    'stock_type'=>'bb',
+                    'prev_amount'=>$company->stockbb,
+                    'amount'=>$bbamount,
+                    'total'=>$new_stockbb
                 ]);
+                $company->update(['stockbb'=>$new_stockbb]);
+           
+                if($loan->balance <= 0){
+                    $bamount = ($loan->loan_amount) * -1;
+                    $new_stockb = $company->stockb + $bamount;
+                    $loan->stock_logs()->create([
+                        'company_id'=>$company->id,
+                        'loan_id'=>$loan->id,
+                        'type'=>'deduct',
+                        'description'=>'Payment Created',
+                        'stock_type'=>'b',
+                        'prev_amount'=>$company->stockb,
+                        'amount'=>$bamount,
+                        'total'=>$new_stockb
+                    ]);
+                    $company->update(['stockb'=>$new_stockb]);
+                }
 
                 $this->loanController->update_loan_misc($loan);
             }
@@ -512,20 +586,6 @@ class PaymentController extends Controller
             else{
                 throw new Exception('Invalid interest group.');
             }
-
-            Payment::create([
-                'payment_code'=>$payment_code,
-                'customer_id'=>$loan->customer_id,
-                'loan_id'=>$loan->id,
-                'late_paid_amount'=>$late_paid_amount,
-                'interest_paid_amount'=>$interest_paid_amount,
-                'payment_amount'=>$payment_amount,
-                'discount_amount'=>$discount_amount,
-                'collection_type'=>$v['collection_type'],
-                'cheque'=>$v['cheque'],
-                'bank'=>$v['bank'],
-                'created_by'=>Auth::user()->id
-            ]);
 
             DB::commit();
             return response()->json(['success'=>true,'message'=>"Payment created."]);
@@ -590,6 +650,28 @@ class PaymentController extends Controller
             $diff_late_paid = $new_late_paid - $old_late_paid;
             $diff_discount = $new_discount - $old_discount;
             $diff_total = $new_total - $old_total;
+
+            $company = Company::where('id',$loan->company_id)->first();
+            if(!$company){
+                throw new Exception('Failed to get company details.');
+            }
+
+            $pymt = PaymentMethod::where('id',$loan->payment_method_id)->first();
+            if($pymt){
+                $pymt_before = $pymt->amount;
+                $pymt_total = ($diff_payment + $diff_interest_paid + $diff_late_paid);
+                $pymt_after = $pymt->amount + $pymt_total;
+
+                $payment->payment_method_logs()->create([
+                    'type'=> 'payment',
+                    'description'=>'Payment Updated',
+                    'prev_amount'=> $pymt_before,
+                    'amount' => $pymt_total,
+                    'total' => $pymt_after
+                ]);
+
+                $pymt->update(['amount'=>$pymt_after]);
+            }
 
             if ($diff_late_paid > $loan->late_balance) {
                 throw new Exception('Late payment exceeds remaining late balance.');
@@ -747,6 +829,22 @@ class PaymentController extends Controller
                     'discount' => $loan->discount + $diff_discount,
                 ]);
 
+                $cbefore = $company->stocka;
+                $camount = ($diff_discount + $diff_payment) * -1;
+                $cafter = $company->stocka + $camount;
+                if(($diff_discount + $diff_payment) != 0){
+                   $payment->stock_logs()->create([
+                        'company_id'=>$company->id,
+                        'loan_id'=>$loan->id,
+                        'type'=>'update',
+                        'stock_type'=>'a',
+                        'description'=>'Payment Updated',
+                        'prev_amount'=>$cbefore,
+                        'amount'=>$camount,
+                        'total'=>$cafter
+                    ]);
+                    $company->update(['stocka' => $cafter ]);
+                }
                 $this->loanController->update_loan_misc($loan);
 
             } else if ($loan->interest_group == "SKIM B") {
@@ -942,6 +1040,61 @@ class PaymentController extends Controller
                 ]);
 
                 $this->loanController->update_loan_misc($loan);
+                
+                // STOCK
+                $bbbefore = $company->stockbb;
+                $bbamount = ($diff_discount + $diff_payment) * -1;
+                $bbafter = $company->stockbb + $bbamount;
+                if(($diff_discount + $diff_payment) != 0){
+                    $payment->stock_logs()->create([
+                        'company_id'=>$company->id,
+                        'loan_id'=>$loan->id,
+                        'type'=>'update',
+                        'stock_type'=>'bb',
+                        'description'=>'Payment Updated',
+                        'prev_amount'=>$bbbefore,
+                        'amount'=>$bbamount,
+                        'total'=>$bbafter
+                    ]);
+                    $company->update(['stockbb' => $bbafter]);
+                }
+                
+                $last_stockb = StockLog::where('loan_id',$loan->id)->where('type','deduct')->where('stock_type','b')->first();
+                if($last_stockb){
+                    $bbefore = $company->stockb;
+                    $bamount = ($last_stockb->amount) * -1;
+                    $bafter = $company->stockb + $bamount;
+            
+                    $payment->stock_logs()->create([
+                        'company_id'=>$company->id,
+                        'loan_id'=>$loan->id,
+                        'type'=>'update',
+                        'stock_type'=>'b',
+                        'description'=>'Payment Updated',
+                        'prev_amount'=>$bbefore,
+                        'amount'=>($bamount),
+                        'total'=>$bafter
+                    ]);
+                    $company->update(['stockb' => $bafter]);
+                    $last_stockb->delete();
+                }
+                if($loan->balance <= 0 && !$last_stockb){
+                    $bbefore = $company->stockb;
+                    $bamount = ($loan->loan_amount) * -1;
+                    $bafter = $company->stockb + $bamount;
+            
+                    $payment->stock_logs()->create([
+                        'company_id'=>$company->id,
+                        'loan_id'=>$loan->id,
+                        'type'=>'deduct',
+                        'stock_type'=>'b',
+                        'description'=>'Payment Updated',
+                        'prev_amount'=>$bbefore,
+                        'amount'=>($bamount),
+                        'total'=>$bafter
+                    ]);
+                    $company->update(['stockb' => $bafter]);
+                }
 
             } else {
                 throw new Exception('Invalid interest group.');
@@ -956,7 +1109,6 @@ class PaymentController extends Controller
                 'bank' => $v['bank'] ?? $payment->bank,
                 'updated_by' => Auth::user()->id,
             ]);
-
             DB::commit();
             return response()->json(['success' => true, 'message' => 'Payment updated successfully.']);
 
@@ -979,9 +1131,7 @@ class PaymentController extends Controller
     {
         try {
             DB::beginTransaction();
-            
             bcscale(10);
-            
             $payment = Payment::lockForUpdate()->where('id',$request->payment_id)->first();
             if(!$payment || $this->accesstoPayment($payment) == false){
                 throw new Exception('Failed to get selected payment.');
@@ -997,6 +1147,28 @@ class PaymentController extends Controller
             $late_paid_amount = $payment->late_paid_amount ?? 0;
             $discount_amount = $payment->discount_amount ?? 0;
             $total_payment = $payment_amount + $discount_amount;
+
+            $pymt = PaymentMethod::where('id',$loan->payment_method_id)->first();
+            if($pymt){
+                $pymt_before = $pymt->amount;
+                $pymt_total = ($payment_amount + $interest_paid_amount + $late_paid_amount) * -1;
+                $pymt_after = $pymt->amount + $pymt_total;
+
+                $payment->payment_method_logs()->create([
+                    'type'=> 'payment',
+                    'description'=>'Payment Deleted',
+                    'prev_amount'=> $pymt_before,
+                    'amount' => $pymt_total,
+                    'total' => $pymt_after
+                ]);
+
+                $pymt->update(['amount'=>$pymt_after]);
+            }
+
+            $company = Company::where('id', $loan->company_id)->first();
+            if(!$company){
+                throw new Exception('Failed to get company details.');
+            }
 
             if ($loan->interest_group == "SKIM A") {
                 if ($interest_paid_amount > 0) {
@@ -1020,6 +1192,22 @@ class PaymentController extends Controller
                             $remainDeduct -= $paid;
                         }
                     }
+
+
+                    $abefore = $company->stocka;
+                    $aafter = $company->stocka + $total_payment;
+                   
+                    $payment->stock_logs()->create([
+                        'company_id'=>$company->id,
+                        'loan_id'=>$loan->id,
+                        'type'=>'delete',
+                        'stock_type'=>'a',
+                        'description'=>'Payment Deleted',
+                        'prev_amount'=>$abefore,
+                        'amount'=>$total_payment,
+                        'total'=>$aafter
+                    ]);
+                    $company->update(['stocka' => $aafter ]);
                 }
 
                 if ($late_paid_amount > 0) {
@@ -1202,6 +1390,40 @@ class PaymentController extends Controller
                     'late_balance' => $loan->late_balance + $late_paid_amount,
                     'discount' => $loan->discount - $discount_amount,
                 ]);
+
+                // STOCK
+                $bbbefore = $company->stockbb;
+                $bbafter = $company->stockbb + $total_payment;
+                $payment->stock_logs()->create([
+                    'company_id'=>$company->id,
+                    'loan_id'=>$loan->id,
+                    'type'=>'delete',
+                    'stock_type'=>'bb',
+                    'description'=>'Payment Deleted',
+                    'prev_amount'=>$bbbefore,
+                    'amount'=>$total_payment,
+                    'total'=>$bbafter
+                ]);
+                $company->update(['stockbb' => $bbafter]);
+                
+                $last_stockb = StockLog::where('loan_id',$loan->id)->where('type','deduct')->where('stock_type','b')->first();
+                if($last_stockb){
+                    $bbefore = $company->stockb;
+                    $bamount = ($last_stockb->amount) * -1;
+                    $bafter = $company->stockb + $bamount;
+                    $payment->stock_logs()->create([
+                        'company_id'=>$company->id,
+                        'loan_id'=>$loan->id,
+                        'type'=>'update',
+                        'stock_type'=>'b',
+                        'description'=>'Payment Deleted',
+                        'prev_amount'=>$bbefore,
+                        'amount'=>$bamount,
+                        'total'=>$bafter
+                    ]);
+                    $company->update(['stockb' => $bafter]);
+                    $last_stockb->delete();
+                }
 
                 $this->loanController->update_loan_misc($loan);
 

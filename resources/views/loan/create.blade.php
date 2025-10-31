@@ -116,6 +116,12 @@
                                 <label class="col-form-label">Receipt No</label>
                                 <input type="text" class="form-control" name="receipt_no" placeholder="RNO001" autocomplete="off">
                             </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="col-form-label">Payment Method</label>
+                                <select class="form-control" id="payment_method_id" name="payment_method_id" disabled required>
+                                    <option>Please select customer first</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -170,6 +176,7 @@
                             document.getElementById('customer-name').value = customer.customer_name;
                             document.getElementById('company-code').value = customer.company_code;
                             dropdown.style.display = 'none';
+                            setupPaymentMethod(customer.company_code);
                         });
                         dropdown.appendChild(item);
                     });
@@ -188,6 +195,36 @@
                 dropdown.style.display = 'none';
             }
         });
+
+        function setupPaymentMethod(x){
+            let d = document.getElementById('payment_method_id');
+            d.disabled = true;
+            if(x != false){
+                 fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(x)}`, {
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(methods => {
+                        d.innerHTML = "";
+                        if (methods.length === 0) {
+                            d.innerHTML = '<option>No payment method found.</option>';
+                        } else {
+                            methods.forEach(method => {
+                                d.innerHTML += `<option value="${method.id}">${method.bank_name} / ${method.account_no} (RM ${formatCredit(method.amount)})</option>`;
+                            });
+                            d.disabled = false;
+                        }   
+                    })
+                    .catch(error => {
+                         d.innerHTML = '<option>-- Failed to get methods. --</option>';
+                    });
+            }
+            else{ 
+               d.innerHTML = "<option>Please select customer first</option>";
+            }
+        }
 
         function updateCapital(){
             let loan_amount = document.getElementById('loan-amount').value ?? 0;

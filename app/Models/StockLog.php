@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class PaymentMethodLog extends Model
+class StockLog extends Model
 {
     use HasFactory;
     use SoftDeletes;
@@ -14,19 +14,16 @@ class PaymentMethodLog extends Model
     protected $fillable = [
         'content_id',
         'content_type',
-        'payment_method_id',
+        'company_id',
+        'loan_id',
         'type',
+        'stock_type',
         'description',
         'prev_amount',
         'amount',
         'total',
     ];
-        
-    public function payment_method()
-    {
-        return $this->belongsTo(PaymentMethod::class);
-    }
-    
+
     public function content()
     {
         return $this->morphTo();

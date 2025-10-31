@@ -1,0 +1,37 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    /**
+     * Run the migrations.
+     */
+    public function up(): void
+    {
+        Schema::create('stock_logs', function (Blueprint $table) {
+            $table->id();
+            $table->integer('content_id')->nullable();
+            $table->string('content_type')->nullable();
+            $table->integer('company_id')->default(0);
+            $table->integer('loan_id')->default(0);
+            $table->string('type')->nullable();
+            $table->string('stock_type')->nullable();
+            $table->string('description')->nullable();
+            $table->double('prev_amount')->nullable();
+            $table->double('amount')->nullable();
+            $table->double('total')->nullable();
+            $table->timestamps();
+            $table->softDeletes();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     */
+    public function down(): void
+    {
+    }
+};

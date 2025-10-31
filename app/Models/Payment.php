@@ -45,4 +45,14 @@ class Payment extends Model
     {
         return $this->belongsTo(Loan::class);
     }
+
+    public function payment_method_logs()
+    {
+        return $this->morphMany(PaymentMethodLog::class, 'content');
+    }
+    
+    public function stock_logs()
+    {
+        return $this->morphMany(StockLog::class, 'content');
+    }
 }
