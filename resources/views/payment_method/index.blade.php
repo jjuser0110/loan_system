@@ -7,7 +7,8 @@
 <div class="row" style="padding-top:0">
     <div class="col-lg-12 mb-3">
         <section class="card">
-            <div class="card-header" style="text-align: right;">
+            <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
+                <a href="{{ route('payment_method.logs') }}" style="text-decoration:underline">View Logs</a>
                 <a class="btn btn-xs btn-square btn-primary" onclick="event.preventDefault();$('#modal-create-payment-method').modal('show')">Create</a>
             </div>
             <div class="card-body">

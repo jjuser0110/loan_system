@@ -317,6 +317,7 @@ class PaymentController extends Controller
                 'description'=>'Payment Created',
                 'prev_amount'=> $pymt_before,
                 'amount' => ($late_paid_amount + $interest_paid_amount + $payment_amount),
+                'payment_method_id'=>$loan->payment_method_id,
                 'total' => $pymt_after
             ]);
             $company = Company::where('id',$loan->company_id)->first();
@@ -666,6 +667,7 @@ class PaymentController extends Controller
                     'type'=> 'payment',
                     'description'=>'Payment Updated',
                     'prev_amount'=> $pymt_before,
+                    'payment_method_id'=>$loan->payment_method_id,
                     'amount' => $pymt_total,
                     'total' => $pymt_after
                 ]);
@@ -1158,6 +1160,7 @@ class PaymentController extends Controller
                     'type'=> 'payment',
                     'description'=>'Payment Deleted',
                     'prev_amount'=> $pymt_before,
+                    'payment_method_id'=>$loan->payment_method_id,
                     'amount' => $pymt_total,
                     'total' => $pymt_after
                 ]);
