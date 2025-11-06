@@ -21,6 +21,10 @@
                             <th>Company Name</th>
                             <th>Company Code</th>
                             <th>Branch</th>
+                            <th>Stock A</th>
+                            <th>Stock B</th>
+                            <th>Stock BB</th>
+                            <th>Amount</th>
                             <th>Action</th>
                         </tr>
                     </thead>
@@ -30,6 +34,10 @@
                                 <td>{{$s->company_name??''}}</td>
                                 <td>{{$s->company_code??''}}</td>
                                 <td>{{$s->branch->branch_name??''}}</td>
+                                <td>{{$s->stocka??''}}</td>
+                                <td>{{$s->stockb??''}}</td>
+                                <td>{{$s->stockbb??''}}</td>
+                                <td>{{$s->payment_methods->sum('amount')??''}}</td>
                                 <td>
                                     <a href="{{ route('company.edit',$s) }}" title="Edit"><i class="bx bx-edit-alt"></i></a>
                                     <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('company.destroy',$s) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>

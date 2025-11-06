@@ -25,4 +25,9 @@ class Company extends Model
     {
         return $this->belongsTo('App\Models\Branch');
     }
+
+    public function payment_methods()
+    {
+        return $this->hasMany('App\Models\PaymentMethod');
+    }
 }
