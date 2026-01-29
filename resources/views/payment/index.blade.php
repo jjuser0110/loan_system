@@ -19,7 +19,7 @@
                             <th>Discount</th>
                             <th>Interest Paid</th>
                             <th>Late Paid</th>
-                            <th>Bank/Cheque</th>
+                            <th>Bank</th>
                             <th>Collection Type</th>
                             <th>Loan Code</th>
                             <th>Action</th>
@@ -72,13 +72,19 @@
                             <option value="SKIM B">SKIM B</option>
                         </select>
                     </div>
-                    <div class="col-md-12 mb-3">
+                    <!-- <div class="col-md-12 mb-3">
                         <label class="col-form-label">Cheque</label>
                         <input type="text" class="form-control" name="cheque" id="update-payment-cheque" autocomplete="off">
                     </div>
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">Bank</label>
                         <input type="text" class="form-control" name="bank" id="update-payment-bank" autocomplete="off">
+                    </div> -->
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">Payment Method</label>
+                        <select class="form-control" id="update_payment_method_id" name="payment_method_id" disabled required>
+                            <option>Please insert loan code first</option>
+                        </select>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -91,22 +97,7 @@
 </div>
 @endsection
 
-@section('page-js')
-    <script src="{{ asset('porto-assets/vendor/select2/js/select2.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/media/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/media/js/dataTables.bootstrap5.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/dataTables.buttons.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.html5.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.print.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/JSZip-2.5.0/jszip.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/pdfmake.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/vfs_fonts.js') }}"></script>
-@endsection
 @section('scripts')
-    <script src="{{ asset('porto-assets/js/examples/examples.datatables.default.js') }}"></script>
-    <script src="{{ asset('porto-assets/js/examples/examples.datatables.row.with.details.js') }}"></script>
-    <script src="{{ asset('porto-assets/js/examples/examples.datatables.tabletools.js') }}"></script>
     <script>
         let table_payment;
         $(document).ready(function() {
@@ -138,7 +129,10 @@
                     "data": "late_paid_amount"
                 },
                 {
-                    "data": "bank"
+                    "data": null,
+                    "render": function(data, type, row, meta) {
+                        return `${row.bank_name}<br>${row.bank_account_no}<br>${row.bank_owner_name}`;
+                    }
                 },
                 {
                     "data": "collection_type"
@@ -166,14 +160,16 @@
 
         function updatePayment(rowIndex) {
             const data = table_payment.row(rowIndex).data();
+            console.log(data);
             document.getElementById('update-payment-id').value = data.id;
             document.getElementById('update-payment-paid').value = data.payment_amount;
             document.getElementById('update-payment-interest').value = data.interest_paid_amount;
             document.getElementById('update-payment-late').value = data.late_paid_amount;
             document.getElementById('update-payment-discount').value = data.discount_amount;
-            document.getElementById('update-payment-bank').value = data.bank;
-            document.getElementById('update-payment-cheque').value = data.cheque;
+            // document.getElementById('update-payment-bank').value = data.bank;
+            // document.getElementById('update-payment-cheque').value = data.cheque;
             document.getElementById('update-payment-collection').value = data.collection_type;
+              setupUpdatePaymentMethod(data.company_code,data.payment_method_id);
             $('#modal-update-payment').modal('show');
         }
 
@@ -234,5 +230,35 @@
                 }
             });
         });
+
+        function setupUpdatePaymentMethod(x,y){
+            let d = document.getElementById('update_payment_method_id');
+            d.disabled = true;
+            if(x != false){
+                fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(x)}`, {
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                })
+                .then(response => response.json())
+                .then(methods => {
+                    d.innerHTML = "";
+                    if (methods.length === 0) {
+                        d.innerHTML = '<option>No payment method found.</option>';
+                    } else {
+                        methods.forEach(method => {
+                            d.innerHTML += `<option value="${method.id}" ${y == method.id ? 'selected' : ''}>${method.bank_name} / ${method.account_no} (RM ${formatCredit(method.amount)})</option>`;
+                        });
+                        d.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    d.innerHTML = '<option>-- Failed to get methods. --</option>';
+                });
+            }
+            else{ 
+                d.innerHTML = "<option>Please select loan first.</option>";
+            }
+        }
     </script>
 @endsection

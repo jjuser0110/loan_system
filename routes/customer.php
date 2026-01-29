@@ -5,11 +5,14 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('/customer')->as('customer.')->middleware(['auth'])->group(function() {
     Route::get('/index', 'CustomerController@index')->name('index');
+    Route::get('/fetch', 'CustomerController@fetch')->name('fetch');
     Route::get('/create', 'CustomerController@create')->name('create');
     Route::post('/store', 'CustomerController@store')->name('store');
     Route::put('/update/{id}', 'CustomerController@update')->name('update');
-    Route::get('{id}/edit', 'CustomerController@edit')->name('edit');
-    Route::delete('/destroy/{customer}', 'CustomerController@destroy')->name('destroy');
+    Route::get('{customer}/edit', 'CustomerController@edit')->name('edit');
+
+    // Route::post('/update/{customer}', 'CustomerController@update')->name('update');
+    Route::post('/delete', 'CustomerController@delete')->name('delete');
     Route::put('{id}/work', 'CustomerController@updateWork')->name('work.store');
     
     // Reference routes

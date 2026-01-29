@@ -66,14 +66,21 @@ class LoanController extends Controller
         $loans = $query->get();
         $total_profit = 0;
         foreach($loans as $l){
+            // DONT DELETE THIS CALCUALTION
+            // if($l->interest_group == "SKIM A"){
+            //     $total_profit += max(0,(($l->interest_paid + $l->late_paid) - ($l->capital - $l->paid)) - $l->discount);
+            // }
+            // if($l->interest_group == "SKIM B"){
+    
+            //     $total_loan = $l->first_payment + $l->last_payment + ($l->installment * ($l->loan_term - 2));
+            //     $profit_ratio = ($total_loan - $l->capital) / $total_loan;
+            //     $total_profit += ((($l->paid + $l->discount) * $profit_ratio) + $l->late_paid + $l->interest_paid) - $l->discount;
+            // }
             if($l->interest_group == "SKIM A"){
-                $total_profit += max(0,(($l->interest_paid + $l->late_paid) - ($l->capital - $l->paid)) - $l->discount);
+                $total_profit += (($l->interest_paid + $l->late_paid + $l->paid) - ($l->capital));
             }
             if($l->interest_group == "SKIM B"){
-    
-                $total_loan = $l->first_payment + $l->last_payment + ($l->installment * ($l->loan_term - 2));
-                $profit_ratio = ($total_loan - $l->capital) / $total_loan;
-                $total_profit += ((($l->paid + $l->discount) * $profit_ratio) + $l->late_paid + $l->interest_paid) - $l->discount;
+                $total_profit += ($l->paid + $l->late_paid + $l->interest_paid) - $l->capital;
             }
         }
         return response()->json(['success'=>true,'total_profit'=>number_format($total_profit,2,'.',',')]);
@@ -328,6 +335,7 @@ class LoanController extends Controller
         switch(Auth::user()->role_id){
             case 1:
                 $loans = Loan::join('customers', 'loans.customer_id', '=', 'customers.id')
+                    ->join('companies', 'loans.company_id', '=', 'companies.id')
                     ->where(function($query) use ($search) {
                         $query->where('loans.loan_code', 'LIKE', "%{$search}%");
                     });
@@ -336,7 +344,7 @@ class LoanController extends Controller
             case 2:
                 $userBranchId = Auth::user()->branch_id;
                 $loans = Loan::join('companies', 'loans.company_id', '=', 'companies.id')
-                    ->join('customers', 'loans.customer_id', '=', 'customers.id') 
+                    ->join('customers', 'loans.customer_id', '=', 'customers.id')
                     ->where('companies.branch_id', $userBranchId)
                     ->where(function($query) use ($search) {
                         $query->where('loans.loan_code', 'LIKE', "%{$search}%");
@@ -346,6 +354,7 @@ class LoanController extends Controller
             default:
                 $companyId = Auth::user()->company_id;
                 $loans = Loan::join('customers', 'loans.customer_id', '=', 'customers.id')
+                    ->join('companies', 'loans.company_id', '=', 'companies.id')
                     ->where('loans.company_id', $companyId)
                     ->where(function($query) use ($search) {
                         $query->where('loans.loan_code', 'LIKE', "%{$search}%");
@@ -355,6 +364,7 @@ class LoanController extends Controller
             'loans.loan_code',
             'customers.customer_name',
             'customers.customer_code',
+            'companies.company_code',
             DB::raw('loans.payment - (loans.paid + loans.discount) as total_payment_balance'),
             DB::raw('loans.late - loans.late_paid as total_late_balance'),
             DB::raw('loans.interest - loans.interest_paid as total_interest_balance')
@@ -612,11 +622,9 @@ class LoanController extends Controller
                     throw new Exception('No loan found.');
                 }
             }
-           
             return view('loan.single')->with('success',true)->with('loan',$loan);
         }
         catch(Exception $e){
-            
             return view('loan.single')->with('success',false)->with('error',$e->getMessage());
         }
     }

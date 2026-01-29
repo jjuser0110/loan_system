@@ -58,10 +58,12 @@
                        <div id="loan-dropdown" class="dropdown-menu col-md-5 col-10" style="display:none; max-height: 200px; overflow-y: auto; padding:0;"></div>
                     </div>
                     <div class="col-md-4" style="display:flex;flex-wrap:nowrap; gap: 5px;justify-content:flex-end;text-align:right">
+                        @if($loan)
                         <div>
                             <label class="col-form-label" style="padding:0">Status</label>
                             <h2 style="margin:0;color:{{ $loan->status == 'Ongoing' ? '#0000ff' :' #009400' }}">{{ $loan->status }}</h2>
                         </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -106,27 +108,7 @@
                                                             </div>
                                                         </div>
                                                         <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">{{ $loan->interest_group }} | {{ $loan->interest_rate.'%'}}</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </section>
-                                    </div>
-
-                                    <div class="col-xl-3">
-                                        <section class="card mb-3">
-                                            <div class="card-body">
-                                                <div class="widget-summary cus-summary">
-                                                    <div class="widget-summary-col">
-                                                        <div class="summary">
-                                                            <h4 class="title">Balance</h4>
-                                                            <div class="info">
-                                                                <strong class="amount">RM {{ $loan->balance }}</strong>
-                                                            </div>
-                                                        </div>
-                                                        <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">Capital: RM{{ $loan->capital }}</a>
+                                                            <a class="text-muted text-uppercase">{{ $loan->interest_group }} | {{ $loan->interest_rate.'%'}} {{ $loan->interest_group == "SKIM B" ? '| '.$loan->loan_term.' months' : '' }}</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -147,6 +129,26 @@
                                                         </div>
                                                         <div class="summary-footer">
                                                             <a class="text-muted text-uppercase">Next: {{ $loan->next_due_amount }} ({{ $loan->next_due_date}})</a>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </section>
+                                    </div>
+
+                                    <div class="col-xl-3">
+                                        <section class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="widget-summary cus-summary">
+                                                    <div class="widget-summary-col">
+                                                        <div class="summary">
+                                                            <h4 class="title">Balance</h4>
+                                                            <div class="info">
+                                                                <strong class="amount">RM {{ $loan->balance }}</strong>
+                                                            </div>
+                                                        </div>
+                                                        <div class="summary-footer">
+                                                            <a class="text-muted text-uppercase">Capital: RM{{ $loan->capital }}</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -430,7 +432,7 @@
                                         <th>Discount</th>
                                         <th>Interest Paid</th>
                                         <th>Late Paid</th>
-                                        <th>Bank/Cheque</th>
+                                        <th>Bank</th>
                                         <th>Collection Type</th>
                                         <th>Action</th>
                                     </tr>
@@ -475,6 +477,7 @@
     </div>
 </div>
 
+@if($loan)
 <div class="modal fade" id="modal-add-schedule" tabindex="-1" aria-labelledby="modalAddScheduleLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -628,13 +631,19 @@
                             <option value="SKIM B">SKIM B</option>
                         </select>
                     </div>
-                    <div class="col-md-12 mb-3">
+                    <!-- <div class="col-md-12 mb-3">
                         <label class="col-form-label">Cheque</label>
                         <input type="text" class="form-control" name="cheque" autocomplete="off">
                     </div>
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">Bank</label>
                         <input type="text" class="form-control" name="bank" autocomplete="off">
+                    </div> -->
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">Payment Method</label>
+                        <select class="form-control" id="payment_method_id" name="payment_method_id" disabled required>
+                            <option>Please insert loan code first</option>
+                        </select>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -687,13 +696,19 @@
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
+                        <label class="col-form-label">Payment Method</label>
+                        <select class="form-control" id="update_payment_method_id" name="payment_method_id" disabled required>
+                            <option>Please insert loan code first</option>
+                        </select>
+                    </div>
+                    <!-- <div class="col-md-12 mb-3">
                         <label class="col-form-label">Cheque</label>
                         <input type="text" class="form-control" name="cheque" id="update-payment-cheque" autocomplete="off">
                     </div>
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">Bank</label>
                         <input type="text" class="form-control" name="bank" id="update-payment-bank" autocomplete="off">
-                    </div>
+                    </div> -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Submit</button>
@@ -703,27 +718,13 @@
         </div>
     </div>
 </div>
-@endsection
-
-@section('page-js')
-<script src="{{ asset('porto-assets/vendor/select2/js/select2.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/media/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/media/js/dataTables.bootstrap5.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/dataTables.buttons.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.html5.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.print.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/JSZip-2.5.0/jszip.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/pdfmake.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/vfs_fonts.js') }}"></script>
+@endif
 @endsection
 
 @section('scripts')
-<script src="{{ asset('porto-assets/js/examples/examples.datatables.default.js') }}"></script>
-<script src="{{ asset('porto-assets/js/examples/examples.datatables.row.with.details.js') }}"></script>
-<script src="{{ asset('porto-assets/js/examples/examples.datatables.tabletools.js') }}"></script>
 <script>
     let table_schedule, table_payment;
+    @if($loan)
     $(document).ready(function () {
         table_schedule = $('#table-payment-schedules').DataTable({
             "processing": true,
@@ -806,7 +807,10 @@
                     "data": "late_paid_amount"
                 },
                 {
-                    "data": "bank"
+                    "data": "bank",
+                    "render": function(data, type, row, meta) {
+                        return `${row.bank_name}<br>${row.bank_account_no}<br>${row.bank_owner_name}`;
+                    }
                 },
                 {
                     "data": "collection_type"
@@ -825,7 +829,7 @@
             ]
         });
     });
-
+    @endif
     let searchTimeout;
     const searchInput = document.getElementById('input-search');
     const dropdown = document.getElementById('loan-dropdown');
@@ -863,6 +867,7 @@
                         e.preventDefault();
                         searchInput.value = loan.loan_code;
                         dropdown.style.display = 'none';
+                        setupPaymentMethod(loan);
                     });
                     dropdown.appendChild(item);
                 });
@@ -935,9 +940,10 @@
         document.getElementById('update-payment-interest').value = data.interest_paid_amount;
         document.getElementById('update-payment-late').value = data.late_paid_amount;
         document.getElementById('update-payment-discount').value = data.discount_amount;
-        document.getElementById('update-payment-bank').value = data.bank;
-        document.getElementById('update-payment-cheque').value = data.cheque;
+        // document.getElementById('update-payment-bank').value = data.bank;
+        // document.getElementById('update-payment-cheque').value = data.cheque;
         document.getElementById('update-payment-collection').value = data.collection_type;
+        setupUpdatePaymentMethod(data.company_code,data.payment_method_id);
         $('#modal-update-payment').modal('show');
     }
 
@@ -1074,6 +1080,7 @@
         });
     });
 
+    @if($loan)
     fetch(`{{ route('loan.fetch_profit',['loan_code'=>$loan->loan_code]) }}`, {
         headers: {
             'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -1086,5 +1093,71 @@
     .catch(error => {
         console.error('Search failed:', error);
     });
+    @endif
+
+    function setupPaymentMethod(x){
+        let d = document.getElementById('payment_method_id');
+        d.disabled = true;
+        if(x != false){
+            fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(x)}`, {
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(methods => {
+                d.innerHTML = "";
+                if (methods.length === 0) {
+                    d.innerHTML = '<option>No payment method found.</option>';
+                } else {
+                    methods.forEach(method => {
+                        d.innerHTML += `<option value="${method.id}">${method.bank_name} / ${method.account_no} (RM ${formatCredit(method.amount)})</option>`;
+                    });
+                    d.disabled = false;
+                }
+            })
+            .catch(error => {
+                d.innerHTML = '<option>-- Failed to get methods. --</option>';
+            });
+        }
+        else{ 
+            d.innerHTML = "<option>Please select loan first.</option>";
+        }
+    }
+
+    function setupUpdatePaymentMethod(x,y){
+        let d = document.getElementById('update_payment_method_id');
+        d.disabled = true;
+        if(x != false){
+            fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(x)}`, {
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            })
+            .then(response => response.json())
+            .then(methods => {
+                d.innerHTML = "";
+                if (methods.length === 0) {
+                    d.innerHTML = '<option>No payment method found.</option>';
+                } else {
+                    methods.forEach(method => {
+                        d.innerHTML += `<option value="${method.id}" ${y == method.id ? 'selected' : ''}>${method.bank_name} / ${method.account_no} (RM ${formatCredit(method.amount)})</option>`;
+                    });
+                    d.disabled = false;
+                }
+            })
+            .catch(error => {
+                d.innerHTML = '<option>-- Failed to get methods. --</option>';
+            });
+        }
+        else{ 
+            d.innerHTML = "<option>Please select loan first.</option>";
+        }
+    }
+    @if($loan?->company->company_code)
+    document.addEventListener('DOMContentLoaded', function(){
+        setupPaymentMethod("{{ $loan?->company->company_code }}")
+    })
+    @endif
 </script>
 @endsection

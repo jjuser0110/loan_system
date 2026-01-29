@@ -57,7 +57,7 @@
                                     <option value="SKIM B">SKIM B</option>
                                 </select>
                             </div>
-
+                            <!-- 
                             <div class="col-md-12 mb-3">
                                 <label class="col-form-label">Cheque</label>
                                 <input type="text" class="form-control" name="cheque" autocomplete="off">
@@ -66,6 +66,13 @@
                             <div class="col-md-12 mb-3">
                                 <label class="col-form-label">Bank</label>
                                 <input type="text" class="form-control" name="bank" autocomplete="off">
+                            </div> -->
+
+                            <div class="col-md-12 mb-3">
+                                <label class="col-form-label">Payment Method</label>
+                                <select class="form-control" id="payment_method_id" name="payment_method_id" disabled required>
+                                    <option>Please insert loan code first</option>
+                                </select>
                             </div>
                         </div>
                     </div>
@@ -129,6 +136,7 @@
                             document.getElementById('loan-late-balance').innerHTML = `Outstanding: ${loan.total_late_balance}`;
                             document.getElementById('loan-interest-balance').innerHTML = `Outstanding: ${loan.total_interest_balance}`;
                             dropdown.style.display = 'none';
+                            setupPaymentMethod(loan.company_code);
                         });
                         dropdown.appendChild(item);
                     });
@@ -182,5 +190,40 @@
                 }
             });
         });
+
+        function setupPaymentMethod(x){
+            let d = document.getElementById('payment_method_id');
+            d.disabled = true;
+            if(x != false){
+                 fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(x)}`, {
+                        headers: {
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(methods => {
+                        d.innerHTML = "";
+                        if (methods.length === 0) {
+                            d.innerHTML = '<option>No payment method found.</option>';
+                        } else {
+                            methods.forEach(method => {
+                                d.innerHTML += `<option value="${method.id}">${method.bank_name} / ${method.account_no} (RM ${formatCredit(method.amount)})</option>`;
+                            });
+                            d.disabled = false;
+                        }   
+                    })
+                    .catch(error => {
+                         d.innerHTML = '<option>-- Failed to get methods. --</option>';
+                    });
+            }
+            else{ 
+               d.innerHTML = "<option>Please select customer first</option>";
+            }
+        }
+        @if($loan?->customer->customer_code )
+        document.addEventListener('DOMContentLoaded', function(){
+            setupPaymentMethod("{{ $loan?->company->company_code }}")
+        })
+        @endif
     </script>
 @endsection

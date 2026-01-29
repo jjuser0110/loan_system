@@ -16,19 +16,105 @@ use App\Models\Customer;
 use App\Models\HouseOwnership;
 use App\Models\Asset;
 use App\Models\Loan;
+use Exception;
 use Bouncer;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
+
 
 class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        $customer = Customer::all();
+        return view('customer.index');
+    }
 
-        return view('customer.index')->with('customer',$customer);
+    public function fetch(Request $request){
+        try{
+            $draw = $request->input('draw');
+            $search = $request->input('search.value');
+            $start = $request->input('start', 0);
+            $length = $request->input('length', 10);
+            $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
+            $orderByDirection = $request->input('order.0.dir');
+            $query = Customer::query()
+                ->select([
+                    'customers.*',
+                    'customers.company_name as customer_company', 
+                    'companies.company_name as company_name',
+                    'companies.company_code as company_code',
+                    'branches.branch_name as branch_name',
+                    'branches.branch_code as branch_code',
+                        DB::raw("(
+                    CASE 
+                        WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id) 
+                            THEN 'New'
+                        WHEN EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0 AND loans.next_due_date < CURDATE()) 
+                            THEN 'Delay'
+                        WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0) 
+                            THEN 'Settled'
+                        WHEN EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0 AND loans.next_due_date >= CURDATE()) 
+                            THEN 'Active'
+                        ELSE 'Unknown'
+                    END
+                ) as stats")
+                ])
+                ->join('companies', 'customers.company_id', '=', 'companies.id')
+                ->join('branches', 'companies.branch_id', '=', 'branches.id');
+    
+            switch (Auth::user()->role_id) {
+                case 1:
+                    break;
+
+                case 2:
+                    $query->where('branches.id', Auth::user()->branch_id);
+                    break;
+
+                case 3:
+                case 4:
+                    $query->where('companies.id', Auth::user()->company_id);
+                    break;
+
+            default:
+                throw new Exception('Invalid role id.');
+            }
+
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('customers.customer_code', 'like', "%{$search}%")
+                    ->orWhere('customers.customer_name', 'like', "%{$search}%")
+                    ->orWhere('customers.nric_number', 'like', "%{$search}%")
+                    ->orWhere('customers.email', 'like', "%{$search}%")
+                    ->orWhere('customers.mobile', 'like', "%{$search}%")
+                    ->orWhere('customers.address1', 'like', "%{$search}%")
+                    ->orWhere('customers.created_at', 'like', "%{$search}%")
+                    ->orWhere('companies.company_name', 'like', "%{$search}%")
+                    ->orWhere('branches.branch_name', 'like', "%{$search}%")
+                    ->orWhere('companies.company_code', 'like', "%{$search}%")
+                    ->orWhere('branches.branch_code', 'like', "%{$search}%");
+                });
+            }
+
+            $recordsTotal = $query->count();
+            $data = $query->orderBy($orderByColumn, $orderByDirection)->skip($start)->take($length)->get();
+            return response()->json([
+                "draw" => intval($draw),
+                "recordsTotal" => $recordsTotal,
+                "recordsFiltered" => $recordsTotal,
+                "data" => $data,
+            ]);
+        }
+        catch(Exception $e){
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
+
     }
 
     public function create()
@@ -70,13 +156,8 @@ class CustomerController extends Controller
         // Validate only required fields
         $request->validate([
             'customer_name' => 'required|string|max:255',
+            'nric_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048'
         ]);
-
-        // Handle profile image upload
-        if ($request->hasFile('profile_image')) { 
-            $file = $request->file('profile_image'); 
-            $path = $file->store('profile_images', 'public'); 
-        } 
 
         // Get company_id and company_code if company is selected
         $company = null;
@@ -111,7 +192,28 @@ class CustomerController extends Controller
         if (isset($path)) {
             $customerData['profile_image'] = $path;
         }
+        $customer_code = $this->getSystemCode();
+        // Handle profile image upload
+        if ($request->hasFile('nric_image')) { 
+            $file = $request->file('nric_image');
 
+            // 🔹 Custom folder path
+            $folder = 'customers/'.$customer_code;
+
+            // 🔹 Random code filename
+            $randomCode = $customer_code.Str::upper(Str::random(12));
+            $extension  = $file->getClientOriginalExtension();
+
+            $filename = $randomCode . '.' . $extension;
+
+            // 🔹 Store file
+            $path = $file->storeAs($folder, $filename, 'public');
+        } 
+
+        $customerData = array_merge($customerData, [
+            'customer_code' => $customer_code,
+            'nric_path' => $path,
+        ]);
         $customer = Customer::create($customerData);
 
         return redirect()->route('customer.edit', $customer->id)->withSuccess('Customer personal information saved successfully. Please add work and reference information.'); 
@@ -172,7 +274,7 @@ class CustomerController extends Controller
         return redirect()->to(url()->previous() . '#reference')->withSuccess('Reference information updated successfully');
     }
 
-    public function edit($id)
+    public function edit($customer)
     {
         switch(Auth::user()->role_id){
             case 1:
@@ -191,7 +293,7 @@ class CustomerController extends Controller
         }
    
         $company = $query->get();
-        $customer = Customer::findOrFail($id);
+        $customer = Customer::findOrFail($customer);
         $races = Race::all();
         $states = State::all();
         $marital_statues = MaritalStatuses::all();
@@ -199,76 +301,140 @@ class CustomerController extends Controller
         $house_ownership = HouseOwnership::all();
         $assets = Asset::all();
         
-        $references = Reference::where('customer_id', $id)->get();
-        $assets = Asset::where('customer_id', $id)->get();
-        $loans = Loan::where('customer_id',$id)->get();
+        $references = Reference::where('customer_id', $customer)->get();
+        $assets = Asset::where('customer_id', $customer)->get();
+        $loans = Loan::where('customer_id',$customer)->get();
         
         return view('customer.edit', compact('customer', 'company', 'races', 'states', 'marital_statues', 'reference_types', 'references', 'house_ownership', 'assets', 'loans'));
     }
 
     public function update(Request $request, $id)
     {
-        // Validate only required fields
-        $request->validate([
-            'customer_name' => 'required|string|max:255',
-        ]);
+        try{
+            DB::beginTransaction();
+            $validator = Validator::make($request->all(), [
+                'customer_name' => 'required|string|max:255',
+                'nric_number' => 'required|string|min:10',
+                'gender' => 'required|string',
+                'race' => 'required|string',
+                'address1' => 'required|string',
+                'postcode' => 'required|string',
+                'city' => 'required|string',
+                'mobile'=> 'required|string',
+                'email'=> 'required|string',
+                'marital_status' => 'required',
+                'house_ownership' => 'required',
+                'warganegara' => 'required',
+                'state' => 'required',
+                'new_nric_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
+            ]);
 
-        $customer = Customer::findOrFail($id);
-
-        // Get company_id and company_code if company is selected
-        $company = null;
-        if ($request->company_code) {
-            $company = Company::where('company_code', $request->company_code)->first();
-            if (!$company) {
-                return redirect()->back()->withErrors(['company_code' => 'Selected company not found.']);
+            if ($request->remove_existing_image == '1' && !$request->hasFile('new_nric_image')) {
+                $validator->errors()->add('new_nric_image', 'NRIC image is required');
             }
-        }
+            if ($validator->fails()) {
+                $message = $validator->errors()->first();
+                throw new Exception($message);
+            }
 
-        // Handle new profile image upload
-        if ($request->hasFile('profile_image')) {
-            $file = $request->file('profile_image');
-            $path = $file->store('profile_images', 'public');
-            $customer->profile_image = $path;
-        }
+            $customer = Customer::findOrFail($id);
+            $company = null;
+            if ($request->company_code) {
+                $company = Company::where('company_code', $request->company_code)->first();
+                if (!$company) {
+                    return redirect()->back()->withErrors(['company_code' => 'Selected company not found.']);
+                }
+                switch(Auth::user()->role_id){
+                    case 1:
+                        break;
 
-        // Prepare data for update
-        $updateData = $request->except('profile_image');
-        
-        // Store both company_id and company_code if company is selected
-        if ($company) {
-            $updateData['company_id'] = $company->id;
-            $updateData['company_code'] = $company->company_code;
-        } else {
-            // If no company selected, set both to null
-            $updateData['company_id'] = null;
-            $updateData['company_code'] = null;
-        }
-        
-        // Convert fields to lowercase before updating if they exist
-        if ($request->city) {
-            $updateData['city'] = strtolower($request->city);
-        }
-        if ($request->state) {
-            $updateData['state'] = strtolower($request->state);
-        }
-        if ($request->warganegara) {
-            $updateData['warganegara'] = strtolower($request->warganegara);
-        }
+                    case 2:
+                        if($company->branch_id != Auth::user()->branch_id){
+                            throw new Exception('Company code does not found.');
+                        }
+                        break;
 
-        // Update other fields
-        $customer->update($updateData);
+                    default:
+                        if(Auth::user()->branch_id != $company->id){
+                            throw new Exception('Company code does not found.');
+                        }
+                        break;
+                }
+            }
 
-        // Save profile_image if it was uploaded (already handled above)
-        $customer->save();
+            $old_nric_path = $customer->nric_path;
+            if ($request->remove_existing_image == '1' && !$request->hasFile('new_nric_image')) {
+                throw new Exception('NRIC image is required.');
+            }
+            
+            $customer->update([
+                'company_code' => $request->company_code,
+                'customer_name' => $request->customer_name,
+                'nric_number' => $request->nric_number,
+                'gender' => $request->gender,
+                'race' => $request->race,
+                'address1' => $request->address1,
+                'postcode' => $request->postcode,
+                'city' => $request->city,
+                'mobile' => $request->mobile,
+                'email' => $request->email,
+                'marital_status' => $request->marital_status,
+                'warganegara' => $request->warganegara,
+                'house_ownership' => $request->house_ownership,
+                'state' => $request->state,
+                'remark' => $request->remark
+            ]);
 
-        return redirect()->back()->withSuccess('Personal information saved successfully');
+            if ($request->hasFile('new_nric_image')) { 
+                $file = $request->file('new_nric_image');
+                $folder = 'customers/'.$customer->customer_code;
+                $randomCode = $customer->customer_code.Str::upper(Str::random(12));
+                $extension  = $file->getClientOriginalExtension();
+                $filename = $randomCode . '.' . $extension;
+                $path = $file->storeAs($folder, $filename, 'public');
+                $customer->update(['nric_path'=>$path]);
+                Storage::disk('public')->delete($old_nric_path);
+            } 
+            DB::commit();
+            return redirect()->back()->withSuccess('Personal information saved successfully');
+        }
+        catch(Exception $e){
+            return redirect()->back()->withError($e->getMessage());
+        }
     }
 
-    public function destroy(Customer $customer)
+    public function delete(Request $request)
     {
-        $customer->delete();
+        try {
+            DB::beginTransaction();
 
-        return redirect()->route('customer.index')->withSuccess('Data deleted');
+            if(Auth::user()->role_id != 1){
+                throw new Exception('Access denied.');
+            }
+            
+            $customer = Customer::join('companies', 'customers.company_id', '=', 'companies.id')
+                ->join('branches', 'companies.branch_id', '=', 'branches.id')
+                ->where('customers.id', $request->customer_id)->first();
+
+            if(!$customer){
+                throw new Exception('Unable to find selected customers.');
+            }
+            
+            $loan = Loan::where('customer_id',$customer->id)->where('closed',0)->first();
+            if($loan){
+                throw new Exception('The customer still have unresolved loan.');
+            }
+            $customer->delete();
+            DB::commit();
+            return response()->json(['success' => true, 'message' => 'Customer deleted successfully.']);
+
+        } catch (Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 
     public function destroyReference($id)

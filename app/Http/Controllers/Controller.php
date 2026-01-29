@@ -37,6 +37,20 @@ class Controller extends BaseController
         });
     }
 
+    
+    public function getSystemCode()
+    {
+        $year = Carbon::now()->format('y');
+        $prefix = 'S' . $year;
+        $type = "system_code";
+        return DB::transaction(function () use ($prefix, $type){
+            $s = Sequence::lockForUpdate()->firstOrCreate(['prefix'=>$prefix,'type'=>$type],['last_number'=>0]);
+            $s->last_number += 1;
+            $s->save();
+            return $prefix.str_pad($s->last_number, 4, '0', STR_PAD_LEFT);
+        });
+    }
+
     public function accessToCustomer(Customer $customer){
         try{
             switch(Auth::user()->role_id){

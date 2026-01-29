@@ -20,6 +20,7 @@ class Customer extends Model
         'company_code',
         'customer_name',
         'nric_number',
+        'nric_path',
         'gender',
         'race',
         'date_of_birth',
@@ -39,6 +40,7 @@ class Customer extends Model
         'biz_type',
         'designation',
         'monthly_income',
+        'monthly_income_2',
         'company_address1',
         'company_address2',
         'company_postcode',
@@ -54,7 +56,7 @@ class Customer extends Model
         'start_working_date',
         'end_working_date',
         'salary_date',
-        '2nd_salary_date',
+        'salary_date_2',
     ];
 
     protected $dates = [

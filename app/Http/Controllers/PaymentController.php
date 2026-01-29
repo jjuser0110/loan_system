@@ -57,12 +57,17 @@ class PaymentController extends Controller
                     'branches.branch_name as branch_name',
                     'branches.branch_code as branch_code',
                     'users.username as created_by_name',
-                    'loans.loan_code as loan_code'
+                    'loans.loan_code as loan_code',
+                    'payment_methods.account_no as bank_account_no',
+                    'payment_methods.owner_name as bank_owner_name',
+                    'banks.bank_name as bank_name'
                 ])
                 ->join('customers', 'customers.id', '=', 'payments.customer_id')
                 ->join('users', 'users.id', '=', 'payments.created_by')
                 ->join('loans', 'loans.id', '=', 'payments.loan_id')
                 ->join('companies', 'companies.id', '=', 'loans.company_id')
+                ->join('payment_methods', 'payments.payment_method_id', '=', 'payment_methods.id')
+                ->join('banks', 'banks.id', '=', 'payment_methods.bank_id')
                 ->join('branches', 'branches.id', '=', 'companies.branch_id');
 
             switch (Auth::user()->role_id) {
@@ -294,6 +299,32 @@ class PaymentController extends Controller
                 throw new Exception('Interest payment exceeds remaining interest balance.');
             }
 
+            $payment_method_query = PaymentMethod::where('id',$request->payment_method_id);
+            switch (Auth::user()->role_id) {
+                case 1:
+                    break;
+
+                case 2:
+                    $payment_method_query->where('branch_id', Auth::user()->branch_id);
+                    break;
+
+                case 3:
+                case 4:
+                    $payment_method_query->where('company_id', Auth::user()->company_id);
+                    break;
+
+                default:
+                    throw new Exception('Invalid role id.');
+            }
+
+            $pymt = $payment_method_query->first();
+            if(!$pymt){
+                throw new Exception('Invalid payment method.');
+            }
+            if($pymt->is_active == 0){
+                throw new Exception('Payment method is inactive.');
+            }
+
             $p = Payment::create([
                 'payment_code'=>$payment_code,
                 'customer_id'=>$loan->customer_id,
@@ -303,12 +334,10 @@ class PaymentController extends Controller
                 'payment_amount'=>$payment_amount,
                 'discount_amount'=>$discount_amount,
                 'collection_type'=>$v['collection_type'],
-                'cheque'=>$v['cheque'],
-                'bank'=>$v['bank'],
+                'payment_method_id'=>$pymt->id,
                 'created_by'=>Auth::user()->id
             ]);
 
-            $pymt = PaymentMethod::where('id',$loan->payment_method_id)->first();
             $pymt_before = $pymt->amount;
             $pymt_after = $pymt->amount + ($late_paid_amount + $interest_paid_amount + $payment_amount);
             $pymt->update(['amount'=>$pymt_after]);
@@ -639,11 +668,14 @@ class PaymentController extends Controller
             $old_late_paid = $payment->late_paid_amount ?? 0;
             $old_discount = $payment->discount_amount ?? 0;
             $old_total = $old_payment_amount + $old_discount;
+            $prev_total_nett = $old_payment_amount + $old_interest_paid + $old_late_paid;
+            $prev_payment_method_id = $payment->payment_method_id;
 
             $new_payment_amount = $v['payment_amount'] ?? 0;
             $new_interest_paid = $v['interest_paid_amount'] ?? 0;
             $new_late_paid = $v['late_paid_amount'] ?? 0;
             $new_discount = $v['discount_amount'] ?? 0;
+            $new_total_nett = $new_payment_amount + $new_interest_paid + $new_late_paid;
             $new_total = $new_payment_amount + $new_discount;
 
             $diff_payment = $new_payment_amount - $old_payment_amount;
@@ -657,22 +689,60 @@ class PaymentController extends Controller
                 throw new Exception('Failed to get company details.');
             }
 
-            $pymt = PaymentMethod::where('id',$loan->payment_method_id)->first();
-            if($pymt){
-                $pymt_before = $pymt->amount;
-                $pymt_total = ($diff_payment + $diff_interest_paid + $diff_late_paid);
-                $pymt_after = $pymt->amount + $pymt_total;
+            $payment_method_query = PaymentMethod::where('id',$request->payment_method_id);
+            switch (Auth::user()->role_id) {
+                case 1:
+                    break;
 
+                case 2:
+                    $payment_method_query->where('branch_id', Auth::user()->branch_id);
+                    break;
+
+                case 3:
+                case 4:
+                    $payment_method_query->where('company_id', Auth::user()->company_id);
+                    break;
+
+                default:
+                    throw new Exception('Invalid role id.');
+            }
+
+            $pymt = $payment_method_query->first();
+            if(!$pymt){
+                throw new Exception('Invalid payment method.');
+            }
+            if($pymt->is_active == 0){
+                throw new Exception('Payment method is inactive.');
+            }
+
+            $prev_pymt = PaymentMethod::where('id',$prev_payment_method_id)->first();
+            if(!$prev_pymt){
+                throw new Exception('Unable to find previous payment method.');
+            }
+
+            $prev_final_amount = $prev_pymt->amount - $prev_total_nett;
+            $payment->payment_method_logs()->create([
+                'type'=> 'payment',
+                'description'=>'Payment Updated',
+                'prev_amount'=> $prev_pymt->amount,
+                'payment_method_id'=>$prev_pymt->id,
+                'amount' => $prev_total_nett,
+                'total' => $prev_final_amount
+            ]);
+
+            $prev_pymt->update(['amount'=>$prev_final_amount]);
+
+            if($pymt){
                 $payment->payment_method_logs()->create([
                     'type'=> 'payment',
                     'description'=>'Payment Updated',
-                    'prev_amount'=> $pymt_before,
-                    'payment_method_id'=>$loan->payment_method_id,
-                    'amount' => $pymt_total,
-                    'total' => $pymt_after
+                    'prev_amount'=> $pymt->amount,
+                    'payment_method_id'=>$pymt->id,
+                    'amount' => $new_total_nett,
+                    'total' => $pymt->amount + $new_total_nett
                 ]);
 
-                $pymt->update(['amount'=>$pymt_after]);
+                $pymt->update(['amount'=>$pymt->amount + $new_total_nett]);
             }
 
             if ($diff_late_paid > $loan->late_balance) {
@@ -1107,8 +1177,7 @@ class PaymentController extends Controller
                 'late_paid_amount' => $new_late_paid,
                 'discount_amount' => $new_discount,
                 'collection_type' => $v['collection_type'] ?? $payment->collection_type,
-                'cheque' => $v['cheque'] ?? $payment->cheque,
-                'bank' => $v['bank'] ?? $payment->bank,
+                'payment_method_id' => $pymt->id,
                 'updated_by' => Auth::user()->id,
             ]);
             DB::commit();
@@ -1150,7 +1219,7 @@ class PaymentController extends Controller
             $discount_amount = $payment->discount_amount ?? 0;
             $total_payment = $payment_amount + $discount_amount;
 
-            $pymt = PaymentMethod::where('id',$loan->payment_method_id)->first();
+            $pymt = PaymentMethod::where('id',$payment->payment_method_id)->first();
             if($pymt){
                 $pymt_before = $pymt->amount;
                 $pymt_total = ($payment_amount + $interest_paid_amount + $late_paid_amount) * -1;
@@ -1447,7 +1516,4 @@ class PaymentController extends Controller
             ]);
         }
     }
-
-
-
 }

@@ -1,20 +1,19 @@
 @extends('layouts.app')
 <style>
     .modal-block {
-            max-width: 2000px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
+        max-width: 2000px;
+        margin: 20px auto;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
 
-        input::-ms-reveal,
-        input::-ms-clear,
-        input::-webkit-contacts-auto-fill-button {
-            display: none !important;
-        }
-    </style>
-
+    input::-ms-reveal,
+    input::-ms-clear,
+    input::-webkit-contacts-auto-fill-button {
+        display: none !important;
+    }
+</style>
 @section('content')
 <header class="page-header">
     <h2>Customer Details</h2>
@@ -22,7 +21,6 @@
 
 @include('layouts.flash-message')
 <div class="row">
-    
     <div class="col-sm-12 col-md-8 col-lg-9 col-xl-12">
         <div class="tabs">
             <ul class="nav nav-tabs">
@@ -45,44 +43,12 @@
                         @csrf
                         <h4 class="mb-3 font-weight-semibold text-dark">Personal Information</h4>
                         <div class="row">
-                            <!-- Photo Section - 30% width -->
-                            <div class="col-lg-3 col-md-4 col-sm-12">
-                                <section class="card">
-                                    <div class="card-body">
-                                        <div class="thumb-info mb-3">
-                                            <img id="previewImage" src="{{ asset('porto-assets/img/!logged-user.jpg') }}" class="rounded img-fluid" alt="Profile Image">
-                                        </div>
-                                        <div class="clearfix">
-                                            <input type="file" class="form-control" id="profileImage" name="profile_image" accept="image/*" onchange="previewPhoto(event)">
-                                        </div>
-                                    </div>
-                                </section>
-                                <ul class="simple-card-list mb-3">
-                                    <li class="primary">
-                                        <h3>488</h3>
-                                        <p class="text-light">Nullam quris ris.</p>
-                                    </li>
-                                    <li class="primary">
-                                        <h3>$ 189,000.00</h3>
-                                        <p class="text-light">Nullam quris ris.</p>
-                                    </li>
-                                    <li class="primary">
-                                        <h3>16</h3>
-                                        <p class="text-light">Nullam quris ris.</p>
-                                    </li>
-                                </ul>
-                            </div>
-                            
                             <!-- Information Section - 70% width -->
-                            <div class="col-lg-9 col-md-8 col-sm-12">
+                            <div class="col-lg-12 col-md-8 col-sm-12">
                                 <div class="row mb-2">
-                                    <div class="form-group col-md-6">
-                                        <label>Customer Code</label>
-                                        <input type="text" class="form-control" name="customer_code" placeholder="Customer Code">
-                                    </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
-                                        <label for="company_code">Company Code</label>
-                                        <select id="company_code" name="company_code" class="form-control">
+                                        <label for="company_code">Company Code <span class="text-danger">*</span></label>
+                                        <select id="company_code" name="company_code" class="form-control" required>
                                             <option value="">Choose...</option>
                                             @foreach($company as $row)
                                                 <option value="{{ $row->company_code }}">{{ $row->company_code }}</option>
@@ -105,56 +71,50 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="gender">Gender</label>
-                                        <select id="gender" name="gender" class="form-control">
+                                        <label for="gender">Gender <span class="text-danger">*</span></label>
+                                        <select id="gender" name="gender" class="form-control" required>
                                             <option value="">Choose...</option>
                                             <option value="Male">Male</option>
                                             <option value="Female">Female</option>
                                         </select>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="race">Race</label>
-                                        <select id="race" name="race" class="form-control">
+                                        <label for="race">Race <span class="text-danger">*</span></label>
+                                        <select id="race" name="race" class="form-control" required>
                                             <option value="">Choose...</option>
                                             @foreach($races as $raceItem)
-                                                <option value="{{ $raceItem->race_name }}">{{ $raceItem->race_name }}</option>
+                                            <option value="{{ $raceItem->race_name }}">{{ $raceItem->race_name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="date_of_birth">Date Of Birth</label>
+                                        <label for="date_of_birth">Date Of Birth <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-calendar-alt"></i>
                                             </span>
-                                            <input type="date" name="date_of_birth" class="form-control">
+                                            <input type="date" name="date_of_birth" class="form-control" required>
                                         </div>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col">
-                                        <label for="address1">Address 1</label>
-                                        <input type="text" class="form-control" id="address1" name="address1" placeholder="Address 1">
-                                    </div>
-                                </div>
-                                <div class="row mb-2">
-                                    <div class="form-group col">
-                                        <label for="address1">Address 2</label>
-                                        <input type="text" class="form-control" id="address2" name="address2" placeholder="Address 2">
+                                        <label for="address1">Address <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="address1" name="address1" placeholder="Address" required>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="postcode">Postcode</label>
-                                        <input type="number" class="form-control" id="postcode" name="postcode">
+                                        <label for="postcode">Postcode <span class="text-danger">*</span></label>
+                                        <input type="number" class="form-control" id="postcode" name="postcode" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="city">City</label>
-                                        <input type="text" class="form-control" id="city" name="city">
+                                        <label for="city">City <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="city" name="city" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="state">State</label>
-                                        <select id="state" name="state" class="form-control">
+                                        <label for="state">State <span class="text-danger">*</span></label>
+                                        <select id="state" name="state" class="form-control" required>
                                             <option value="">Choose...</option>
                                             @foreach($states as $stateItem)
                                                 <option value="{{ $stateItem->state_name }}">{{ $stateItem->state_name }}</option>
@@ -164,8 +124,8 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="house_ownership">House Ownership</label>
-                                        <select id="house_ownership" name="house_ownership" class="form-control">
+                                        <label for="house_ownership">House Ownership <span class="text-danger">*</span></label>
+                                        <select id="house_ownership" name="house_ownership" class="form-control" required>
                                             <option value="">Choose...</option>
                                             @foreach($house_ownership as $houseOwnership)
                                                 <option value="{{ $houseOwnership->house_ownership }}"
@@ -176,12 +136,12 @@
                                         </select>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="warga_negara">Warga Negara</label>
-                                        <input type="text" class="form-control" id="warganegara" name="warganegara">
+                                        <label for="warga_negara">Warga Negara <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="warganegara" name="warganegara" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="marital_status">Marital Status</label>
-                                        <select id="marital_status" name="marital_status" class="form-control">
+                                        <label for="marital_status">Marital Status <span class="text-danger">*</span></label>
+                                        <select id="marital_status" name="marital_status" class="form-control" required>
                                             <option value="">Choose...</option>
                                             @foreach($marital_statues as $marital_status)
                                                 <option value="{{ $marital_status->marital_status }}">{{ $marital_status->marital_status }}</option>
@@ -191,16 +151,12 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="email">Mail</label>
-                                        <input type="email" class="form-control" id="email" name="email" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+                                        <label for="email">Email <span class="text-danger">*</span></label>
+                                        <input type="email" class="form-control" id="email" name="email" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="telephone">Telephone</label>
-                                        <input type="number" class="form-control" id="telephone" name="telephone">
-                                    </div>
-                                    <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="mobile">Mobile</label>
-                                        <input type="number" class="form-control" id="mobile" name="mobile">
+                                        <label for="mobile">Mobile <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="mobile" name="mobile" required>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
@@ -209,9 +165,21 @@
                                         <textarea class="form-control" id="remark" name="remark" rows="3" placeholder="Enter remarks here..."></textarea>
                                     </div>
                                 </div>
+
+                                <div class="row mb-2">
+                                    <div class="form-group col">
+                                        <label for="image" class="form-label">Upload Image <span class="text-danger">*</span></label>
+                                        <div id="imagePreviewContainer" class="mb-3 d-none">
+                                            <div class="position-relative d-inline-block">
+                                                <img id="imagePreview" src="" alt="Preview" class="img-thumbnail" style="max-width: 300px;">
+                                                <button type="button" id="removeImage" class="btn btn-remove-image btn-primary btn-sm position-absolute top-0 end-0 m-2"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12" /><path d="M6 6l12 12" /></svg></button>
+                                            </div>
+                                        </div>
+                                        <input type="file" class="form-control" id="image" name="nric_image" accept="image/*" required>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-
                         <div class="row">
                             <div class="col-md-12 text-end mt-3">
                                 <button type="submit" class="btn btn-primary">Save</button>
@@ -226,23 +194,7 @@
 <!-- end: page -->
 @endsection
 
-@section('page-js')
-    <script src="{{ asset('porto-assets/vendor/select2/js/select2.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/media/js/jquery.dataTables.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/media/js/dataTables.bootstrap5.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/dataTables.buttons.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.bootstrap4.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.html5.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.print.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/JSZip-2.5.0/jszip.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/pdfmake.min.js') }}"></script>
-    <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/vfs_fonts.js') }}"></script>
-@endsection
-
 @section('scripts')
-    <script src="{{ asset('porto-assets/js/examples/examples.datatables.default.js') }}"></script>
-    <script src="{{ asset('porto-assets/js/examples/examples.datatables.row.with.details.js') }}"></script>
-    <script src="{{ asset('porto-assets/js/examples/examples.datatables.tabletools.js') }}"></script>
     <script>
         function onSubmitForm() {
             var form = document.querySelector('form');
@@ -303,9 +255,39 @@
             const tabTrigger = new bootstrap.Tab(document.querySelector('#tab-personal'));
             tabTrigger.show();
         }
-    </script>
 
-    <script>
+       
+document.addEventListener('DOMContentLoaded', function() {
+    const imageInput = document.getElementById('image');
+    const imagePreview = document.getElementById('imagePreview');
+    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+    const removeImageBtn = document.getElementById('removeImage');
+
+    // Show preview when file selected
+    imageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        
+        if (file) {
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                imagePreview.src = e.target.result;
+                imagePreviewContainer.classList.remove('d-none');
+            }
+            
+            reader.readAsDataURL(file);
+        }
+    });
+
+    // Remove image
+    removeImageBtn.addEventListener('click', function() {
+        imageInput.value = '';
+        imagePreview.src = '';
+        imagePreviewContainer.classList.add('d-none');
+    });
+});
+
+
         document.getElementById('alternativeIdBtn').addEventListener('click', function() {
             alert('Alternative ID clicked!');
             // You can replace this with modal popup or logic to choose an alternative ID

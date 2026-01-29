@@ -146,6 +146,19 @@ $currentRoute = request()->route()->getName();
                         </ul>
                     </li>
                     @endif
+                    <li class="nav-parent {{ request()->routeIs('expense.*') ? 'nav-expanded nav-active' : ''}}">
+                        <a class="nav-link" href="#">
+                            <i class='bx bx-dollar-circle' aria-hidden="true"></i>
+                            <span>Expenses</span>
+                        </a>
+                        <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('expense.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{ route('expense.index') }}">
+                                    All Expenses
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                 </ul>
             </nav>
             <hr class="separator" />

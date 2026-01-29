@@ -21,6 +21,7 @@ class Payment extends Model
         'customer_id',
         'loan_id',
         'payment_amount',
+        'payment_method_id',
         'late_paid_amount',
         'interest_paid_amount',
         'discount_amount',
@@ -44,6 +45,11 @@ class Payment extends Model
     public function loan()
     {
         return $this->belongsTo(Loan::class);
+    }
+
+    public function payment_method()
+    {
+        return $this->belongsTo(PaymentMethod::class);
     }
 
     public function payment_method_logs()

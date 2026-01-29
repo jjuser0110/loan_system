@@ -70,6 +70,7 @@
                             <th>Interest Group</th>
                             <th>Interest Rate</th>
                             <th>Loan Amount</th>
+                            <th>Outstanding</th>
                             <th>Installment</th>
                             <th>Loan Term</th>
                             <th>Capital</th>
@@ -86,22 +87,7 @@
 </div>
 @endsection
 
-@section('page-js')
-<script src="{{ asset('porto-assets/vendor/select2/js/select2.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/media/js/jquery.dataTables.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/media/js/dataTables.bootstrap5.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/dataTables.buttons.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.bootstrap4.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.html5.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/Buttons-1.4.2/js/buttons.print.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/JSZip-2.5.0/jszip.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/pdfmake.min.js') }}"></script>
-<script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/vfs_fonts.js') }}"></script>
-@endsection
 @section('scripts')
-<script src="{{ asset('porto-assets/js/examples/examples.datatables.default.js') }}"></script>
-<script src="{{ asset('porto-assets/js/examples/examples.datatables.row.with.details.js') }}"></script>
-<script src="{{ asset('porto-assets/js/examples/examples.datatables.tabletools.js') }}"></script>
 <script>
     $(document).ready(function() {
         $('#table-loan').DataTable({
@@ -122,7 +108,7 @@
                 {
                     "data": "customer_name",
                     "render": function(data, type, row, meta) {
-                        return '<a href="{{ url('customer/view') }}/' + row.customer_id + '" target="_blank">' +row.customer_code + "<br>" +row.customer_name+'</a>';
+                        return '<a href="{{ url('customer') }}/' + row.customer_id + '/edit" target="_blank">' +row.customer_code + "<br>" +row.customer_name+'</a>';
                     }
                 },
                 {
@@ -141,7 +127,10 @@
                     }
                 },
                 {
-                    "data": "loan_amount",
+                    "data": "loan_amount"
+                },
+                {
+                    "data": "outstanding"
                 },
                 {
                     "data": "installment",

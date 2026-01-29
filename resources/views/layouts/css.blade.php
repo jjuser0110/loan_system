@@ -166,4 +166,17 @@
     .swal2-container{
         z-index: 9999999
     }
+
+    .btn-remove-image{
+        color: #fff;
+        display: flex;
+        box-sizing: border-box;
+        height: 24px;
+        width: 24px;
+        padding: 5px !important;
+    }
+
+    .btn-remove-image svg > *{
+        background: white;
+    }
 </style>

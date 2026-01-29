@@ -184,7 +184,6 @@
                 dropdown.style.display = 'block';
             })
             .catch(error => {
-                console.error('Search failed:', error);
                 dropdown.innerHTML = '<div class="dropdown-item-text text-danger">Search failed</div>';
                 dropdown.style.display = 'block';
             });
@@ -372,5 +371,12 @@
                 }
             });
         });
+
+        document.addEventListener('DOMContentLoaded', function(){
+            let cc = document.getElementById('company-code').value;
+            if(cc && cc.length > 3){
+                setupPaymentMethod(cc)
+            }
+        })
     </script>
 @endsection
