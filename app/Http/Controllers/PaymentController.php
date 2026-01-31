@@ -461,22 +461,22 @@ class PaymentController extends Controller
                     
                     if(!$nextSchedule){
                         $newInterestAmount = ($newBalance / 100) * $loan->interest_rate;
-                        $lastSchedule = PaymentSchedule::where('loan_code',$loan->loan_code)->orderBy('due_date','desc')->first();
-                        $prefix = $loan->loan_code.'-S';
-                        $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
-                        $nextSchedule = PaymentSchedule::create([
-                            'schedule_code' => $schedule_code,
-                            'loan_code' => $loan->loan_code,
-                            'company_id' => $loan->company_id,
-                            'customer_id' => $loan->customer_id,
-                            'due_date' => Carbon::parse($lastSchedule->due_date)->addMonths(1)->format('Y-m-d'),
-                            'interest_amount' => $newInterestAmount,
-                            'interest_paid_amount' => 0,
-                        ]);
+                        // $lastSchedule = PaymentSchedule::where('loan_code',$loan->loan_code)->orderBy('due_date','desc')->first();
+                        // $prefix = $loan->loan_code.'-S';
+                        // $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
+                        // $nextSchedule = PaymentSchedule::create([
+                        //     'schedule_code' => $schedule_code,
+                        //     'loan_code' => $loan->loan_code,
+                        //     'company_id' => $loan->company_id,
+                        //     'customer_id' => $loan->customer_id,
+                        //     'due_date' => Carbon::parse($lastSchedule->due_date)->addMonths(1)->format('Y-m-d'),
+                        //     'interest_amount' => $newInterestAmount,
+                        //     'interest_paid_amount' => 0,
+                        // ]);
                         $interest_balance_change = $newInterestAmount;
                     }
                 }
-                
+                $interest_balance_change = 0; // SET TO 0 DUE TO USE CRONJOB GENERATE NEW SCHEDULE
                 $loan->update([
                     'paid' => $loan->paid + $payment_amount,
                     'balance' => $newBalance,
@@ -652,7 +652,6 @@ class PaymentController extends Controller
                 'bank'=> 'nullable|string',
             ]);
             bcscale(10);
-            
             $payment = Payment::lockForUpdate()->where('id',$request->payment_id)->first();
             if(!$payment || $this->accesstoPayment($payment) == false){
                 throw new Exception('Failed to get selected payment.');
@@ -688,14 +687,17 @@ class PaymentController extends Controller
             if(!$company){
                 throw new Exception('Failed to get company details.');
             }
-
             $payment_method_query = PaymentMethod::where('id',$request->payment_method_id);
             switch (Auth::user()->role_id) {
                 case 1:
                     break;
 
                 case 2:
-                    $payment_method_query->where('branch_id', Auth::user()->branch_id);
+                  
+                    $payment_method_query->join('companies','companies.id','=','payment_methods.company_id')
+                    ->join('branches','branches.id','=','compaines.branch_id')
+                    ->where('branches.id', Auth::user()->branch_id)
+                    ->select('payment_methods.*');
                     break;
 
                 case 3:
@@ -720,29 +722,35 @@ class PaymentController extends Controller
                 throw new Exception('Unable to find previous payment method.');
             }
 
-            $prev_final_amount = $prev_pymt->amount - $prev_total_nett;
+            $prev_final_amount = $prev_pymt->amount + ($prev_total_nett * -1);
             $payment->payment_method_logs()->create([
                 'type'=> 'payment',
                 'description'=>'Payment Updated',
                 'prev_amount'=> $prev_pymt->amount,
                 'payment_method_id'=>$prev_pymt->id,
-                'amount' => $prev_total_nett,
+                'amount' => $prev_total_nett * -1,
                 'total' => $prev_final_amount
             ]);
 
             $prev_pymt->update(['amount'=>$prev_final_amount]);
-
+            
             if($pymt){
+                if($pymt->id == $prev_pymt->id){
+                    $pamount = $prev_final_amount;
+                }
+                else{
+                    $pamount = $pymt->amount;
+                }
                 $payment->payment_method_logs()->create([
                     'type'=> 'payment',
                     'description'=>'Payment Updated',
-                    'prev_amount'=> $pymt->amount,
+                    'prev_amount'=> $pamount,
                     'payment_method_id'=>$pymt->id,
                     'amount' => $new_total_nett,
-                    'total' => $pymt->amount + $new_total_nett
+                    'total' => $pamount + $new_total_nett
                 ]);
 
-                $pymt->update(['amount'=>$pymt->amount + $new_total_nett]);
+                $pymt->update(['amount'=>$pamount + $new_total_nett]);
             }
 
             if ($diff_late_paid > $loan->late_balance) {
@@ -874,22 +882,22 @@ class PaymentController extends Controller
                             ->orderBy('due_date', 'desc')
                             ->first();
                         if ($lastSchedule) {
-                            $prefix = $loan->loan_code.'-S';
-                            $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
-                            $nextSchedule = PaymentSchedule::create([
-                                'schedule_code'=>$schedule_code,
-                                'loan_code' => $loan->loan_code,
-                                'company_id' => $loan->company_id,
-                                'customer_id' => $loan->customer_id,
-                                'due_date' => Carbon::parse($lastSchedule->due_date)->addMonths(1)->format('Y-m-d'),
-                                'interest_amount' => $newInterestAmount,
-                                'interest_paid_amount' => 0,
-                            ]);
+                            // $prefix = $loan->loan_code.'-S';
+                            // $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
+                            // $nextSchedule = PaymentSchedule::create([
+                            //     'schedule_code'=>$schedule_code,
+                            //     'loan_code' => $loan->loan_code,
+                            //     'company_id' => $loan->company_id,
+                            //     'customer_id' => $loan->customer_id,
+                            //     'due_date' => Carbon::parse($lastSchedule->due_date)->addMonths(1)->format('Y-m-d'),
+                            //     'interest_amount' => $newInterestAmount,
+                            //     'interest_paid_amount' => 0,
+                            // ]);
                             $interest_balance_change = $newInterestAmount;
                         }
                     }
                 }
-
+                $interest_balance_change = 0; // SET TO 0 DUE TO USE CRONJOB GENERATE NEW SCHEDULE
                 $loan->update([
                     'paid' => $loan->paid + $diff_payment,
                     'balance' => $newBalance,
@@ -1314,19 +1322,20 @@ class PaymentController extends Controller
                         ->orderBy('due_date', 'desc')
                         ->first();
 
-                    $prefix = $loan->loan_code.'-S';
-                    $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
+                    // $prefix = $loan->loan_code.'-S';
+                    // $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
                     if ($lastSchedule) {
-                        $nextSchedule = PaymentSchedule::create([
-                            'schedule_code' => $schedule_code,
-                            'loan_code' => $loan->loan_code,
-                            'company_id' => $loan->company_id,
-                            'customer_id' => $loan->customer_id,
-                            'due_date' => Carbon::parse($lastSchedule->due_date)->addMonths(1)->format('Y-m-d'),
-                            'interest_amount' => $newInterestAmount,
-                            'interest_paid_amount' => 0,
-                        ]);
+                        // $nextSchedule = PaymentSchedule::create([
+                        //     'schedule_code' => $schedule_code,
+                        //     'loan_code' => $loan->loan_code,
+                        //     'company_id' => $loan->company_id,
+                        //     'customer_id' => $loan->customer_id,
+                        //     'due_date' => Carbon::parse($lastSchedule->due_date)->addMonths(1)->format('Y-m-d'),
+                        //     'interest_amount' => $newInterestAmount,
+                        //     'interest_paid_amount' => 0,
+                        // ]);
                         $interest_balance_change = $newInterestAmount;
+                        $interest_balance_change = 0; // SET TO 0 DUE TO USE CRONJOB GENERATE NEW SCHEDULE
                     }
                 } else {
                     $possiblyCreatedSchedule = PaymentSchedule::lockForUpdate()

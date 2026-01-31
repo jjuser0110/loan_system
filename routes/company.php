@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::prefix('/company')->as('company.')->middleware(['auth'])->group(function() {
     Route::get('/index', 'CompanyController@index')->name('index');
+    Route::get('/load_company', 'CompanyController@load_company')->name('load_company');
     Route::get('/create', 'CompanyController@create')->name('create');
     Route::post('/store', 'CompanyController@store')->name('store');
     Route::get('/edit/{company}', 'CompanyController@edit')->name('edit');

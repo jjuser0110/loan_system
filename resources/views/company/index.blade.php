@@ -15,11 +15,11 @@
                 <a class="btn btn-xs btn-square btn-primary" href="{{route('company.create')}}">Create</a>
             </div>
             <div class="card-body">
-                <table class="table table-bordered table-striped mb-0" id="datatable-default">
+                <table class="table table-bordered table-striped mb-0" id="table-company">
                     <thead>
                         <tr>
-                            <th>Company Name</th>
                             <th>Company Code</th>
+                            <th>Company Name</th>
                             <th>Branch</th>
                             <th>Stock A</th>
                             <th>Stock B</th>
@@ -28,26 +28,78 @@
                             <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @foreach($company as $s)
-                            <tr>
-                                <td>{{$s->company_name??''}}</td>
-                                <td>{{$s->company_code??''}}</td>
-                                <td>{{$s->branch->branch_name??''}}</td>
-                                <td>{{$s->stocka??''}}</td>
-                                <td>{{$s->stockb??''}}</td>
-                                <td>{{$s->stockbb??''}}</td>
-                                <td>{{$s->payment_methods->sum('amount')??''}}</td>
-                                <td>
-                                    <a href="{{ route('company.edit',$s) }}" title="Edit"><i class="bx bx-edit-alt"></i></a>
-                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('company.destroy',$s) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
-                                </td>
-                            </tr>
-                        @endforeach
-                    </tbody>
+                    <tbody></tbody>
                 </table>
             </div>
         </section>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    $(document).ready(function() {
+        $('#table-company').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "fixedHeader": false,
+            "ajax": {
+                "url": "{{ route('company.load_company') }}",
+                "type": "GET"
+            },
+            "order": [
+                [0, "desc"]
+            ],
+            "columns": [
+                {
+                    "data": "company_code"
+                },
+                {
+                    "data": "company_name"
+                },
+                {
+                    "data": "branch.branch_name"
+                },
+                {
+                    "data": "stocka",
+                     "render": function(data, type, row, meta) {
+                        return formatCredit(row.stocka)
+                     }
+                },
+                {
+                    "data": "stockb",
+                     "render": function(data, type, row, meta) {
+                        return formatCredit(row.stockb)
+                     }
+                },
+                {
+                    "data": "stockbb",
+                     "render": function(data, type, row, meta) {
+                        return formatCredit(row.stockbb)
+                     }
+                },
+                {
+                    "data": "total_amount",
+                     "render": function(data, type, row, meta) {
+                        return formatCredit(row.total_amount ?? 0)
+                     }
+                },
+                {
+                    "data": null,
+                    "render": function(data, type, row, meta) {
+                        
+                        let url = `
+                            <div class="cus-action-wrapper">
+                                <a href="{{ route('company.edit', ['company' => ':company']) }}" class="cus-action-icon info" title="Update Company" target="_blank"><i class="fas fa-edit"></i></a>
+                                <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('company.destroy',1) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
+                            </div>
+                            `;
+                        url = url.replaceAll(':company', row.id);
+                        return url;
+                    }
+                }
+            ]
+        });
+    });
+</script>
 @endsection

@@ -14,7 +14,7 @@
                     <h4>Loan Details</h4>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="col-form-label">Customer Code</label>
+                            <label class="col-form-label">System Code</label>
                             <input type="text" class="form-control" id="customer_search" name="customer_code" value="{{ $customer?->customer_code ?? '' }}" placeholder="C000001" autocomplete="off">
                             <div id="customer_dropdown" class="dropdown-menu col-md-5 col-10" style="display:none; max-height: 200px; overflow-y: auto; padding:0;"></div>
                         </div>

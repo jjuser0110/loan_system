@@ -89,8 +89,9 @@
 
 @section('scripts')
 <script>
+    let table_loan;
     $(document).ready(function() {
-        $('#table-loan').DataTable({
+        table_loan = $('#table-loan').DataTable({
             "processing": true,
             "serverSide": true,
             "fixedHeader": false,
@@ -99,7 +100,7 @@
                 "type": "GET"
             },
             "order": [
-                [2, "desc"]
+                [0, "desc"]
             ],
             "columns": [
                 {
@@ -172,6 +173,9 @@
                                 <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="View Detail"><i class="fas fa-eye"></i></a>
                                 <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="Create Schedule"><i class="fas fa-calendar-alt"></i></a>
                                 <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="Create Payment"><i class="fas fa-money-check-alt"></i></a>
+                                @if(Auth::user()->role_id == 1)
+                                <a class="cus-action-icon danger" title="Delete Loan" onclick="deleteLoan(${meta.row})"><i class="fas fa-trash-alt"></i></a>
+                                @endif
                             </div>
                             `;
                         url = url.replaceAll(':loan_code', row.loan_code);
@@ -194,6 +198,38 @@
     .catch(error => {
         console.error('Search failed:', error);
     });
-
+    
+    function deleteLoan(rowIndex) {
+        const data = table_loan.row(rowIndex).data();
+        function submitDelete(){
+            $.ajax({
+                url: "{{ route('loan.delete') }}",
+                type: "POST",
+                data: {id:data.id},
+                headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
+                success: function (response) {
+                    if(response.success == true){
+                        setReloadSwal('success','',response.message);
+                    }
+                    else{
+                        setDefaultSwal('error','',response.message);
+                    }
+                },
+                error: function (xhr) {
+                    setDefaultSwal('error','','There is something wrong, please try again.');
+                }
+            });
+        }
+        setConfirmationSwal(
+            "Warning",
+            "This action will cannot be undone. Proceed?",
+            'Process',
+            'Cancel'
+        ).then((result) => {
+            if (result.isConfirmed) {
+                submitDelete();
+            }
+        });
+    }
 </script>
 @endsection

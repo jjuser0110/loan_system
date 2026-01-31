@@ -276,7 +276,7 @@ class ExpenseController extends Controller
                 'type'=> 'expense',
                 'description'=>'Expense Updated',
                 'prev_amount'=> $pm_before,
-                'amount' => $request->amount,
+                'amount' => $request->amount * -1,
                 'payment_method_id'=>$pm->id,
                 'total' => $pm_after
             ]);

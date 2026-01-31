@@ -20,7 +20,7 @@
                         </div>
 
                         <div class="col-md-12 col-lg-6 col-xl-6 col-xxl-6 mb-3">
-                            <label class="col-form-label">Customer Code / Name</label>
+                            <label class="col-form-label">System Code / Name</label>
                             <input type="text" class="form-control" id="customer-code" value="{{ $loan?->customer->customer_code ? $loan->customer->customer_code.'/' : '' }} {{ $loan?->customer->customer_name ?? '' }}" autocomplete="off" disabled>
                         </div>
                     </div>

@@ -20,29 +20,25 @@ use Exception;
 use Bouncer;
 use Carbon\Carbon;
 
-class LoanController extends Controller
+class DashboardController extends Controller
 {
     public function index(Request $request)
     {
+        $query = Company::query();
         switch(Auth::user()->role_id){
             case 1:
-                $query = DB::table('loans');
                 break;
-
             case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
+                $query->where('branch_id', Auth::user()->branch_id);
                 break;
-
             default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('loans')->where('company_id',$companyId);
+                $query->where('id', Auth::user()->company_id);
                 break;
         }
-        $loans = $query->selectRaw('SUM(capital) as total_capital, SUM(interest_paid) as total_interest_paid, SUM(late_paid) as total_late_paid ,SUM(outstanding) as outstanding')->first();
-        return view('loan.index')->with('total_capital',$loans->total_capital)->with('outstanding',$loans->outstanding)->with('total_interest_paid',$loans->total_interest_paid)->with('total_late_paid',$loans->total_late_paid);
+        $companies = $query->selectRaw('SUM(amount) as total_amount,SUM(stocka) as total_stocka, SUM(stockb) as total_stockb, SUM(stockbb) as total_stockbb')->first();
+        return view('dashboard')->with('companies',$companies);
     }
-
+    
     public function fetch_profit(Request $request)
     {
         switch(Auth::user()->role_id){
@@ -668,72 +664,5 @@ class LoanController extends Controller
     public function update_loan_misc(Loan $loan){
         $this->update_due_date($loan);
         $this->update_outstanding($loan);
-    }
-
-    public function delete(Request $request){
-        try{
-            DB::beginTransaction();
-            if(Auth::user()->role_id != 1){
-                throw new Exception('Access denined.');
-            }
-
-            $loan = Loan::where('id',$request->id)->first();
-            if(!$loan){
-                throw new Exception('Unable to fetch selected loan.');
-            }
-
-            $pms = [];
-
-            $payments = Payment::where('loan_id',$loan->id)->get();
-            foreach($payments as $payment){
-                $id = $payment->payment_method_id;
-
-                if (!isset($pms[$id])) {
-                    $pms[$id] = PaymentMethod::lockForUpdate()->find($id);
-                }
-                $pm = $pms[$id];
-                $total_amount = $payment->payment_amount + $payment->late_paid_amount + $payment->interest_paid_amount;
-                $pm_before = $pm->amount;
-                $pm_after = $pm->amount + ($total_amount * -1);
-                $pm->update(['amount'=>$pm_after]);
-                $pm->payment_method_logs()->create([
-                    'type'=> 'loan',
-                    'description'=>'Loan Deleted',
-                    'prev_amount'=> $pm_before,
-                    'amount' => ($total_amount * -1),
-                    'payment_method_id'=>$pm->id,
-                    'total' => $pm_after
-                ]);
-                $payment->delete();
-            }
-
-            $id = $loan->payment_method_id;
-            if (!isset($pms[$id])) {
-                $pms[$id] = PaymentMethod::lockForUpdate()->find($id);
-            }
-            $pm = $pms[$id];
-            $pm_before = $pm->amount;
-            $pm_after = $pm->amount + $loan->capital;
-            $pm->update(['amount'=>$pm_after]);
-            $pm->save();
-            $pm->payment_method_logs()->create([
-                'type'=> 'loan',
-                'description'=>'Loan Deleted',
-                'prev_amount'=> $pm_before,
-                'amount' => $loan->capital,
-                'payment_method_id'=>$pm->id,
-                'total' => $pm_after
-            ]);
-            $loan->delete();
-            DB::commit();
-            return response()->json(['success' => true, 'message' => 'Payment deleted successfully.']);
-        }
-        catch(Exception $e){
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]);
-        }
     }
 }

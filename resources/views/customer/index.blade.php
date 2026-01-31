@@ -124,7 +124,9 @@
                         let a = `
                             <div class="cus-action-wrapper">
                                 <a class="cus-action-icon info" title="Update Customer" href="{{ route('customer.edit', ['customer' => ':customer']) }}"><i class="fas fa-edit"></i></a>
+                                @if(Auth::user()->role_id == 1)
                                 <a class="cus-action-icon danger" title="Delete Customer" onclick="deleteCustomer(${meta.row})"><i class="fas fa-trash-alt"></i></a>
+                                @endif
                             </div>
                         `;
                         a = a.replaceAll(':customer', row.id);

@@ -173,7 +173,7 @@ class Controller extends BaseController
 
                 case 3:
                 case 4:
-                    if($payment->company_id != Auth::user()->company_id){
+                    if($payment->loan->company_id != Auth::user()->company_id){
                         return false;
                     }
                     break;

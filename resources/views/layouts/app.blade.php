@@ -12,6 +12,7 @@
 			border-bottom: 2px solid;
 		}
 	</style>
+	@yield('css')
 	</head>
 	<body>
 		<section class="body">

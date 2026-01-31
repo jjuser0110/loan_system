@@ -14,4 +14,5 @@ Route::prefix('/loan')->as('loan.')->middleware(['auth'])->group(function() {
     Route::get('/search_loan', 'LoanController@search_loan')->name('search_loan');
     Route::get('/single_loan/{loan_code?}', 'LoanController@single_loan')->name('single_loan');
     Route::get('/fetch_profit/{loan_code?}', 'LoanController@fetch_profit')->name('fetch_profit');
+    Route::post('/delete', 'LoanController@delete')->name('delete');
 });

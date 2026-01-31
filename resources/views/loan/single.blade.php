@@ -287,7 +287,7 @@
                                             <h4 class="cus-header">Customer</h4>
                                             <div class="row">
                                                 <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">Customer Code</label>
+                                                    <label class="col-form-label">System Code</label>
                                                     <input type="text" class="form-control" value="{{ $loan?->customer->customer_code ?? '' }}" disabled>
                                                 </div>
                                                 <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
