@@ -51,7 +51,9 @@
                             <th>Late</th>
                             <th>Late Paid</th>
                             <th>Loan Code</th>
+                            @if(Auth::user()->role_id <= 3)
                             <th>Action</th>
+                            @endif
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -184,6 +186,7 @@
                         return `<a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}" class="info" title="View Detail">${row.loan_code}</a>`.replace(':loan_code',row.loan_code);
                     }
                 },
+                @if(Auth::user()->role_id <= 3)
                 {
                     "data": null,
                     "render": function(data, type, row, meta) {
@@ -195,6 +198,7 @@
                         `;
                     }
                 }
+                @endif
             ]
         });
     });

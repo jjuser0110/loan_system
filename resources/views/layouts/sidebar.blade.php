@@ -108,6 +108,11 @@ $currentRoute = request()->route()->getName();
                             <span>Main Setting</span>
                         </a>
                         <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('badmin.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('badmin.index')}}">
+                                    Branch Admin
+                                </a>
+                            </li>
                             <li class="{{ request()->routeIs('cadmin.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('cadmin.index')}}">
                                     Company Admin

@@ -43,7 +43,7 @@ class PaymentMethodController extends Controller
                 break;
 
             default:
-                $query = DB::table('loans')->where('company_id', Auth::user()->company_id);
+                $query = DB::table('companies')->where('id', Auth::user()->company_id);
                 break;
         }
         $companies = $query->get();
@@ -117,6 +117,39 @@ class PaymentMethodController extends Controller
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    public function load_payment_method_total_amount(Request $request){
+        $query = PaymentMethod::query()
+            ->select([
+                'payment_methods.*',
+                'banks.bank_name',
+                'companies.company_name as company_name',
+                'companies.company_code as company_code',
+                'branches.branch_name as branch_name',
+                'branches.branch_code as branch_code',
+            ])
+            ->join('branches', 'payment_methods.branch_id', '=', 'branches.id')
+            ->join('banks', 'payment_methods.bank_id', '=', 'banks.id')
+            ->join('companies', 'payment_methods.company_id', '=', 'companies.id');
+        switch (Auth::user()->role_id) {
+            case 1:
+                break;
+
+            case 2:
+                $query->where('companies.branch_id', Auth::user()->branch_id);
+                break;
+
+            case 3:
+            case 4:
+                $query->where('payment_methods.company_id', Auth::user()->company_id);
+                break;
+
+            default:
+                throw new Exception('Invalid role id.');
+        }
+        $total = $query->sum('payment_methods.amount');
+        return response()->json(['success'=>true,'total_payment_method_amount'=>number_format($total,2,'.',',')]);
     }
 
     public function store(Request $request)

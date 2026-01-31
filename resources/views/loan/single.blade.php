@@ -434,7 +434,9 @@
                                         <th>Late Paid</th>
                                         <th>Bank</th>
                                         <th>Collection Type</th>
+                                        @if(Auth::user()->role_id <= 3)
                                         <th>Action</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -464,7 +466,9 @@
                                         <th>Interest Paid</th>
                                         <th>Late</th>
                                         <th>Late Paid</th>
+                                        @if(Auth::user()->role_id <= 3)
                                         <th>Action</th>
+                                        @endif
                                     </tr>
                                 </thead>
                                 <tbody></tbody>
@@ -765,6 +769,7 @@
                 {
                     "data": "late_paid_amount"
                 },
+                @if(Auth::user()->role_id <= 3)
                 {
                     "data": null,
                     "render": function(data, type, row, meta) {
@@ -776,6 +781,7 @@
                         `;
                     }
                 }
+                @endif
             ]
         });
 
@@ -815,6 +821,7 @@
                 {
                     "data": "collection_type"
                 },
+                @if(Auth::user()->role_id <= 3)
                 {
                     "data": null,
                     "render": function(data, type, row, meta) {
@@ -826,6 +833,7 @@
                         `;
                     }
                 }
+                @endif
             ]
         });
     });

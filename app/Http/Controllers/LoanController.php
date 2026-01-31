@@ -31,7 +31,7 @@ class LoanController extends Controller
 
             case 2:
                 $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
+                $query = DB::table('loans')->join('companies','companies.id','=','loans.company_id')->where('companies.branch_id',$userBranchId);
                 break;
 
             default:
@@ -84,6 +84,152 @@ class LoanController extends Controller
             }
         }
         return response()->json(['success'=>true,'total_profit'=>number_format($total_profit,2,'.',',')]);
+    }
+
+    public function fetch_outstanding(Request $request)
+    {
+        switch(Auth::user()->role_id){
+            case 1:
+                $query = DB::table('loans');
+                break;
+
+            case 2:
+                $userBranchId = Auth::user()->branch_id;
+                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
+                break;
+
+            default:
+                $companyId = Auth::user()->company_id;
+                $query = DB::table('loans')->where('company_id',$companyId);
+                break;
+        }
+        if(isset($request->loan_code)){
+            $query->where('loan_code', $request->loan_code);
+        }
+        $total = $query->sum('outstanding');
+        return response()->json(['success'=>true,'total_outstanding'=>number_format($total,2,'.',',')]);
+    }
+
+    public function fetch_loan_amount(Request $request)
+    {
+        switch(Auth::user()->role_id){
+            case 1:
+                $query = DB::table('loans');
+                break;
+
+            case 2:
+                $userBranchId = Auth::user()->branch_id;
+                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
+                break;
+
+            default:
+                $companyId = Auth::user()->company_id;
+                $query = DB::table('loans')->where('company_id',$companyId);
+                break;
+        }
+        if(isset($request->loan_code)){
+            $query->where('loan_code', $request->loan_code);
+        }
+        $total = $query->sum('loan_amount');
+        return response()->json(['success'=>true,'total_loan_amount'=>number_format($total,2,'.',',')]);
+    }
+
+    public function fetch_capital(Request $request)
+    {
+        switch(Auth::user()->role_id){
+            case 1:
+                $query = DB::table('loans');
+                break;
+
+            case 2:
+                $userBranchId = Auth::user()->branch_id;
+                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
+                break;
+
+            default:
+                $companyId = Auth::user()->company_id;
+                $query = DB::table('loans')->where('company_id',$companyId);
+                break;
+        }
+        if(isset($request->loan_code)){
+            $query->where('loan_code', $request->loan_code);
+        }
+        $total = $query->sum('capital');
+        return response()->json(['success'=>true,'total_capital'=>number_format($total,2,'.',',')]);
+    }
+
+    public function load_overdue_loan(Request $request)
+    {
+        $draw = $request->input('draw');
+        $search = $request->input('search.value');
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
+        $orderByDirection = $request->input('order.0.dir');
+        switch(Auth::user()->role_id){
+            case 1:
+                $query = DB::table('loans');
+                break;
+
+            case 2:
+                $userBranchId = Auth::user()->branch_id;
+                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
+                break;
+
+            default:
+                $companyId = Auth::user()->company_id;
+                $query = DB::table('loans')->where('company_id',$companyId);
+                break;
+        }
+        if(isset($request->loan_code)){
+            $query->where('loan_code', $request->loan_code);
+        }
+        $recordsTotal = $query->count();
+        $loans = $query->whereDate('next_due_date', '<', now())->get();
+        return response()->json([
+            "success" => true,
+            "draw" => intval($draw),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsTotal,
+            "data" => $loans,
+        ]);
+    }
+
+    public function load_incoming_loan(Request $request)
+    {
+        $draw = $request->input('draw');
+        $search = $request->input('search.value');
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
+        $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
+        $orderByDirection = $request->input('order.0.dir');
+        switch(Auth::user()->role_id){
+            case 1:
+                $query = DB::table('loans');
+                break;
+
+            case 2:
+                $userBranchId = Auth::user()->branch_id;
+                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
+                break;
+
+            default:
+                $companyId = Auth::user()->company_id;
+                $query = DB::table('loans')->where('company_id',$companyId);
+                break;
+        }
+        if(isset($request->loan_code)){
+            $query->where('loan_code', $request->loan_code);
+        }
+        $recordsTotal = $query->count();
+        $loans = $query->whereBetween('next_due_date', [Carbon::today()->startOfDay(),Carbon::today()->addDays(7)->endOfDay()])->get();
+        return response()->json([
+            "success" => true,
+            "draw" => intval($draw),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsTotal,
+            "data" => $loans,
+        ]);
     }
 
     public function load_loan(Request $request){
