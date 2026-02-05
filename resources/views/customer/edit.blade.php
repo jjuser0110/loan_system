@@ -128,12 +128,15 @@
                                         <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="Customer Name" value="{{ $customer->customer_name }}" required>
                                     </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
-                                    <label for="nric_number">NRIC Number <span class="text-danger">*</span></label>
-                                    <div class="input-group">
-                                        <input type="text" class="form-control" id="nric_number" name="nric_number" value="{{ $customer->nric_number }}" required>
-                                        <button class="btn btn-outline-secondary" type="button" id="alternativeIdBtn">Alternative ID</button>
+                                        <label for="nric_number">NRIC Number <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="nric_number" name="nric_number" value="{{ $customer->nric_number }}" required>
+                                            <button class="btn btn-outline-secondary" type="button" id="uploadIcBtn">Upload IC</button>
+                                        </div>
+                                        
+                                        <!-- Hidden file input -->
+                                        <input type="file" class="d-none" id="nric_image" name="new_nric_image" accept="image/*">
                                     </div>
-                                </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
@@ -517,6 +520,7 @@
                                             <th>Interest Group</th>
                                             <th>Interest Rate</th>
                                             <th>Loan Amount</th>
+                                            <th>Outstanding</th>
                                             <th>Installment</th>
                                             <th>Loan Term</th>
                                             <th>Capital</th>
@@ -1053,6 +1057,10 @@
 
 @section('scripts')
     <script>
+        document.getElementById('uploadIcBtn').addEventListener('click', function() {
+            document.getElementById('nric_image').click();
+        });
+
         document.addEventListener('DOMContentLoaded', function () {
             const tabLinks = document.querySelectorAll('.nav-link[data-bs-toggle="tab"]');
 
@@ -1179,6 +1187,9 @@
                     },
                     {
                         "data": "loan_amount",
+                    },
+                    {
+                        "data": "outstanding",
                     },
                     {
                         "data": "installment",

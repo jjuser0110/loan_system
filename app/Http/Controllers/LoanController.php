@@ -310,10 +310,12 @@ class LoanController extends Controller
 
     public function create(Request $request)
     {
-        $customer = Customer::where('customer_code',$request->customer_code)->first();
+        $customer = Customer::where('customer_code', $request->customer_code)->first();
+        
         if(isset($request->loan_code)){
             $query->where('loan_code', $request->loan_code);
         }
+        
         if(isset($customer) && $this->accessToCustomer($customer)){
             $company = $customer->company;
         }
@@ -321,6 +323,7 @@ class LoanController extends Controller
             $company = false;
             $customer = false;
         }
+        
         return view('loan.create')->with('company', $company)->with('customer', $customer);
     }
 

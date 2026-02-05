@@ -374,8 +374,11 @@
 
         document.addEventListener('DOMContentLoaded', function(){
             let cc = document.getElementById('company-code').value;
-            if(cc && cc.length > 3){
-                setupPaymentMethod(cc)
+            let customerCode = document.getElementById('customer_search').value;
+            
+            // If company code exists and customer is pre-filled, load payment methods
+            if(cc && cc.length > 0 && customerCode && customerCode.length > 0){
+                setupPaymentMethod(cc);
             }
         })
     </script>

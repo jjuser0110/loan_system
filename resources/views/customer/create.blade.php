@@ -95,11 +95,14 @@
                                         <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="Customer Name" required>
                                     </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
-                                    <label for="nric_number">NRIC Number <span class="text-danger">*</span></label>
+                                        <label for="nric_number">NRIC Number <span class="text-danger">*</span></label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control" id="nric_number" name="nric_number" required>
-                                            <button class="btn btn-outline-secondary" type="button" id="alternativeIdBtn">Alternative ID</button>
+                                            <input type="text" class="form-control" id="nric_number" name="nric_number" value="{{ old('nric_number') }}" required>
+                                            <button class="btn btn-outline-secondary" type="button" id="uploadIcBtn">Upload IC</button>
                                         </div>
+                                        
+                                        <!-- Hidden file input -->
+                                        <input type="file" class="d-none" id="nric_image" name="nric_image" accept="image/*">
                                     </div>
                                 </div>
                                 <div class="row mb-2">
@@ -288,43 +291,41 @@
             const tabTrigger = new bootstrap.Tab(document.querySelector('#tab-personal'));
             tabTrigger.show();
         }
-
-       
-document.addEventListener('DOMContentLoaded', function() {
-    const imageInput = document.getElementById('image');
-    const imagePreview = document.getElementById('imagePreview');
-    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-    const removeImageBtn = document.getElementById('removeImage');
-
-    // Show preview when file selected
-    imageInput.addEventListener('change', function(e) {
-        const file = e.target.files[0];
         
-        if (file) {
-            const reader = new FileReader();
-            
-            reader.onload = function(e) {
-                imagePreview.src = e.target.result;
-                imagePreviewContainer.classList.remove('d-none');
-            }
-            
-            reader.readAsDataURL(file);
-        }
-    });
+        document.getElementById('uploadIcBtn').addEventListener('click', function() {
+                document.getElementById('nric_image').click();
+            });
+       
+        document.addEventListener('DOMContentLoaded', function() {
+            const imageInput = document.getElementById('image');
+            const imagePreview = document.getElementById('imagePreview');
+            const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+            const removeImageBtn = document.getElementById('removeImage');
 
-    // Remove image
-    removeImageBtn.addEventListener('click', function() {
-        imageInput.value = '';
-        imagePreview.src = '';
-        imagePreviewContainer.classList.add('d-none');
-    });
-});
+            // Show preview when file selected
+            imageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                
+                if (file) {
+                    const reader = new FileReader();
+                    
+                    reader.onload = function(e) {
+                        imagePreview.src = e.target.result;
+                        imagePreviewContainer.classList.remove('d-none');
+                    }
+                    
+                    reader.readAsDataURL(file);
+                }
+            });
 
-
-        document.getElementById('alternativeIdBtn').addEventListener('click', function() {
-            alert('Alternative ID clicked!');
-            // You can replace this with modal popup or logic to choose an alternative ID
+            // Remove image
+            removeImageBtn.addEventListener('click', function() {
+                imageInput.value = '';
+                imagePreview.src = '';
+                imagePreviewContainer.classList.add('d-none');
+            });
         });
+
     </script>
 	<script src="js/examples/examples.modals.js"></script>
 @endsection
