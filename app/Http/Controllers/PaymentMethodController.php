@@ -52,7 +52,31 @@ class PaymentMethodController extends Controller
 
     public function logs(Request $request)
     {
-        return view('payment_method.logs');
+        $account_no = $request->query('account_no');
+
+        // If no account_no, show all logs (don't set $logs, let DataTable handle it)
+        if (!$account_no) {
+            return view('payment_method.logs', [
+                'account_no' => null,
+                'paymentMethod' => null,
+                'logs' => null  // Add this
+            ]);
+        }
+
+        // If specific account_no provided
+        $paymentMethod = PaymentMethod::where('account_no', $account_no)
+                                    ->with('payment_method_logs')
+                                    ->first();
+        
+        if (!$paymentMethod) {
+            abort(404, 'Payment method not found');
+        }
+
+        $logs = $paymentMethod->payment_method_logs()
+                            ->orderBy('created_at', 'desc')
+                            ->get();
+
+        return view('payment_method.logs', compact('logs', 'account_no', 'paymentMethod'));
     }
 
     public function load_payment_method(Request $request){
@@ -349,7 +373,8 @@ class PaymentMethodController extends Controller
         return response()->json($pymt);
     }
 
-    public function load_payment_method_logs(Request $request){
+    public function load_payment_method_logs(Request $request)
+    {
         try{
             $draw = $request->input('draw');
             $search = $request->input('search.value');
@@ -357,6 +382,11 @@ class PaymentMethodController extends Controller
             $length = $request->input('length', 10);
             $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
             $orderByDirection = $request->input('order.0.dir');
+            
+            // Get account_no from request
+            $account_no = $request->input('account_no');
+            $view_all = $request->input('view_all'); // Check if viewing all
+            
             $query = PaymentMethodLog::with('content')
                 ->select([
                     'payment_method_logs.*',
@@ -370,6 +400,12 @@ class PaymentMethodController extends Controller
                 ->join('payment_methods','payment_methods.id','=','payment_method_logs.payment_method_id')
                 ->join('companies', 'payment_methods.company_id', '=', 'companies.id')
                 ->join('branches', 'companies.branch_id', '=', 'branches.id');
+            
+            // Filter by account_no only if provided and not viewing all
+            if (!empty($account_no) && !$view_all) {
+                $query->where('payment_methods.account_no', $account_no);
+            }
+            
             switch (Auth::user()->role_id) {
                 case 1:
                     break;
@@ -385,6 +421,7 @@ class PaymentMethodController extends Controller
                 default:
                     throw new Exception('Invalid role id.');
             }
+            
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->Where('companies.company_name', 'like', "%{$search}%")
@@ -398,6 +435,7 @@ class PaymentMethodController extends Controller
 
             $recordsTotal = $query->count();
             $data = $query->orderBy($orderByColumn, $orderByDirection)->skip($start)->take($length)->get();
+            
             return response()->json([
                 "draw" => intval($draw),
                 "recordsTotal" => $recordsTotal,

@@ -8,7 +8,7 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-                <a href="{{ route('payment_method.logs') }}" style="text-decoration:underline">View Logs</a>
+                <a href="{{ route('payment_method.logs') }}" style="text-decoration:underline">View All Logs</a>
                 <a class="btn btn-xs btn-square btn-primary" onclick="event.preventDefault();$('#modal-create-payment-method').modal('show')">Create</a>
             </div>
             <div class="card-body">
@@ -161,7 +161,7 @@
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label class="col-form-label">Amount</label>
-                            <input type="number" class="form-control" id="update-payment-method-credit-amount" name="amount" required>
+                            <input type="number" step="0.01" min="0" class="form-control" id="update-payment-method-credit-amount" name="amount" required>
                         </div>
                     </div>
                      <div class="row mb-3">
@@ -229,6 +229,7 @@
                             <div class="cus-action-wrapper">
                                 <a class="cus-action-icon info" title="Update Payment" onclick="updatePaymentMethod(${meta.row},${row.company_id},${row.bank_id})"><i class="fas fa-edit"></i></a>
                                 <a class="cus-action-icon success" title="Delete Payment" onclick="updatePaymentMethodCredit(${meta.row})"><i class="fa fa-usd"></i></a>
+                                <a class="cus-action-icon log" title="View Logs" href="/payment_method/logs?account_no=${encodeURIComponent(row.account_no)}" style="background-color: orange;"><i class="fas fa-history"></i></a>
                             </div>
                         `;
                     }

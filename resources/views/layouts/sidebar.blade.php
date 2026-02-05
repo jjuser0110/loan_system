@@ -28,7 +28,7 @@ $currentRoute = request()->route()->getName();
                         </a>
                     </li>
                     @if(Auth::user()->role_id != 4)
-                    <li class="nav-parent  {{ request()->routeIs('staff.*') || request()->routeIs('payment_method.*') ? 'nav-expanded nav-active' : ''}}">
+                    <li class="nav-parent  {{ request()->routeIs('staff.*') || request()->routeIs('payment_method.*') || request()->routeIs('expense.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>
                             <span>Setting</span>
@@ -42,6 +42,11 @@ $currentRoute = request()->route()->getName();
                             <li class="{{ request()->routeIs('payment_method.index') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('payment_method.index')}}">
                                     Payment Method
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('expense.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{ route('expense.index') }}">
+                                    Expenses
                                 </a>
                             </li>
                         </ul>
@@ -151,19 +156,6 @@ $currentRoute = request()->route()->getName();
                         </ul>
                     </li>
                     @endif
-                    <li class="nav-parent {{ request()->routeIs('expense.*') ? 'nav-expanded nav-active' : ''}}">
-                        <a class="nav-link" href="#">
-                            <i class='bx bx-dollar-circle' aria-hidden="true"></i>
-                            <span>Expenses</span>
-                        </a>
-                        <ul class="nav nav-children">
-                            <li class="{{ request()->routeIs('expense.*') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{ route('expense.index') }}">
-                                    All Expenses
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
                 </ul>
             </nav>
             <hr class="separator" />

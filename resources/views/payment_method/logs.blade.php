@@ -44,7 +44,12 @@
                 "fixedHeader": false,
                 "ajax": {
                     "url": "{{ route('payment_method.load_payment_method_logs') }}",
-                    "type": "GET"
+                    "type": "GET",
+                    "data": function(d) {
+                        @if(isset($account_no) && $account_no)
+                            d.account_no = "{{ $account_no }}";
+                        @endif
+                    }
                 },
                 "order": [
                     [8, "desc"]
