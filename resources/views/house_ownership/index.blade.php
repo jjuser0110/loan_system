@@ -62,7 +62,6 @@
     <script src="{{ asset('porto-assets/vendor/datatables/extras/TableTools/pdfmake-0.1.32/vfs_fonts.js') }}"></script>
 @endsection
 @section('scripts')
-    <script src="{{ asset('porto-assets/js/examples/examples.datatables.default.js') }}"></script>
     <script src="{{ asset('porto-assets/js/examples/examples.datatables.row.with.details.js') }}"></script>
     <script src="{{ asset('porto-assets/js/examples/examples.datatables.tabletools.js') }}"></script>
 @endsection

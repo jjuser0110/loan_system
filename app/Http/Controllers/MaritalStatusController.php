@@ -16,6 +16,7 @@ class MaritalStatusController extends Controller
     public function index()
     {
         $marital_status = MaritalStatuses::all();
+        
         return view('marital_status.index')->with('marital_status', $marital_status);
     }
 

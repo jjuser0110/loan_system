@@ -102,7 +102,7 @@ $currentRoute = request()->route()->getName();
                         </ul>
                     </li>
                     @if(Auth::user()->role_id == 1)
-                    <li class="nav-parent {{ request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') ? 'nav-expanded nav-active' : ''}}">
+                    <li class="nav-parent {{ request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>
                             <span>Main Setting</span>
