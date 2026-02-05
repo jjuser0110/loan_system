@@ -54,7 +54,6 @@ class PaymentMethodController extends Controller
     {
         $account_no = $request->query('account_no');
 
-        // If no account_no, show all logs (don't set $logs, let DataTable handle it)
         if (!$account_no) {
             return view('payment_method.logs', [
                 'account_no' => null,
@@ -63,7 +62,6 @@ class PaymentMethodController extends Controller
             ]);
         }
 
-        // If specific account_no provided
         $paymentMethod = PaymentMethod::where('account_no', $account_no)
                                     ->with('payment_method_logs')
                                     ->first();
@@ -383,9 +381,8 @@ class PaymentMethodController extends Controller
             $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
             $orderByDirection = $request->input('order.0.dir');
             
-            // Get account_no from request
             $account_no = $request->input('account_no');
-            $view_all = $request->input('view_all'); // Check if viewing all
+            $view_all = $request->input('view_all');
             
             $query = PaymentMethodLog::with('content')
                 ->select([
@@ -401,7 +398,6 @@ class PaymentMethodController extends Controller
                 ->join('companies', 'payment_methods.company_id', '=', 'companies.id')
                 ->join('branches', 'companies.branch_id', '=', 'branches.id');
             
-            // Filter by account_no only if provided and not viewing all
             if (!empty($account_no) && !$view_all) {
                 $query->where('payment_methods.account_no', $account_no);
             }
