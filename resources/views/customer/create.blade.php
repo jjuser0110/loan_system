@@ -49,7 +49,11 @@
                                 <section class="card">
                                     <div class="card-body">
                                         <div class="thumb-info mb-3">
-                                            <img id="previewImage" src="{{ asset('porto-assets/img/!logged-user.jpg') }}" class="rounded img-fluid" alt="Profile Image">
+                                            @if(isset($customer) && $customer->profile_image)
+                                                <img id="previewImage" src="{{ asset('storage/'.$customer->profile_image) }}" class="rounded img-fluid" alt="Profile Image">
+                                            @else
+                                                <img id="previewImage" src="{{ asset('porto-assets/img/!logged-user.jpg') }}" class="rounded img-fluid" alt="Profile Image">
+                                            @endif
                                         </div>
                                         <div class="clearfix">
                                             <input type="file" class="form-control" id="profileImage" name="profile_image" accept="image/*" onchange="previewPhoto(event)">
