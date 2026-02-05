@@ -42,9 +42,38 @@
                     <form class="p-3" method="POST" action="{{ route('customer.store') }}" enctype="multipart/form-data">
                         @csrf
                         <h4 class="mb-3 font-weight-semibold text-dark">Personal Information</h4>
-                        <div class="row">
+                        <div class="row g-5">
+                            
+                            <!-- Photo Section - 30% width -->
+                            <div class="col-lg-3 col-md-12 col-sm-12">
+                                <section class="card">
+                                    <div class="card-body">
+                                        <div class="thumb-info mb-3">
+                                            <img id="previewImage" src="{{ asset('porto-assets/img/!logged-user.jpg') }}" class="rounded img-fluid" alt="Profile Image">
+                                        </div>
+                                        <div class="clearfix">
+                                            <input type="file" class="form-control" id="profileImage" name="profile_image" accept="image/*" onchange="previewPhoto(event)">
+                                        </div>
+                                    </div>
+                                </section>
+                                <ul class="simple-card-list mb-3 d-none d-lg-block">
+                                    <li class="primary">
+                                        <h3>$$</h3>
+                                        <p class="text-light">Total Loan</p>
+                                    </li>
+                                    <li class="primary">
+                                        <h3>$$</h3>
+                                        <p class="text-light">Total Loan Amount</p>
+                                    </li>
+                                    <li class="primary">
+                                        <h3>$$</h3>
+                                        <p class="text-light">Total Outstanding</p>
+                                    </li>
+                                </ul>
+                            </div>
+
                             <!-- Information Section - 70% width -->
-                            <div class="col-lg-12 col-md-8 col-sm-12">
+                            <div class="col-lg-9 col-md-12 col-sm-12">
                                 <div class="row mb-2">
                                     <div class="form-group col-md-6 border-top-0 pt-0">
                                         <label for="company_code">Company Code <span class="text-danger">*</span></label>
@@ -166,7 +195,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row mb-2">
+                                <!-- <div class="row mb-2">
                                     <div class="form-group col">
                                         <label for="image" class="form-label">Upload Image <span class="text-danger">*</span></label>
                                         <div id="imagePreviewContainer" class="mb-3 d-none">
@@ -177,7 +206,7 @@
                                         </div>
                                         <input type="file" class="form-control" id="image" name="nric_image" accept="image/*" required>
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
                         <div class="row">

@@ -69,8 +69,41 @@
                         @csrf
                         @method('PUT')
                         <h4 class="mb-3 font-weight-semibold text-dark">Personal Information</h4>
-                        <div class="row">
-                            <div class="col-lg-12 col-md-8 col-sm-12">
+                        <div class="row g-5">
+
+                        <!-- Photo Section - 30% width -->
+                            <div class="col-lg-3 col-md-12 col-sm-12">
+                                <section class="card">
+                                    <div class="card-body">
+                                        <div class="thumb-info mb-3">
+                                            @if(isset($customer) && $customer->profile_image)
+                                                <img id="previewImage" src="{{ asset('storage/'.$customer->profile_image) }}" class="rounded img-fluid" alt="Profile Image">
+                                            @else
+                                                <img id="previewImage" src="{{ asset('porto-assets/img/!logged-user.jpg') }}" class="rounded img-fluid" alt="Profile Image">
+                                            @endif
+                                        </div>
+                                        <div class="clearfix">
+                                            <input type="file" class="form-control" id="profileImage" name="new_profile_image" accept="image/*" onchange="previewPhoto(event)">
+                                        </div>
+                                    </div>
+                                </section>
+                                <ul class="simple-card-list mb-3 d-none d-lg-block">
+                                    <li class="primary">
+                                        <h3>{{ $total_loan_count }}</h3>
+                                        <p class="text-light">Total Loan</p>
+                                    </li>
+                                    <li class="primary">
+                                        <h3>$ {{ number_format($total_loan_amount, 2) }}</h3>
+                                        <p class="text-light">Total Loan Amount</p>
+                                    </li>
+                                    <li class="primary">
+                                        <h3>$ {{ number_format($total_outstanding, 2) }}</h3>
+                                        <p class="text-light">Total Outstanding</p>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="col-lg-9 col-md-8 col-sm-12">
                                 <div class="row mb-2">
                                     <div class="form-group col-md-6">
                                         <label>System Code</label>
@@ -200,7 +233,7 @@
                                     </div>
                                 </div>
 
-                                <div class="row mb-2">
+                                <!-- <div class="row mb-2">
                                     <div class="form-group col">
                                         <label for="image" class="form-label">Upload Image <span class="text-danger">*</span></label>
                                         <div id="imagePreviewContainer" class="mb-3 @if(!$customer->nric_path) d-none @endif">
@@ -216,10 +249,9 @@
                                             </div>
                                         </div>
                                         <input type="file" class="form-control" id="image" name="new_nric_image" accept="image/*">
-                                        <!-- Hidden input to track if user wants to remove the existing image -->
                                         <input type="hidden" id="removeExistingImage" name="remove_existing_image" value="0">
                                     </div>
-                                </div>
+                                </div> -->
                             </div>
                         </div>
 

@@ -152,72 +152,82 @@ class CustomerController extends Controller
     }
 
     public function store(Request $request) 
-    { 
-        // Validate only required fields
-        $request->validate([
-            'customer_name' => 'required|string|max:255',
-            'nric_image' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048'
-        ]);
+{ 
+    // Validate only required fields
+    $validated = $request->validate([
+        'customer_name' => 'required|string|max:255',
+        'nric_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+        'profile_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+    ], [
+        'profile_image.image' => 'Profile image must be an image file',
+        'profile_image.mimes' => 'Profile image must be: jpeg, png, jpg, gif, or webp',
+        'nric_image.image' => 'NRIC image must be an image file',
+        'nric_image.mimes' => 'NRIC image must be: jpeg, png, jpg, gif, or webp',
+    ]);
 
-        // Get company_id and company_code if company is selected
-        $company = null;
-        if ($request->company_code) {
-            $company = Company::where('company_code', $request->company_code)->first();
-            if (!$company) {
-                return redirect()->back()->withErrors(['company_code' => 'Selected company not found.']);
-            }
+    // Get company_id and company_code if company is selected
+    $company = null;
+    if ($request->company_code) {
+        $company = Company::where('company_code', $request->company_code)->first();
+        if (!$company) {
+            return redirect()->back()->withErrors(['company_code' => 'Selected company not found.']);
         }
-
-        // Prepare data for creation
-        $customerData = $request->all();
-        
-        // Store both company_id and company_code if company is selected
-        if ($company) {
-            $customerData['company_id'] = $company->id;
-            $customerData['company_code'] = $company->company_code;
-        }
-        
-        // Convert fields to lowercase if they exist
-        if ($request->city) {
-            $customerData['city'] = strtolower($request->city);
-        }
-        if ($request->state) {
-            $customerData['state'] = strtolower($request->state);
-        }
-        if ($request->warganegara) {
-            $customerData['warganegara'] = strtolower($request->warganegara);
-        }
-        
-        // Add profile image path if uploaded
-        if (isset($path)) {
-            $customerData['profile_image'] = $path;
-        }
-        $customer_code = $this->getSystemCode();
-        // Handle profile image upload
-        if ($request->hasFile('nric_image')) { 
-            $file = $request->file('nric_image');
-
-            // 🔹 Custom folder path
-            $folder = 'customers/'.$customer_code;
-
-            // 🔹 Random code filename
-            $randomCode = $customer_code.Str::upper(Str::random(12));
-            $extension  = $file->getClientOriginalExtension();
-
-            $filename = $randomCode . '.' . $extension;
-
-            // 🔹 Store file
-            $path = $file->storeAs($folder, $filename, 'public');
-        } 
-
-        $customerData = array_merge($customerData, [
-            'customer_code' => $customer_code,
-            'nric_path' => $path,
-        ]);
-        $customer = Customer::create($customerData);
-
-        return redirect()->route('customer.edit', $customer->id)->withSuccess('Customer personal information saved successfully. Please add work and reference information.'); 
     }
+
+    // Prepare data for creation
+    $customerData = $request->all();
+    
+    // Store both company_id and company_code if company is selected
+    if ($company) {
+        $customerData['company_id'] = $company->id;
+        $customerData['company_code'] = $company->company_code;
+    }
+    
+    // Convert fields to lowercase if they exist
+    if ($request->city) {
+        $customerData['city'] = strtolower($request->city);
+    }
+    // if ($request->state) {
+    //     $customerData['state'] = strtolower($request->state);
+    // }
+    if ($request->warganegara) {
+        $customerData['warganegara'] = strtolower($request->warganegara);
+    }
+    
+    $customer_code = $this->getSystemCode();
+    $nric_path = null;
+    $profile_path = null;
+    
+    // Handle NRIC image upload (OPTIONAL)
+    if ($request->hasFile('nric_image')) { 
+        $file = $request->file('nric_image');
+        $folder = 'customers/'.$customer_code;
+        $randomCode = $customer_code.Str::upper(Str::random(12));
+        $extension  = $file->getClientOriginalExtension();
+        $filename = $randomCode . '.' . $extension;
+        $nric_path = $file->storeAs($folder, $filename, 'public');
+    }
+    
+    // Handle PROFILE image upload (OPTIONAL)
+    if ($request->hasFile('profile_image')) { 
+        $file = $request->file('profile_image');
+        $folder = 'customers/'.$customer_code.'/profile';
+        $randomCode = 'profile_'.$customer_code.Str::upper(Str::random(12));
+        $extension  = $file->getClientOriginalExtension();
+        $filename = $randomCode . '.' . $extension;
+        $profile_path = $file->storeAs($folder, $filename, 'public');
+    }
+
+    $customerData = array_merge($customerData, [
+        'customer_code' => $customer_code,
+        'nric_path' => $nric_path,
+        'profile_image' => $profile_path,
+    ]);
+    
+    $customer = Customer::create($customerData);
+
+    return redirect()->route('customer.edit', $customer->id)->withSuccess('Customer personal information saved successfully. Please add work and reference information.'); 
+}
 
     public function updateWork(Request $request, $id)
     {
@@ -291,7 +301,7 @@ class CustomerController extends Controller
                 $query = DB::table('companies')->where('id',$companyId);
                 break;
         }
-   
+
         $company = $query->get();
         $customer = Customer::findOrFail($customer);
         $races = Race::all();
@@ -301,11 +311,30 @@ class CustomerController extends Controller
         $house_ownership = HouseOwnership::all();
         $assets = Asset::all();
         
-        $references = Reference::where('customer_id', $customer)->get();
-        $assets = Asset::where('customer_id', $customer)->get();
-        $loans = Loan::where('customer_id',$customer)->get();
+        $references = Reference::where('customer_id', $customer->id)->get();
+        $assets = Asset::where('customer_id', $customer->id)->get();
+        $loans = Loan::where('customer_id', $customer->id)->get();
         
-        return view('customer.edit', compact('customer', 'company', 'races', 'states', 'marital_statues', 'reference_types', 'references', 'house_ownership', 'assets', 'loans'));
+        // Calculate loan statistics
+        $total_loan_count = $loans->count();
+        $total_loan_amount = $loans->sum('loan_amount');
+        $total_outstanding = $loans->sum('outstanding');
+        
+        return view('customer.edit', compact(
+            'customer', 
+            'company', 
+            'races', 
+            'states', 
+            'marital_statues', 
+            'reference_types', 
+            'references', 
+            'house_ownership', 
+            'assets', 
+            'loans',
+            'total_loan_count',
+            'total_loan_amount',
+            'total_outstanding'
+        ));
     }
 
     public function update(Request $request, $id)
@@ -326,7 +355,8 @@ class CustomerController extends Controller
                 'house_ownership' => 'required',
                 'warganegara' => 'required',
                 'state' => 'required',
-                'new_nric_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
+                'new_nric_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+                'new_profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048' // Add this
             ]);
 
             if ($request->remove_existing_image == '1' && !$request->hasFile('new_nric_image')) {
@@ -363,6 +393,8 @@ class CustomerController extends Controller
             }
 
             $old_nric_path = $customer->nric_path;
+            $old_profile_path = $customer->profile_image; // Store old profile image path
+            
             if ($request->remove_existing_image == '1' && !$request->hasFile('new_nric_image')) {
                 throw new Exception('NRIC image is required.');
             }
@@ -385,6 +417,7 @@ class CustomerController extends Controller
                 'remark' => $request->remark
             ]);
 
+            // Handle NRIC image update
             if ($request->hasFile('new_nric_image')) { 
                 $file = $request->file('new_nric_image');
                 $folder = 'customers/'.$customer->customer_code;
@@ -394,7 +427,32 @@ class CustomerController extends Controller
                 $path = $file->storeAs($folder, $filename, 'public');
                 $customer->update(['nric_path'=>$path]);
                 Storage::disk('public')->delete($old_nric_path);
-            } 
+            }
+            
+            // Handle PROFILE image update
+            if ($request->hasFile('new_profile_image')) { 
+                $file = $request->file('new_profile_image');
+                $folder = 'customers/'.$customer->customer_code.'/profile';
+                $randomCode = 'profile_'.$customer->customer_code.Str::upper(Str::random(12));
+                $extension  = $file->getClientOriginalExtension();
+                $filename = $randomCode . '.' . $extension;
+                $profile_path = $file->storeAs($folder, $filename, 'public');
+                $customer->update(['profile_image' => $profile_path]);
+                
+                // Delete old profile image if exists
+                if ($old_profile_path) {
+                    Storage::disk('public')->delete($old_profile_path);
+                }
+            }
+            
+            // Handle remove profile image
+            if ($request->remove_profile_image == '1') {
+                if ($old_profile_path) {
+                    Storage::disk('public')->delete($old_profile_path);
+                }
+                $customer->update(['profile_image' => null]);
+            }
+            
             DB::commit();
             return redirect()->back()->withSuccess('Personal information saved successfully');
         }
