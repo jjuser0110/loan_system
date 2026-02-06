@@ -22,6 +22,8 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         $schedule->command('daily:cron')->daily();
+        $schedule->command('dailyreport:autosave')->dailyAt('00:00');
+        // $schedule->command('cashbook:autosave')->daily();
         // $schedule->command('inspire')->hourly();
     }
 
@@ -32,7 +34,7 @@ class Kernel extends ConsoleKernel
      */
     protected function commands()
     {
-        //$this->load(__DIR__.'/Commands');
+        $this->load(__DIR__.'/Commands');
 
         require base_path('routes/console.php');
     }
