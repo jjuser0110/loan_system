@@ -62,7 +62,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Dashboard</h2>
+    <h2>{{ __('table.dashboard') }}</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -80,7 +80,7 @@
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">Total Stock A</h4>
+                                <h4 class="title">{{ __('table.total_stock_a') }}</h4>
                                 <div class="info">
                                     <strong class="amount">${{ $companies->total_stocka ?? 0.00 }}</strong>
                                 </div>
@@ -99,7 +99,7 @@
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">Total Stock B</h4>
+                                <h4 class="title">{{ __('table.total_stock_b') }}</h4>
                                 <div class="info">
                                     <strong class="amount">${{ $companies->total_stockb ?? 0.00 }}</strong>
                                 </div>
@@ -118,7 +118,7 @@
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">Total Stock BB</h4>
+                                <h4 class="title">{{ __('table.total_stock_bb') }}</h4>
                                 <div class="info">
                                     <strong class="amount">${{ $companies->total_stockbb ?? 0.00 }}</strong>
                                 </div>
@@ -137,7 +137,7 @@
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">Total Amount</h4>
+                                <h4 class="title">{{ __('table.total_amount') }}</h4>
                                 <div class="info">
                                     <strong class="amount">${{ $companies->amount ?? 0.00}}</strong>
                                 </div>
@@ -157,9 +157,9 @@
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">Total Loan Amount</h4>
+                                <h4 class="title">{{ __('table.total_loan_amount') }}</h4>
                                 <div class="info">
-                                    <strong class="amount" id="total-loan-amount">Loading</strong>
+                                    <strong class="amount" id="total-loan-amount">{{ __('table.loading') }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -177,9 +177,9 @@
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">Total Capital</h4>
+                                <h4 class="title">{{ __('table.total_capital') }}</h4>
                                 <div class="info">
-                                    <strong class="amount" id="total-capital-amount">Loading</strong>
+                                    <strong class="amount" id="total-capital-amount">{{ __('table.loading') }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -197,9 +197,9 @@
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">Total Outstanding</h4>
+                                <h4 class="title">{{ __('table.total_outstanding') }}</h4>
                                 <div class="info">
-                                    <strong class="amount" id="total-outstanding-amount">Loading</strong>
+                                    <strong class="amount" id="total-outstanding-amount">{{ __('table.loading') }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -217,9 +217,9 @@
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">Total Profit</h4>
+                                <h4 class="title">{{ __('table.total_profit') }}</h4>
                                 <div class="info">
-                                    <strong class="amount" id="total-profit-amount">Loading</strong>
+                                    <strong class="amount" id="total-profit-amount">{{ __('table.loading') }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -237,9 +237,9 @@
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">Total Account Amount</h4>
+                                <h4 class="title">{{ __('table.total_account_amount') }}</h4>
                                 <div class="info">
-                                    <strong class="amount" id="total-payment-method-amount">Loading</strong>
+                                    <strong class="amount" id="total-payment-method-amount">{{ __('table.loading') }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -257,17 +257,17 @@
                 
                     <div class="card-body">
                         <div class="table-header" >
-                        <h4>Companies</h4>
-                        <a href="{{route('company.index')}}">Go to Company</a>
+                        <h4>{{ __('table.companies') }}</h4>
+                        <a href="{{route('company.index')}}">{{ __('table.go_to_company') }}</a>
                     </div>
                         <table class="table table-bordered table-striped mb-0" id="table-company">
                             <thead>
                                 <tr>
-                                    <th>Company (Code)</th>
-                                    <th>Stock A</th>
-                                    <th>Stock B</th>
-                                    <th>Stock BB</th>
-                                    <th>Amount</th>
+                                    <th>{{ __('table.company_(code)') }}</th>
+                                    <th>{{ __('table.stock_a') }}</th>
+                                    <th>{{ __('table.stock_b') }}</th>
+                                    <th>{{ __('table.stock_bb') }}</th>
+                                    <th>{{ __('table.amount') }}</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -280,18 +280,18 @@
                 <section class="card">
                     <div class="card-body">
                         <div class="table-header" >
-                        <h4>Bank Account</h4>
-                        <a href="{{route('payment_method.index')}}">Go to Payment Method</a>
+                        <h4>{{ __('table.bank_account') }}</h4>
+                        <a href="{{route('payment_method.index')}}">{{ __('table.go_to_payment_method') }}</a>
                     </div>
                         <table class="table table-bordered table-striped mb-0" id="table-payment-method">
                             <thead>
                                 <tr>
-                                    <th>Bank</th>
-                                    <th>Account No</th>
-                                    <th>Name</th>
-                                    <th>Branch</th>
-                                    <th>Company</th>
-                                    <th>Amount</th>
+                                    <th>{{ __('table.bank') }}</th>
+                                    <th>{{ __('table.account_no') }}</th>
+                                    <th>{{ __('table.name') }}</th>
+                                    <th>{{ __('table.branch') }}</th>
+                                    <th>{{ __('table.company') }}</th>
+                                    <th>{{ __('table.amount') }}</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -306,15 +306,15 @@
                 <section class="card">
                     <div class="card-body">
                         <div class="table-header" >
-                            <h4>Overdue Loan</h4>
-                            <a href="{{route('loan.index')}}">Go to Loan</a>
+                            <h4>{{ __('table.overdue_loan') }}</h4>
+                            <a href="{{route('loan.index')}}">{{ __('table.go_to_loan') }}</a>
                         </div>
                         <table class="table table-bordered table-striped mb-0" id="table-overdue">
                             <thead>
                                 <tr>
-                                    <th>Loan Code</th>
-                                    <th>Date</th>
-                                    <th>Amount</th>
+                                    <th>{{ __('table.loan_code') }}</th>
+                                    <th>{{ __('table.date') }}</th>
+                                    <th>{{ __('table.amount') }}</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>
@@ -327,15 +327,15 @@
                 <section class="card">
                     <div class="card-body">
                         <div class="table-header" >
-                            <h4>Incoming Loan</h4>
-                            <a href="{{route('loan.index')}}">Go to Loan</a>
+                            <h4>{{ __('table.incoming_loan') }}</h4>
+                            <a href="{{route('loan.index')}}">{{ __('table.go_to_loan') }}</a>
                         </div>
                         <table class="table table-bordered table-striped mb-0" id="table-incoming">
                             <thead>
                                 <tr>
-                                    <th>Loan Code</th>
-                                    <th>Date</th>
-                                    <th>Amount</th>
+                                    <th>{{ __('table.loan_code') }}</th>
+                                    <th>{{ __('table.date') }}</th>
+                                    <th>{{ __('table.amount') }}</th>
                                 </tr>
                             </thead>
                             <tbody></tbody>

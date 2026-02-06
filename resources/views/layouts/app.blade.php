@@ -15,6 +15,13 @@
 	@yield('css')
 	</head>
 	<body>
+		
+		<div id="loadingOverlay" style="display: none;">
+			<div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+				<span class="visually-hidden">Loading...</span>
+			</div>
+		</div>
+
 		<section class="body">
 			<div id="overlay" class="overlay" style="display: none;">
 				<div class="spinner"></div>
@@ -37,23 +44,23 @@
 				<div class="modal-content">
 					<form enctype="multipart/form-data" method="post" action="{{ route('change_password') }}" onsubmit="return onSubmitForm()">
 					<div class="modal-header">
-						<h5 class="modal-title"><b style="color:orange">Change Password</b></h5>
+						<h5 class="modal-title"><b style="color:orange">{{ __('table.change_password') }}</b></h5>
 						<a class="btn-close" onclick="closePassModal()" aria-label="Close"></a>
 					</div>
 					<div class="modal-body">
 						@csrf
                         <div class="mb-3">
-                            <label class="col-form-label">Password</label>
+                            <label class="col-form-label">{{ __('table.password') }}</label>
                             <input class="form-control" type="password" name="new_password" placeholder="password" autocomplete='false'>
                         </div>
                         <div class="mb-3">
-                            <label class="col-form-label">Confirm Password</label>
+                            <label class="col-form-label">{{ __('table.confirm_password') }}</label>
                             <input class="form-control" type="password" name="new_password_confirmation" placeholder="confirm password" autocomplete='false'>
                         </div>
 					</div>
 					<div class="modal-footer">
-						<button type="submit" class="btn btn-primary">Confirm</button>
-						<a class="btn btn-default" onclick="closePassModal()">Close</a>
+						<button type="submit" class="btn btn-primary">{{ __('table.confirm') }}</button>
+						<a class="btn btn-default" onclick="closePassModal()">{{ __('table.close') }}</a>
 					</div>
 					</form>
 				</div>

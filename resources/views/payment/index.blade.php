@@ -1,29 +1,29 @@
 @extends('layouts.app')
 @section('content')
 <header class="page-header">
-    <h2>Payment</h2>
+    <h2>{{ __('table.payment') }}</h2>
 </header>
 @include('layouts.flash-message')
 <div class="row" style="padding-top:0">
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align: right;">
-                <a class="btn btn-xs btn-square btn-primary" href="{{route('payment.create')}}">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" href="{{route('payment.create')}}">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
                 <table class="table cus-table table-bordered table-striped mb-0" id="table-payment">
                     <thead>
                         <tr>
-                            <th>Payment Code</th>
-                            <th>Paid</th>
-                            <th>Discount</th>
-                            <th>Interest Paid</th>
-                            <th>Late Paid</th>
-                            <th>Bank</th>
-                            <th>Collection Type</th>
-                            <th>Loan Code</th>
+                            <th>{{ __('table.payment_code') }}</th>
+                            <th>{{ __('table.paid') }}</th>
+                            <th>{{ __('table.discount') }}</th>
+                            <th>{{ __('table.interest_paid') }}</th>
+                            <th>{{ __('table.late_paid') }}</th>
+                            <th>{{ __('table.bank') }}</th>
+                            <th>{{ __('table.collection_type') }}</th>
+                            <th>{{ __('table.loan_code') }}</th>
                             @if(Auth::user()->role_id <= 3)
-                            <th>Action</th>
+                            <th>{{ __('table.actions') }}</th>
                             @endif
                         </tr>
                     </thead>
@@ -38,7 +38,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalUpdatePaymentLabel">Update Payment</h5>
+                <h5 class="modal-title" id="modalUpdatePaymentLabel">{{ __('table.update_payment') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -47,31 +47,31 @@
                     <input type="hidden" name="payment_id" id="update-payment-id">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Payment / Capital Amount</label>
+                            <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" id="update-payment-paid" name="payment_amount">
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Discount</label>
+                            <label class="col-form-label">{{ __('table.discount') }}</label>
                             <input type="number" class="form-control" id="update-payment-discount" name="discount_amount">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Interest Amount</label>
+                            <label class="col-form-label">{{ __('table.interest_amount') }}</label>
                             <input type="number" class="form-control" id="update-payment-interest" name="interest_paid_amount">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Late Amount</label>
+                            <label class="col-form-label">{{ __('table.late_amount') }}</label>
                             <input type="number" class="form-control" id="update-payment-late" name="late_paid_amount" value="0">
                         </div>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Collection</label>
+                        <label class="col-form-label">{{ __('table.collection') }}</label>
                         <select class="form-control" name="collection_type" id="update-payment-collection"required>
-                            <option value="SKIM A">SKIM A</option>
-                            <option value="SKIM B">SKIM B</option>
+                            <option value="SKIM A">{{ __('table.skim_A') }}</option>
+                            <option value="SKIM B">{{ __('table.skim_B') }}</option>
                         </select>
                     </div>
                     <!-- <div class="col-md-12 mb-3">
@@ -83,14 +83,14 @@
                         <input type="text" class="form-control" name="bank" id="update-payment-bank" autocomplete="off">
                     </div> -->
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Payment Method</label>
+                        <label class="col-form-label">{{ __('table.payment_method') }}</label>
                         <select class="form-control" id="update_payment_method_id" name="payment_method_id" disabled required>
-                            <option>Please insert loan code first</option>
+                            <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>

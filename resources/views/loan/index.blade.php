@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
 <header class="page-header">
-    <h2>Loan</h2>
+    <h2>{{ __('table.loan') }}</h2>
 </header>
 @include('layouts.flash-message')
 <div class="row mb-3" style="padding-top:40px;">
@@ -11,9 +11,9 @@
                 <div class="widget-summary">
                     <div class="widget-summary-col" style="vertical-align: middle">
                         <div class="summary" style="min-height:1px">
-                            <h4 class="title" style="margin-bottom: 5px">Total Profits</h4>
+                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_profits') }}</h4>
                             <div class="info">
-                                <strong class="amount">RM <span style="font-size:1.4rem;vertical-align:unset" id="total-profit">Loading...</span></strong>
+                                <strong class="amount">RM <span style="font-size:1.4rem;vertical-align:unset" id="total-profit">{{ __('table.loading') }}...</span></strong>
                             </div>
                         </div>
                     </div>
@@ -27,7 +27,7 @@
                 <div class="widget-summary">
                     <div class="widget-summary-col" style="vertical-align: middle">
                         <div class="summary" style="min-height:1px">
-                            <h4 class="title" style="margin-bottom: 5px">Total Capital</h4>
+                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_capital') }}</h4>
                             <div class="info">
                                 <strong class="amount">RM {{ number_format($total_capital,2,'.',',') }}</strong>
                             </div>
@@ -43,7 +43,7 @@
                 <div class="widget-summary">
                     <div class="widget-summary-col" style="vertical-align: middle">
                         <div class="summary" style="min-height:1px">
-                            <h4 class="title" style="margin-bottom: 5px">Total Outstanding</h4>
+                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_outstanding') }}</h4>
                             <div class="info">
                                 <strong class="amount">RM {{ number_format($outstanding,2,'.',',') }}</strong>
                             </div>
@@ -58,25 +58,25 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align: right;">
-                <a class="btn btn-xs btn-square btn-primary" href="{{ route('loan.create') }}">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" href="{{ route('loan.create') }}">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
                 <table class="table cus-table table-bordered table-striped mb-0" id="table-loan">
                     <thead>
                         <tr>
-                            <th>Loan Code</th>
-                            <th>Customer</th>
-                            <th>Company</th>
-                            <th>Interest Group</th>
-                            <th>Interest Rate</th>
-                            <th>Loan Amount</th>
-                            <th>Outstanding</th>
-                            <th>Installment</th>
-                            <th>Loan Term</th>
-                            <th>Capital</th>
-                            <th>Created At</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th>{{ __('table.loan_code') }}</th>
+                            <th>{{ __('table.customer') }}</th>
+                            <th>{{ __('table.company') }}</th>
+                            <th>{{ __('table.interest_group') }}</th>
+                            <th>{{ __('table.interest_rate') }}</th>
+                            <th>{{ __('table.loan_amount') }}</th>
+                            <th>{{ __('table.outstanding') }}</th>
+                            <th>{{ __('table.installment') }}</th>
+                            <th>{{ __('table.loan_term') }}</th>
+                            <th>{{ __('table.capital') }}</th>
+                            <th>{{ __('table.created_at') }}</th>
+                            <th>{{ __('table.status') }}</th>
+                            <th>{{ __('table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

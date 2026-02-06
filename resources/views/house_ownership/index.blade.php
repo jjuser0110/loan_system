@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>House OwnerShip</h2>
+    <h2>{{ __('table.house_ownership') }}</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -12,14 +12,14 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align: right;">
-                <a class="btn btn-xs btn-square btn-primary" href="{{route('house_ownership.create')}}">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" href="{{route('house_ownership.create')}}">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
                 <table class="table table-bordered table-striped mb-0" id="datatable-default">
                     <thead>
                         <tr>
-                            <th>House OwnerShip Name</th>
-                            <th>Action</th>
+                            <th>{{ __('table.house_ownership_name') }}</th>
+                            <th>{{ __('table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

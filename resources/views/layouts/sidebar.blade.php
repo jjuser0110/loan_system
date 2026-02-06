@@ -4,7 +4,7 @@ $currentRoute = request()->route()->getName();
 <aside id="sidebar-left" class="sidebar-left">
     <div class="sidebar-header">
         <div class="sidebar-title">
-            Navigation
+            {{ __('sidebar.navigation') }}
         </div>
         <div class="sidebar-toggle d-none d-md-block" data-toggle-class="sidebar-left-collapsed" data-target="html" data-fire-event="sidebar-left-toggle">
             <i class="fas fa-bars" aria-label="Toggle sidebar"></i>
@@ -18,35 +18,35 @@ $currentRoute = request()->route()->getName();
                     <li>
                         <a class="nav-link" href="{{route('home')}}">
                             <i class="bx bx-home-alt" aria-hidden="true"></i>
-                            <span>Dashboard</span>
+                            <span>{{ __('sidebar.dashboard') }}</span>
                         </a>
                     </li>
                     <li class="{{ request()->routeIs('customer.*') ? 'nav-active' : ''}}">
                         <a class="nav-link" href="{{route('customer.index')}}">
                             <i class="bx bx-home-alt" aria-hidden="true"></i>
-                            <span>Customer List</span>
+                            <span>{{ __('sidebar.customer_list') }}</span>
                         </a>
                     </li>
                     @if(Auth::user()->role_id != 4)
                     <li class="nav-parent  {{ request()->routeIs('staff.*') || request()->routeIs('payment_method.*') || request()->routeIs('expense.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>
-                            <span>Setting</span>
+                            <span>{{ __('sidebar.setting') }}</span>
                         </a>
                         <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('expense.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{ route('expense.index') }}">
+                                    {{ __('sidebar.expenses') }}
+                                </a>
+                            </li>
                             <li class="{{ request()->routeIs('staff.index') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('staff.index')}}">
-                                    Company Staff
+                                    {{ __('sidebar.company_staff') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('payment_method.index') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('payment_method.index')}}">
-                                    Payment Method
-                                </a>
-                            </li>
-                            <li class="{{ request()->routeIs('expense.*') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{ route('expense.index') }}">
-                                    Expenses
+                                    {{ __('sidebar.payment_method') }}
                                 </a>
                             </li>
                         </ul>
@@ -55,17 +55,17 @@ $currentRoute = request()->route()->getName();
                     <li class="nav-parent {{ request()->routeIs('loan.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="far fa-file-alt" aria-hidden="true"></i>
-                            <span>Loan</span>
+                            <span>{{ __('sidebar.loan') }}</span>
                         </a>
                         <ul class="nav nav-children">
                             <li class="{{ request()->routeIs('loan.index') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('loan.index')}}">
-                                    All Loans
+                                    {{ __('sidebar.all_loans') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('loan.create') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('loan.create')}}">
-                                    Create Loan
+                                    {{ __('sidebar.create_loan') }}
                                 </a>
                             </li>
                         </ul>
@@ -73,17 +73,17 @@ $currentRoute = request()->route()->getName();
                     <li class="nav-parent {{ request()->routeIs('schedule.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="far fa-calendar" aria-hidden="true"></i>
-                            <span>Schedules</span>
+                            <span>{{ __('sidebar.schedules') }}</span>
                         </a>
                         <ul class="nav nav-children">
                             <li class="{{ request()->routeIs('schedule.index') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('schedule.index')}}">
-                                    All Schedules
+                                    {{ __('sidebar.all_schedules') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('schedule.create') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('schedule.create')}}">
-                                    Create Schedule
+                                    {{ __('sidebar.create_schedule') }}
                                 </a>
                             </li>
                         </ul>
@@ -91,66 +91,66 @@ $currentRoute = request()->route()->getName();
                     <li class="nav-parent {{ request()->routeIs('payment.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="far fa-money-bill-alt" aria-hidden="true"></i>
-                            <span>Payment</span>
+                            <span>{{ __('sidebar.payment') }}</span>
                         </a>
                         <ul class="nav nav-children">
                             <li class="{{ request()->routeIs('payment.index') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('payment.index')}}">
-                                    All Payments
+                                    {{ __('sidebar.all_payments') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('payment.create') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('payment.create')}}">
-                                    Create Payment
+                                    {{ __('sidebar.create_payment') }}
                                 </a>
                             </li>
                         </ul>
                     </li>
                     @if(Auth::user()->role_id == 1)
-                    <li class="nav-parent {{ request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*') ? 'nav-expanded nav-active' : ''}}">
+                    <li class="nav-parent {{ request()->routeIs('badmin.*') || request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>
-                            <span>Main Setting</span>
+                            <span>{{ __('sidebar.main_setting') }}</span>
                         </a>
                         <ul class="nav nav-children">
                             <li class="{{ request()->routeIs('badmin.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('badmin.index')}}">
-                                    Branch Admin
+                                    {{ __('sidebar.branch_admin') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('cadmin.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('cadmin.index')}}">
-                                    Company Admin
+                                    {{ __('sidebar.company_admin') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('company.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('company.index')}}">
-                                    Company
+                                    {{ __('sidebar.company') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('branch.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('branch.index')}}">
-                                    Branch
+                                    {{ __('sidebar.branch') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('bank.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('bank.index')}}">
-                                    Bank
+                                    {{ __('sidebar.bank') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('race.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('race.index')}}">
-                                    Race
+                                    {{ __('sidebar.race') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('marital_status.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('marital_status.index')}}">
-                                    Marital Status
+                                    {{ __('sidebar.marital_status') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('house_ownership.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('house_ownership.index')}}">
-                                    House Ownership
+                                    {{ __('sidebar.house_ownership') }}
                                 </a>
                             </li>
                         </ul>

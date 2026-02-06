@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Customer</h2>
+    <h2>{{ __('table.customer') }}</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -12,25 +12,25 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align: right;">
-                <a class="btn btn-xs btn-square btn-primary" href="{{route('customer.create')}}">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" href="{{route('customer.create')}}">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
                 <table class="table cus-table table-bordered table-striped mb-0" id="table-customer">
                     <thead>
                         <tr>
-                            <th>Customer</th>
+                            <th>{{ __('table.customer') }}</th>
                             <th>NRIC</th>
-                            <th>Mobile</th>
-                            <th>Customer's Company</th>
-                            <th>Address</th>
-                            <th>Email</th>
+                            <th>{{ __('table.mobile') }}</th>
+                            <th>{{ __('table.customer_company') }}</th>
+                            <th>{{ __('table.address') }}</th>
+                            <th>{{ __('table.email') }}</th>
                             @if(Auth::user()->role_id == 1)
-                            <th>Company</th>
-                            <th>Branch</th>
+                            <th>{{ __('table.company') }}</th>
+                            <th>{{ __('table.branch') }}</th>
                             @endif
-                            <th>Stats</th>
-                            <th>Created At</th>
-                            <th>Action</th>
+                            <th>{{ __('table.stats') }}</th>
+                            <th>{{ __('table.created_at') }}</th>
+                            <th>{{ __('table.action') }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

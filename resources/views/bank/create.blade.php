@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Bank @if (isset($bank)) Edit @else Create @endif</h2>
+    <h2>{{ __('table.bank') }} @if (isset($bank)) {{ __('table.edit') }} @else {{ __('table.create') }} @endif</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -14,19 +14,19 @@
             <form class="theme-form mega-form" enctype="multipart/form-data" @if (isset($bank)) method="post" action="{{ route('bank.update',$bank) }}" @else method="post" action="{{ route('bank.store') }}" @endif onsubmit="return onSubmitForm()">
                 @csrf
                 <div class="card-body">
-                    <h6>Account Information</h6>
+                    <h6>{{ __('table.account_information') }}</h6>
                     <div class="mb-3">
-                        <label class="col-form-label">Name</label>
+                        <label class="col-form-label">{{ __('table.name') }}</label>
                         <input class="form-control" type="text" name="bank_name" placeholder="bank name" value="{{$bank->bank_name??''}}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="col-form-label">Short Name</label>
+                        <label class="col-form-label">{{ __('table.short_name') }}</label>
                         <input class="form-control" type="text" name="short_name" placeholder="short name" value="{{$bank->short_name??''}}" required>
                     </div>
                 </div>
                 <div class="card-footer text-end">
-                    <a href="{{route('bank.index')}}" class="btn btn-secondary">Back</a>
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="{{route('bank.index')}}" class="btn btn-secondary">{{ __('table.back') }}</a>
+                    <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     <!-- <button class="btn btn-secondary">Cancel</button> -->
                 </div>
             </form>

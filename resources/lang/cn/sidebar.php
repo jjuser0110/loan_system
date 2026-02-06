@@ -1,0 +1,36 @@
+<?php
+
+return [
+
+'my_profile' => '我的资料',
+'change_password' => '更改密码',
+'logout' => '登出',
+'navigation' => '导航',
+'dashboard' => '仪表盘',
+'customer_list' => '客户列表',
+'setting' => '设置',
+'expenses' => '开支',
+'company_staff' => '公司员工',
+'payment_method' => '付款方式',
+'loan' => '贷款',
+'all_loans' => '所有贷款',
+'create_loan' => '创建贷款',
+'schedules' => '日程安排',
+'all_schedules' => '所有日程',
+'create_schedule' => '创建日程',
+'payment' => '付款',
+'all_payments' => '所有付款',
+'create_payment' => '创建付款',
+'main_setting' => '主要设置',
+'branch_admin' => '分公司管理员',
+'company_admin' => '公司管理员',
+'company' => '公司',
+'branch' => '分支',
+'bank' => '银行',
+'race' => '种族',
+'marital_status' => '婚姻状况',
+'house_ownership' => '房屋所有权',
+
+];
+
+?>

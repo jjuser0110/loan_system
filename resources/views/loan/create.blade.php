@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>@if (isset($loan)) Edit @else Create @endif Loan</h2>
+    <h2>@if (isset($loan)) {{ __('table.edit') }} @else {{ __('table.create') }} @endif {{ __('table.loan') }}</h2>
 </header>
 @include('layouts.flash-message')
 <div class="row">
@@ -11,16 +11,16 @@
             <form class="theme-form mega-form" enctype="multipart/form-data" id="form-create-loan">
                 @csrf
                 <div class="card-body">
-                    <h4>Loan Details</h4>
+                    <h4>{{ __('table.loan_details') }}</h4>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="col-form-label">System Code</label>
+                            <label class="col-form-label">{{ __('table.system_code') }}</label>
                             <input type="text" class="form-control" id="customer_search" name="customer_code" value="{{ $customer?->customer_code ?? '' }}" placeholder="C000001" autocomplete="off">
                             <div id="customer_dropdown" class="dropdown-menu col-md-5 col-10" style="display:none; max-height: 200px; overflow-y: auto; padding:0;"></div>
                         </div>
 
                          <div class="col-md-6 mb-3">
-                            <label class="col-form-label">Customer Name</label>
+                            <label class="col-form-label">{{ __('table.customer_name') }}</label>
                             <input type="text" class="form-control" id="customer-name" value="{{ $customer?->customer_name ?? '' }}" autocomplete="off" disabled>
                         </div>
                     </div>
@@ -28,64 +28,64 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Company Code</label>
+                                <label class="col-form-label">{{ __('table.company_code') }}</label>
                                 <input type="text" class="form-control" id="company-code" value="{{ $company?->company_code ?? '' }}" autocomplete="off" disabled>
                             </div>
                             
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Year / Month</label>
+                                <label class="col-form-label">{{ __('table.year/month') }}</label>
                                 <input type="date" class="form-control" name="year_month" required>
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Interest Group</label>
+                                <label class="col-form-label">{{ __('table.interest_group') }}</label>
                                 <select class="form-control" id="interest-group" name="interest_group" onchange="changeInterestGroup()" required>
-                                    <option value="SKIM A">SKIM A</option>
-                                    <option value="SKIM B">SKIM B</option>
+                                    <option value="SKIM A">{{ __('table.skim_A') }}</option>
+                                    <option value="SKIM B">{{ __('table.skim_B') }}</option>
                                 </select>
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Loan Amount</label>
+                                <label class="col-form-label">{{ __('table.loan_amount') }}</label>
                                 <input type="number" class="form-control" id="loan-amount" name="loan_amount" placeholder="10000.00" step="0.01" onchange="updateCapital()" autocomplete="off" required>
                             </div>
 
                             <div class="row col-md-12 mb-3">
                                 <div class="col-8">
-                                    <label class="col-form-label">Interest Rate (%)</label>
+                                    <label class="col-form-label">{{ __('table.interest_rate') }} (%)</label>
                                     <input type="number" class="form-control" id="interest-rate" name="interest_rate" placeholder="5.000" step="0.0001" autocomplete="off" required>
                                 </div>
                                 <div class="col-4">
                                     <label class="col-form-label" style="opacity:0;padding-left:0;width:100%">-</label>
-                                    <button type="button" class="btn btn-primary" id="btn-calculate-interest" onclick="calculateInterest()" style="font-size: 12px;">Calculate Interest</button>
+                                    <button type="button" class="btn btn-primary" id="btn-calculate-interest" onclick="calculateInterest()" style="font-size: 12px;">{{ __('table.calculate_interest') }}</button>
                                 </div>
                             </div>
 
                             <div class="col-md-12 mb-3 input-wrapper" style="display:none">
-                                <label class="col-form-label">Loan Term</label>
+                                <label class="col-form-label">{{ __('table.loan_term') }}</label>
                                 <input type="number" class="form-control" id="loan-term" name="loan_term" placeholder="12" autocomplete="off">
                             </div>
                             
                             <div class="row" style="padding-left:calc(var(--bs-gutter-x) * 0.5);padding-right:calc(var(--bs-gutter-x) * 0.5);">
                                 <div class="col-12" style="background:#f1f1f1">
                                     <div class="col-md-12 mb-3 input-wrapper" style="display:none">
-                                        <label class="col-form-label">First Payment Amount</label>
+                                        <label class="col-form-label">{{ __('table.first_payment_amount') }}</label>
                                         <input type="number" class="form-control" id="first-payment" name="first_payment" placeholder="0.00" step="0.01"  autocomplete="off" required>
                                     </div>
 
                                     <div class="col-md-12 mb-3 input-wrapper">
-                                        <label class="col-form-label">Installment Amount</label>
+                                        <label class="col-form-label">{{ __('table.installment_amount') }}</label>
                                         <input type="number" class="form-control" id="installment" name="installment" placeholder="0.00" step="0.01"  autocomplete="off" required>
                                     </div>
 
                                 
                                     <div class="col-md-12 mb-3 input-wrapper" style="display:none">
-                                        <label class="col-form-label">Last Payment Amount</label>
+                                        <label class="col-form-label">{{ __('table.last_payment_amount') }}</label>
                                         <input type="number" class="form-control" id="last-payment" name="last_payment" placeholder="0.00" step="0.01"  autocomplete="off" required>
                                     </div>
 
                                     <div class="col-md-12 mb-3" style="text-align:center">
-                                        <button style="min-width:80%;margin:auto" type="button" class="btn btn-primary" id="btn-calculate-payment" onclick="calculatePayment()">Calculate Payment</button>
+                                        <button style="min-width:80%;margin:auto" type="button" class="btn btn-primary" id="btn-calculate-payment" onclick="calculatePayment()">{{ __('table.calculate_payment') }}</button>
                                     </div>
                                 </div>
                             </div>
@@ -93,41 +93,41 @@
 
                         <div class="col-md-6">
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Processing Fee</label>
+                                <label class="col-form-label">{{ __('table.processing_fee') }}</label>
                                 <input type="number" class="form-control" id="processing-fee" name="processing_fee" onchange="updateCapital()" placeholder="100.00" autocomplete="off">
                             </div>
                             
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Stamp Fee</label>
+                                <label class="col-form-label">{{ __('table.stamp_fee') }}</label>
                                 <input type="number" class="form-control" id="stamp-fee" name="stamp_fee" onchange="updateCapital()" placeholder="100.00" autocomplete="off">
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Capital</label>
+                                <label class="col-form-label">{{ __('table.capital') }}</label>
                                 <input type="number" class="form-control" id="capital" name="capital" placeholder="10000.00" autocomplete="off" disabled>
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Alternate Code</label>
+                                <label class="col-form-label">{{ __('table.alternate_code') }}</label>
                                 <input type="text" class="form-control"  name="alternate_code" placeholder="CODE100001" autocomplete="off">
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Receipt No</label>
+                                <label class="col-form-label">{{ __('table.receipt_no') }}</label>
                                 <input type="text" class="form-control" name="receipt_no" placeholder="RNO001" autocomplete="off">
                             </div>
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Payment Method</label>
+                                <label class="col-form-label">{{ __('table.payment_method') }}</label>
                                 <select class="form-control" id="payment_method_id" name="payment_method_id" disabled required>
-                                    <option>Please select customer first</option>
+                                    <option>{{ __('table.please_select_customer_first') }}</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-footer text-end">
-                    <a href="{{route('loan.index')}}" class="btn btn-secondary">Back</a>
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="{{route('loan.index')}}" class="btn btn-secondary">{{ __('table.back') }}</a>
+                    <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                 </div>
             </form>
         </section>

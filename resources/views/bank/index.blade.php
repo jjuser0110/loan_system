@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Bank</h2>
+    <h2>{{ __('table.bank') }}</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -12,15 +12,15 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align: right;">
-                <a class="btn btn-xs btn-square btn-primary" href="{{route('bank.create')}}">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" href="{{route('bank.create')}}">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
                 <table class="table table-bordered table-striped mb-0" id="datatable-default">
                     <thead>
                         <tr>
-                            <th>Bank Name</th>
-                            <th>Bank Short Name</th>
-                            <th>Action</th>
+                            <th>{{ __('table.bank_name') }}</th>
+                            <th>{{ __('table.bank_short_name') }}</th>
+                            <th>{{ __('table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

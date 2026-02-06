@@ -16,7 +16,7 @@
 </style>
 @section('content')
 <header class="page-header">
-    <h2>Customer Details</h2>
+    <h2>{{ __('table.customer_details') }}</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -25,23 +25,23 @@
         <div class="tabs">
             <ul class="nav nav-tabs">
                 <li class="nav-item active">
-                    <a class="nav-link active" data-bs-target="#personal" href="#personal" data-bs-toggle="tab" id="tab-personal">Personal</a>
+                    <a class="nav-link active" data-bs-target="#personal" href="#personal" data-bs-toggle="tab" id="tab-personal">{{ __('table.personal') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#work" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">Work</a>
+                    <a class="nav-link" href="#work" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">{{ __('table.work') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#reference" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">Reference</a>
+                    <a class="nav-link" href="#reference" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">{{ __('table.reference') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#asset" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">Asset</a>
+                    <a class="nav-link" href="#asset" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">{{ __('table.asset') }}</a>
                 </li>
             </ul>
             <div class="tab-content">
                 <div id="personal" class="tab-pane active">
                     <form class="p-3" method="POST" action="{{ route('customer.store') }}" enctype="multipart/form-data">
                         @csrf
-                        <h4 class="mb-3 font-weight-semibold text-dark">Personal Information</h4>
+                        <h4 class="mb-3 font-weight-semibold text-dark">{{ __('table.personal_information') }}</h4>
                         <div class="row g-5">
                             
                             <!-- Photo Section - 30% width -->
@@ -63,15 +63,15 @@
                                 <ul class="simple-card-list mb-3 d-none d-lg-block">
                                     <li class="primary">
                                         <h3>$$</h3>
-                                        <p class="text-light">Total Loan</p>
+                                        <p class="text-light">{{ __('table.total_loan') }}</p>
                                     </li>
                                     <li class="primary">
                                         <h3>$$</h3>
-                                        <p class="text-light">Total Loan Amount</p>
+                                        <p class="text-light">{{ __('table.total_loan_amount') }}</p>
                                     </li>
                                     <li class="primary">
                                         <h3>$$</h3>
-                                        <p class="text-light">Total Outstanding</p>
+                                        <p class="text-light">{{ __('table.total_outstanding') }}</p>
                                     </li>
                                 </ul>
                             </div>
@@ -80,9 +80,9 @@
                             <div class="col-lg-9 col-md-12 col-sm-12">
                                 <div class="row mb-2">
                                     <div class="form-group col-md-6 border-top-0 pt-0">
-                                        <label for="company_code">Company Code <span class="text-danger">*</span></label>
+                                        <label for="company_code">{{ __('table.company_code') }} <span class="text-danger">*</span></label>
                                         <select id="company_code" name="company_code" class="form-control" required>
-                                            <option value="">Choose...</option>
+                                            <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($company as $row)
                                                 <option value="{{ $row->company_code }}">{{ $row->company_code }}</option>
                                             @endforeach
@@ -91,14 +91,14 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-6">
-                                        <label for="customer_name">Customer Name <span class="text-danger">*</span></label>
+                                        <label for="customer_name">{{ __('table.customer_name') }} <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="Customer Name" required>
                                     </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
-                                        <label for="nric_number">NRIC Number <span class="text-danger">*</span></label>
+                                        <label for="nric_number">NRIC {{ __('table.number') }} <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <input type="text" class="form-control" id="nric_number" name="nric_number" value="{{ old('nric_number') }}" required>
-                                            <button class="btn btn-outline-secondary" type="button" id="uploadIcBtn">Upload IC</button>
+                                            <button class="btn btn-outline-secondary" type="button" id="uploadIcBtn">{{ __('table.upload_ic') }}</button>
                                         </div>
                                         
                                         <!-- Hidden file input -->
@@ -107,24 +107,24 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="gender">Gender <span class="text-danger">*</span></label>
+                                        <label for="gender">{{ __('table.gender') }} <span class="text-danger">*</span></label>
                                         <select id="gender" name="gender" class="form-control" required>
-                                            <option value="">Choose...</option>
+                                            <option value="">{{ __('table.choose') }}...</option>
                                             <option value="Male">Male</option>
                                             <option value="Female">Female</option>
                                         </select>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="race">Race <span class="text-danger">*</span></label>
+                                        <label for="race">{{ __('table.race') }} <span class="text-danger">*</span></label>
                                         <select id="race" name="race" class="form-control" required>
-                                            <option value="">Choose...</option>
+                                            <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($races as $raceItem)
                                             <option value="{{ $raceItem->race_name }}">{{ $raceItem->race_name }}</option>
                                             @endforeach
                                         </select>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="date_of_birth">Date Of Birth <span class="text-danger">*</span></label>
+                                        <label for="date_of_birth">{{ __('table.date_of_birth') }} <span class="text-danger">*</span></label>
                                         <div class="input-group">
                                             <span class="input-group-text">
                                                 <i class="fas fa-calendar-alt"></i>
@@ -135,23 +135,23 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col">
-                                        <label for="address1">Address <span class="text-danger">*</span></label>
+                                        <label for="address1">{{ __('table.address') }} <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="address1" name="address1" placeholder="Address" required>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="postcode">Postcode <span class="text-danger">*</span></label>
+                                        <label for="postcode">{{ __('table.postcode') }} <span class="text-danger">*</span></label>
                                         <input type="number" class="form-control" id="postcode" name="postcode" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="city">City <span class="text-danger">*</span></label>
+                                        <label for="city">{{ __('table.city') }} <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="city" name="city" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="state">State <span class="text-danger">*</span></label>
+                                        <label for="state">{{ __('table.state') }} <span class="text-danger">*</span></label>
                                         <select id="state" name="state" class="form-control" required>
-                                            <option value="">Choose...</option>
+                                            <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($states as $stateItem)
                                                 <option value="{{ $stateItem->state_name }}">{{ $stateItem->state_name }}</option>
                                             @endforeach
@@ -160,9 +160,9 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="house_ownership">House Ownership <span class="text-danger">*</span></label>
+                                        <label for="house_ownership">{{ __('table.house_ownership') }} <span class="text-danger">*</span></label>
                                         <select id="house_ownership" name="house_ownership" class="form-control" required>
-                                            <option value="">Choose...</option>
+                                            <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($house_ownership as $houseOwnership)
                                                 <option value="{{ $houseOwnership->house_ownership }}"
                                                     {{ strtolower($houseOwnership->house_ownership ?? '') == strtolower($houseOwnership->house_ownership) ? 'selected' : '' }}>
@@ -172,13 +172,13 @@
                                         </select>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="warga_negara">Warga Negara <span class="text-danger">*</span></label>
+                                        <label for="warga_negara">{{ __('table.warganegara') }} <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="warganegara" name="warganegara" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="marital_status">Marital Status <span class="text-danger">*</span></label>
+                                        <label for="marital_status">{{ __('table.marital_status') }} <span class="text-danger">*</span></label>
                                         <select id="marital_status" name="marital_status" class="form-control" required>
-                                            <option value="">Choose...</option>
+                                            <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($marital_statues as $marital_status)
                                                 <option value="{{ $marital_status->marital_status }}">{{ $marital_status->marital_status }}</option>
                                             @endforeach
@@ -187,17 +187,17 @@
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="email">Email <span class="text-danger">*</span></label>
+                                        <label for="email">{{ __('table.email') }} <span class="text-danger">*</span></label>
                                         <input type="email" class="form-control" id="email" name="email" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="mobile">Mobile <span class="text-danger">*</span></label>
+                                        <label for="mobile">{{ __('table.mobile') }} <span class="text-danger">*</span></label>
                                         <input type="text" class="form-control" id="mobile" name="mobile" required>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col">
-                                        <label for="remark">Remark</label>
+                                        <label for="remark">{{ __('table.remark') }}</label>
                                         <textarea class="form-control" id="remark" name="remark" rows="3" placeholder="Enter remarks here..."></textarea>
                                     </div>
                                 </div>
@@ -218,7 +218,7 @@
                         </div>
                         <div class="row">
                             <div class="col-md-12 text-end mt-3">
-                                <button type="submit" class="btn btn-primary">Save</button>
+                                <button type="submit" class="btn btn-primary">{{ __('table.save') }}</button>
                             </div>
                         </div>
                     </form>

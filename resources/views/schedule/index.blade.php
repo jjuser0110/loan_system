@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
 <header class="page-header">
-    <h2>Payment Schedules</h2>
+    <h2>{{ __('table.payment_schedules') }}</h2>
 </header>
 @include('layouts.flash-message')
 <div class="row">
@@ -11,17 +11,17 @@
                 <div class="row">
                     <div class="col-md-8 mb-3" style="display:flex;flex-wrap:nowrap;gap:5px;">
                         <div class="col-md-2">
-                            <label class="col-form-label" style="padding:0">Start Date</label>
+                            <label class="col-form-label" style="padding:0">{{ __('table.start_date') }}</label>
                             <input type="date" class="form-control cus-input" id="start-date" onchange="reloadTable()" value="{{ date('Y-m-d') }}" required>
                         </div>
                         <div class="col-md-2">
-                            <label class="col-form-label" style="padding:0">End Date</label>
+                            <label class="col-form-label" style="padding:0">{{ __('table.end_date') }}</label>
                             <input type="date" class="form-control" id="end-date" onchange="reloadTable()" value="{{ date('Y-m-d') }}" required>
                         </div>
                     </div>
                     <div class="col-md-4" style="display:flex;flex-wrap:nowrap; gap: 5px;justify-content:flex-end;text-align:right">
                         <div>
-                            <label class="col-form-label" style="padding:0">Total due amount</label>
+                            <label class="col-form-label" style="padding:0">{{ __('table.total_due_amount') }}</label>
                             <h2 style="margin:0">RM <span id="total-due-amount">0.00</span></h2>
                         </div>
                     </div>
@@ -35,24 +35,24 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align:right">
-                <a class="btn btn-xs btn-square btn-primary" href="{{route('schedule.create')}}">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" href="{{route('schedule.create')}}">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
                 <table class="table cus-table table-bordered table-striped mb-0" id="table-payment-schedules">
                     <thead>
                         <tr>
-                            <th>Schedule Code</th>
-                            <th>Due Date</th>
-                            <th>Payment</th>
-                            <th>Paid</th>
-                            <th>Discount</th>
-                            <th>Interest</th>
-                            <th>Interest Paid</th>
-                            <th>Late</th>
-                            <th>Late Paid</th>
-                            <th>Loan Code</th>
+                            <th>{{ __('table.schedule_code') }}</th>
+                            <th>{{ __('table.due_date') }}</th>
+                            <th>{{ __('table.payment') }}</th>
+                            <th>{{ __('table.paid') }}</th>
+                            <th>{{ __('table.discount') }}</th>
+                            <th>{{ __('table.interest') }}</th>
+                            <th>{{ __('table.interest_paid') }}</th>
+                            <th>{{ __('table.late') }}</th>
+                            <th>{{ __('table.late_paid') }}</th>
+                            <th>{{ __('table.loan_code') }}</th>
                             @if(Auth::user()->role_id <= 3)
-                            <th>Action</th>
+                            <th>{{ __('table.actions') }}</th>
                             @endif
                         </tr>
                     </thead>
@@ -67,7 +67,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalUpdateScheduleLabel">Update Schedule</h5>
+                <h5 class="modal-title" id="modalUpdateScheduleLabel">{{ __('table.update_schedule') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -76,50 +76,50 @@
                     <input type="hidden" name="schedule_id" id="update-schedule-id">
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Due Date</label>
+                            <label class="col-form-label">{{ __('table.due_date') }}</label>
                             <input type="date" class="form-control" name="due_date" id="update-schedule-date" required>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Interest Amount</label>
+                            <label class="col-form-label">{{ __('table.interest_amount') }}</label>
                             <input type="number" class="form-control" name="interest_amount" id="update-schedule-interest">
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Interest Paid</label>
+                            <label class="col-form-label">{{ __('table.interest_paid') }}</label>
                             <input type="number" class="form-control" name="interest_paid_amount" id="update-schedule-interest-paid">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Payment/Capital Amount</label>
+                            <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" name="payment_amount" id="update-schedule-payment">
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Payment/Capital Paid</label>
+                            <label class="col-form-label">{{ __('table.payment/capital_paid') }}</label>
                             <input type="number" class="form-control" name="paid_amount" id="update-schedule-paid">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Payment/Capital Discount</label>
+                            <label class="col-form-label">{{ __('table.payment/capital_discount') }}</label>
                             <input type="number" class="form-control" name="discount_amount" id="update-schedule-discount">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Late Amount</label>
+                            <label class="col-form-label">{{ __('table.late_amount') }}</label>
                             <input type="number" class="form-control" name="late_amount" id="update-schedule-late">
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Late Paid</label>
+                            <label class="col-form-label">{{ __('table.late_paid') }}</label>
                             <input type="number" class="form-control" name="late_paid_amount" id="update-schedule-late-paid">
                         </div>
                     </div>
                     
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>

@@ -41,7 +41,7 @@
 </style>
 @section('content')
 <header class="page-header">
-    <h2>Loan Detail</h2> 
+    <h2>{{ __('table.loan_detail') }}</h2> 
 </header>
 @include('layouts.flash-message')
 <div class="row">
@@ -50,7 +50,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-8">
-                        <label id="label-search" class="col-form-label">Loan Code</label>
+                        <label id="label-search" class="col-form-label">{{ __('table.loan_code') }}</label>
                         <div id="search-wrapper">
                             <input type="text" id="input-search" class="form-control" name="loan_code" value="{{ $loan?->loan_code ?? '' }}">
                             <button type="submit" class="btn btn-primary" id="btn-search"><i class="fas fa-search"></i></button>
@@ -60,7 +60,7 @@
                     <div class="col-md-4" style="display:flex;flex-wrap:nowrap; gap: 5px;justify-content:flex-end;text-align:right">
                         @if($loan)
                         <div>
-                            <label class="col-form-label" style="padding:0">Status</label>
+                            <label class="col-form-label" style="padding:0">{{ __('table.status') }}</label>
                             <h2 style="margin:0;color:{{ $loan->status == 'Ongoing' ? '#0000ff' :' #009400' }}">{{ $loan->status }}</h2>
                         </div>
                         @endif
@@ -75,16 +75,16 @@
         <div class="tabs">
             <ul class="nav nav-tabs">
                 <li class="nav-item active">
-                    <a class="nav-link active" data-bs-target="#overview" href="#overview" data-bs-toggle="tab">Overview</a>
+                    <a class="nav-link active" data-bs-target="#overview" href="#overview" data-bs-toggle="tab">{{ __('table.overview') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-target="#loan" href="#loan" data-bs-toggle="tab">Information</a>
+                    <a class="nav-link" data-bs-target="#loan" href="#loan" data-bs-toggle="tab">{{ __('table.information') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-target="#schedule" href="#schedule" data-bs-toggle="tab">Schedule</a>
+                    <a class="nav-link" data-bs-target="#schedule" href="#schedule" data-bs-toggle="tab">{{ __('table.schedule') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-target="#payment" href="#payment" data-bs-toggle="tab">Payment</a>
+                    <a class="nav-link" data-bs-target="#payment" href="#payment" data-bs-toggle="tab">{{ __('table.payment') }}</a>
                 </li>
             </ul>
              <div class="tab-content">
@@ -92,7 +92,7 @@
                     <div class="col-lg-12">
                         <section class="card cus-display-only">
                             @if(!$loan)
-                            <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">No loan found</p>
+                            <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">{{ __('table.no_loan_found') }}</p>
                             @else
                             <form class="theme-form mega-form" id="form-loan-overview">
                                 <div class="row">
@@ -102,7 +102,7 @@
                                                 <div class="widget-summary cus-summary">
                                                     <div class="widget-summary-col">
                                                         <div class="summary">
-                                                            <h4 class="title">Loan Amount</h4>
+                                                            <h4 class="title">{{ __('table.loan_amount') }}</h4>
                                                             <div class="info">
                                                                 <strong class="amount">RM {{ $loan->loan_amount }}</strong>
                                                             </div>
@@ -122,13 +122,13 @@
                                                 <div class="widget-summary cus-summary">
                                                     <div class="widget-summary-col">
                                                         <div class="summary">
-                                                            <h4 class="title">Outstanding</h4>
+                                                            <h4 class="title">{{ __('table.outstanding') }}</h4>
                                                             <div class="info">
                                                                 <strong class="amount">RM {{ $loan->outstanding }}</strong>
                                                             </div>
                                                         </div>
                                                         <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">Next: {{ $loan->next_due_amount }} ({{ $loan->next_due_date}})</a>
+                                                            <a class="text-muted text-uppercase">{{ __('table.next') }}: {{ $loan->next_due_amount }} ({{ $loan->next_due_date}})</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -142,13 +142,13 @@
                                                 <div class="widget-summary cus-summary">
                                                     <div class="widget-summary-col">
                                                         <div class="summary">
-                                                            <h4 class="title">Balance</h4>
+                                                            <h4 class="title">{{ __('table.balance') }}</h4>
                                                             <div class="info">
                                                                 <strong class="amount">RM {{ $loan->balance }}</strong>
                                                             </div>
                                                         </div>
                                                         <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">Capital: RM{{ $loan->capital }}</a>
+                                                            <a class="text-muted text-uppercase">{{ __('table.capital') }}: RM{{ $loan->capital }}</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -163,21 +163,21 @@
                                                     <div class="widget-summary-col">
                                                         @if($loan->interest_group == 'SKIM B')
                                                         <div class="summary">
-                                                            <h4 class="title">Total Payment</h4>
+                                                            <h4 class="title">{{ __('table.total_payment') }}</h4>
                                                             <div class="info">
                                                                 <strong class="amount">RM {{ number_format(($loan->installment * ($loan->loan_term - 2)) + $loan->first_payment + $loan->last_payment,2,'.',',') }}</strong>
                                                             </div>
                                                         </div>
                                                         @else
                                                         <div class="summary">
-                                                            <h4 class="title">Payment</h4>
+                                                            <h4 class="title">{{ __('table.payment') }}</h4>
                                                             <div class="info">
                                                                 <strong class="amount">RM {{ ($loan->balance/100) * $loan->interest_rate }}/m</strong>
                                                             </div>
                                                         </div>
                                                         @endif
                                                         <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">Paid: RM {{ $loan->paid }}</a>
+                                                            <a class="text-muted text-uppercase">{{ __('table.paid') }}: RM {{ $loan->paid }}</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -191,13 +191,13 @@
                                                 <div class="widget-summary cus-summary">
                                                     <div class="widget-summary-col">
                                                         <div class="summary">
-                                                            <h4 class="title">Total Interest</h4>
+                                                            <h4 class="title">{{ __('table.total_interest') }}</h4>
                                                             <div class="info">
                                                                 <strong class="amount">RM {{ $loan->interest }}</strong>
                                                             </div>
                                                         </div>
                                                         <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">Paid: RM{{ $loan->interest_paid }}</a>
+                                                            <a class="text-muted text-uppercase">{{ __('table.paid') }}: RM{{ $loan->interest_paid }}</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -211,13 +211,13 @@
                                                 <div class="widget-summary cus-summary">
                                                     <div class="widget-summary-col">
                                                         <div class="summary">
-                                                            <h4 class="title">Total Late</h4>
+                                                            <h4 class="title">{{ __('table.total_late') }}</h4>
                                                             <div class="info">
                                                                 <strong class="amount">RM {{ $loan->late }}</strong>
                                                             </div>
                                                         </div>
                                                         <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">Paid: RM{{ $loan->late_paid }}</a>
+                                                            <a class="text-muted text-uppercase">{{ __('table.paid') }}: RM{{ $loan->late_paid }}</a>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -231,7 +231,7 @@
                                                 <div class="widget-summary cus-summary">
                                                     <div class="widget-summary-col">
                                                         <div class="summary">
-                                                            <h4 class="title">Total Discount</h4>
+                                                            <h4 class="title">{{ __('table.total_discount') }}</h4>
                                                             <div class="info">
                                                                 <strong class="amount">RM {{ $loan->discount }}</strong>
                                                             </div>
@@ -251,9 +251,9 @@
                                                 <div class="widget-summary cus-summary">
                                                     <div class="widget-summary-col">
                                                         <div class="summary">
-                                                            <h4 class="title">Total Profit</h4>
+                                                            <h4 class="title">{{ __('table.total_profit') }}</h4>
                                                             <div class="info">
-                                                                <strong class="amount">RM <span style="vertical-align:unset" id="total-profit">Loading</span></strong>
+                                                                <strong class="amount">RM <span style="vertical-align:unset" id="total-profit">{{ __('table.loading') }}</span></strong>
                                                             </div>
                                                         </div>
                                                         <div class="summary-footer">
@@ -277,135 +277,135 @@
                     <div class="col-lg-12">
                         <section class="card cus-display-only">
                             @if(!$loan)
-                            <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">No loan found</p>
+                            <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">{{ __('table.no_loan_found') }}</p>
                             @else
                             <form class="theme-form mega-form">
                                 @csrf
                                 <div class="card-body">
                                     <div class="row">
                                         <div class="col-md-6">
-                                            <h4 class="cus-header">Customer</h4>
+                                            <h4 class="cus-header">{{ __('table.customer') }}</h4>
                                             <div class="row">
                                                 <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">System Code</label>
+                                                    <label class="col-form-label">{{ __('table.system_code') }}</label>
                                                     <input type="text" class="form-control" value="{{ $loan?->customer->customer_code ?? '' }}" disabled>
                                                 </div>
                                                 <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">Customer Name</label>
+                                                    <label class="col-form-label">{{ __('table.customer_name') }}</label>
                                                     <input type="text" class="form-control" value="{{ $loan?->customer->customer_name ?? '' }}" disabled>
                                                 </div>
                                                 <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">NRIC Number</label>
+                                                    <label class="col-form-label">NRIC {{ __('table.number') }}</label>
                                                     <input type="text" class="form-control" value="{{ $loan?->customer->nric_number ?? '' }}" disabled>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <div class="col-6">
-                                            <h4 class="cus-header">Company</h4>
+                                            <h4 class="cus-header">{{ __('table.company') }}</h4>
                                             <div class="row">
                                                 <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">Company Code</label>
+                                                    <label class="col-form-label">{{ __('table.company_code') }}</label>
                                                     <input type="text" class="form-control" value="{{ $loan?->company->company_code ?? '' }}" disabled>
                                                 </div>
                                                 <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">Company Name</label>
+                                                    <label class="col-form-label">{{ __('table.company_name') }}</label>
                                                     <input type="text" class="form-control" value="{{ $loan?->company->company_name ?? '' }}" disabled>
                                                 </div>
                                                 <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">Branch</label>
+                                                    <label class="col-form-label">{{ __('table.branch') }}</label>
                                                     <input type="text" class="form-control" value="{{ $loan?->company?->branch->branch_name ?? '' }}" disabled>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <h4 class="cus-header">Loan {{ $loan?->loan_code ? "(".$loan->loan_code.")" : '' }} </h4>
+                                    <h4 class="cus-header">{{ __('table.loan') }} {{ $loan?->loan_code ? "(".$loan->loan_code.")" : '' }} </h4>
                                     <div class="row">
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Interest Group</label>
+                                            <label class="col-form-label">{{ __('table.interest_group') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->interest_group ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Loan Amount</label>
+                                            <label class="col-form-label">{{ __('table.loan_amount') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->loan_amount ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Interest Rate</label>
+                                            <label class="col-form-label">{{ __('table.interest_rate') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->interest_rate.'%' ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Start Date</label>
+                                            <label class="col-form-label">{{ __('table.start_date') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->year_month ?? '' }}" disabled>
                                         </div>
 
                                         @if($loan?->interest_group == 'SKIM B')
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Loan Term</label>
+                                            <label class="col-form-label">{{ __('table.loan_term') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->loan_term ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">First Payment</label>
+                                            <label class="col-form-label">{{ __('table.first_payment') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->first_payment ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Last Payment</label>
+                                            <label class="col-form-label">{{ __('table.last_payment') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->last_payment ?? '' }}" disabled>
                                         </div>
                                         @endif
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Installment</label>
+                                            <label class="col-form-label">{{ __('table.installment') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->installment ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Processing Fee</label>
+                                            <label class="col-form-label">{{ __('table.processing_fee') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->processing_fee ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Stamp Fee</label>
+                                            <label class="col-form-label">{{ __('table.stamp_fee') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->stamp_fee ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Capital</label>
+                                            <label class="col-form-label">{{ __('table.capital') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->capital ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Alternate Code</label>
+                                            <label class="col-form-label">{{ __('table.alternate_code') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->alternate_code ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Receipt No</label>
+                                            <label class="col-form-label">{{ __('table.receipt_no') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->receipt_no ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Created At</label>
+                                            <label class="col-form-label">{{ __('table.created_at') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->created_at ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Created By</label>
+                                            <label class="col-form-label">{{ __('table.created_by') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->creator->username ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Last Update</label>
+                                            <label class="col-form-label">{{ __('table.last_update') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->updated_at ?? '' }}" disabled>
                                         </div>
 
                                         <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">Updated By</label>
+                                            <label class="col-form-label">{{ __('table.updated_by') }}</label>
                                             <input type="text" class="form-control" value="{{ $loan?->updater?->username ?? '' }}" disabled>
                                         </div>
                                     </div>
@@ -422,20 +422,20 @@
                      <div class="col-lg-12">
                         <section class="card">
                             <div class="mb-3" style="text-align: right;">
-                                <a class="btn btn-xs btn-square btn-primary" onclick="new bootstrap.Modal('#modal-add-payment').show()">Create</a>
+                                <a class="btn btn-xs btn-square btn-primary" onclick="new bootstrap.Modal('#modal-add-payment').show()">{{ __('table.create') }}</a>
                             </div>
                             <table class="table cus-table table-bordered table-striped mb-0" id="table-payments">
                                 <thead>
                                     <tr>
-                                        <th>Payment Code</th>
-                                        <th>Paid</th>
-                                        <th>Discount</th>
-                                        <th>Interest Paid</th>
-                                        <th>Late Paid</th>
-                                        <th>Bank</th>
-                                        <th>Collection Type</th>
+                                        <th>{{ __('table.payment_code') }}</th>
+                                        <th>{{ __('table.paid') }}</th>
+                                        <th>{{ __('table.discount') }}</th>
+                                        <th>{{ __('table.interest_paid') }}</th>
+                                        <th>{{ __('table.late_paid') }}</th>
+                                        <th>{{ __('table.bank') }}</th>
+                                        <th>{{ __('table.collection_type') }}</th>
                                         @if(Auth::user()->role_id <= 3)
-                                        <th>Action</th>
+                                        <th>{{ __('table.actions') }}</th>
                                         @endif
                                     </tr>
                                 </thead>
@@ -452,22 +452,22 @@
                     <div class="col-lg-12">
                         <section class="card">
                             <div class="mb-3" style="text-align: right;">
-                                <a class="btn btn-xs btn-square btn-primary" onclick="new bootstrap.Modal('#modal-add-schedule').show()">Create</a>
+                                <a class="btn btn-xs btn-square btn-primary" onclick="new bootstrap.Modal('#modal-add-schedule').show()">{{ __('table.create') }}</a>
                             </div>
                             <table class="table cus-table table-bordered table-striped mb-0" id="table-payment-schedules">
                                 <thead>
                                     <tr>
-                                        <th>Schedule Code</th>
-                                        <th>Due Date</th>
-                                        <th>Payment</th>
-                                        <th>Paid</th>
-                                        <th>Discount</th>
-                                        <th>Interest</th>
-                                        <th>Interest Paid</th>
-                                        <th>Late</th>
-                                        <th>Late Paid</th>
+                                        <th>{{ __('table.schedule_code') }}</th>
+                                        <th>{{ __('table.due_date') }}</th>
+                                        <th>{{ __('table.payment') }}</th>
+                                        <th>{{ __('table.paid') }}</th>
+                                        <th>{{ __('table.discount') }}</th>
+                                        <th>{{ __('table.interest') }}</th>
+                                        <th>{{ __('table.interest_paid') }}</th>
+                                        <th>{{ __('table.late') }}</th>
+                                        <th>{{ __('table.late_paid') }}</th>
                                         @if(Auth::user()->role_id <= 3)
-                                        <th>Action</th>
+                                        <th>{{ __('table.actions') }}</th>
                                         @endif
                                     </tr>
                                 </thead>
@@ -486,7 +486,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalAddScheduleLabel">Add Schedule</h5>
+                <h5 class="modal-title" id="modalAddScheduleLabel">{{ __('table.add_schedule') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -495,32 +495,32 @@
                     <input type="hidden" name="loan_code" value="{{ $loan->loan_code }}">
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Due Date</label>
+                            <label class="col-form-label">{{ __('table.due_date') }}</label>
                             <input type="date" class="form-control" name="due_date" required>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Add Interest</label>
+                            <label class="col-form-label">{{ __('table.add_interest') }}</label>
                             <input type="number" class="form-control" name="interest_amount" value="0">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Add Payment (Capital)</label>
+                            <label class="col-form-label">{{ __('table.add_payment_(capital)') }}</label>
                             <input type="number" class="form-control" name="payment_amount" value="0">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Add Late</label>
+                            <label class="col-form-label">{{ __('table.add_late') }}</label>
                             <input type="number" class="form-control" name="late_amount" value="0">
                         </div>
                     </div>
                     
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>
@@ -532,7 +532,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalUpdateScheduleLabel">Update Schedule</h5>
+                <h5 class="modal-title" id="modalUpdateScheduleLabel">{{ __('table.update_schedule') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -541,50 +541,50 @@
                     <input type="hidden" name="schedule_id" id="update-schedule-id">
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Due Date</label>
+                            <label class="col-form-label">{{ __('table.due_date') }}</label>
                             <input type="date" class="form-control" name="due_date" id="update-schedule-date" required>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Interest Amount</label>
+                            <label class="col-form-label">{{ __('table.interest_amount') }}</label>
                             <input type="number" class="form-control" name="interest_amount" id="update-schedule-interest">
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Interest Paid</label>
+                            <label class="col-form-label">{{ __('table.interest_paid') }}</label>
                             <input type="number" class="form-control" name="interest_paid_amount" id="update-schedule-interest-paid">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Payment/Capital Amount</label>
+                            <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" name="payment_amount" id="update-schedule-payment">
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Payment/Capital Paid</label>
+                            <label class="col-form-label">{{ __('table.payment/capital_paid') }}</label>
                             <input type="number" class="form-control" name="paid_amount" id="update-schedule-paid">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Payment/Capital Discount</label>
+                            <label class="col-form-label">{{ __('table.payment/capital_discount') }}</label>
                             <input type="number" class="form-control" name="discount_amount" id="update-schedule-discount">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Late Amount</label>
+                            <label class="col-form-label">{{ __('table.late_amount') }}</label>
                             <input type="number" class="form-control" name="late_amount" id="update-schedule-late">
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Late Paid</label>
+                            <label class="col-form-label">{{ __('table.late_paid') }}</label>
                             <input type="number" class="form-control" name="late_paid_amount" id="update-schedule-late-paid">
                         </div>
                     </div>
                     
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>
@@ -596,7 +596,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalAddPaymentLabel">Add Payment</h5>
+                <h5 class="modal-title" id="modalAddPaymentLabel">{{ __('table.add_payment') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -605,34 +605,34 @@
                     <input type="hidden" name="loan_code" value="{{ $loan->loan_code }}">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Payment / Capital Amount</label>
+                            <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" id="input-payment-amount" name="payment_amount" value="0">
                             <p class="p-note" id="loan-payment-balance">{{ $loan->balance ?? '0.00' }}</p>
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Discount</label>
+                            <label class="col-form-label">{{ __('table.discount') }}</label>
                             <input type="number" class="form-control" name="discount_amount" value="0">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Interest Amount</label>
+                            <label class="col-form-label">{{ __('table.interest_amount') }}</label>
                             <input type="number" class="form-control" id="input-payment-interest" name="interest_paid_amount" value="0">
                             <p class="p-note" id="loan-interest-balance">{{ $loan->interest_balance ?? '0.00' }}</p>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Late Amount</label>
+                            <label class="col-form-label">{{ __('table.late_amount') }}</label>
                             <input type="number" class="form-control" id="input-payment-late" name="late_paid_amount" value="0">
                             <p class="p-note" id="loan-late-balance">{{ $loan->late_balance ?? '0.00' }}</p>
                         </div>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Collection</label>
+                        <label class="col-form-label">{{ __('table.collection') }}</label>
                         <select class="form-control" name="collection_type" required>
-                            <option value="SKIM A">SKIM A</option>
-                            <option value="SKIM B">SKIM B</option>
+                            <option value="SKIM A">{{ __('table.skim_A') }}</option>
+                            <option value="SKIM B">{{ __('table.skim_B') }}</option>
                         </select>
                     </div>
                     <!-- <div class="col-md-12 mb-3">
@@ -644,14 +644,14 @@
                         <input type="text" class="form-control" name="bank" autocomplete="off">
                     </div> -->
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Payment Method</label>
+                        <label class="col-form-label">{{ __('table.payment_method') }}</label>
                         <select class="form-control" id="payment_method_id" name="payment_method_id" disabled required>
-                            <option>Please insert loan code first</option>
+                            <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>
@@ -663,7 +663,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalUpdatePaymentLabel">Update Payment</h5>
+                <h5 class="modal-title" id="modalUpdatePaymentLabel">{{ __('table.update_payment') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -672,37 +672,37 @@
                     <input type="hidden" name="payment_id" id="update-payment-id">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Payment / Capital Amount</label>
+                            <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" id="update-payment-paid" name="payment_amount">
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Discount</label>
+                            <label class="col-form-label">{{ __('table.discount') }}</label>
                             <input type="number" class="form-control" id="update-payment-discount" name="discount_amount">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Interest Amount</label>
+                            <label class="col-form-label">{{ __('table.interest_amount') }}</label>
                             <input type="number" class="form-control" id="update-payment-interest" name="interest_paid_amount">
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Late Amount</label>
+                            <label class="col-form-label">{{ __('table.late_amount') }}</label>
                             <input type="number" class="form-control" id="update-payment-late" name="late_paid_amount" value="0">
                         </div>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Collection</label>
+                        <label class="col-form-label">{{ __('table.collection') }}</label>
                         <select class="form-control" name="collection_type" id="update-payment-collection"required>
-                            <option value="SKIM A">SKIM A</option>
-                            <option value="SKIM B">SKIM B</option>
+                            <option value="SKIM A">{{ __('table.skim_A') }}</option>
+                            <option value="SKIM B">{{ __('table.skim_B') }}</option>
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Payment Method</label>
+                        <label class="col-form-label">{{ __('table.payment_method') }}</label>
                         <select class="form-control" id="update_payment_method_id" name="payment_method_id" disabled required>
-                            <option>Please insert loan code first</option>
+                            <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
                     </div>
                     <!-- <div class="col-md-12 mb-3">
@@ -714,8 +714,8 @@
                         <input type="text" class="form-control" name="bank" id="update-payment-bank" autocomplete="off">
                     </div> -->
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>

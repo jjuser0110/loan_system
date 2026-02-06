@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Create New Schedule</h2>
+    <h2>{{ __('table.create_new_schedule') }}</h2>
 </header>
 @include('layouts.flash-message')
 <div class="row">
@@ -11,16 +11,16 @@
             <form class="theme-form mega-form" enctype="multipart/form-data" id="form-create-schedule">
                 @csrf
                 <div class="card-body">
-                    <h4>New Schedule</h4>
+                    <h4>{{ __('table.new_schedule') }}</h4>
                     <div class="row">
                         <div class="col-md-12 col-lg-6 col-xl-6 col-xxl-6">
-                            <label class="col-form-label">Loan Code</label>
+                            <label class="col-form-label">{{ __('table.loan_code') }}</label>
                             <input type="text" class="form-control" id="loan-search" name="loan_code" value="{{ $loan?->loan_code ?? '' }}" placeholder="L000001" autocomplete="off">
                             <div id="loan-dropdown" class="dropdown-menu col-md-5 col-10" style="display:none; max-height: 200px; overflow-y: auto; padding:0;"></div>
                         </div>
 
                         <div class="col-md-12 col-lg-6 col-xl-6 col-xxl-6 mb-3">
-                            <label class="col-form-label">System Code / Name</label>
+                            <label class="col-form-label">{{ __('table.system_code/name') }}</label>
                             <input type="text" class="form-control" id="customer-code" value="{{ $loan?->customer->customer_code ? $loan->customer->customer_code.'/' : '' }} {{ $loan?->customer->customer_name ?? '' }}" autocomplete="off" disabled>
                         </div>
                     </div>
@@ -28,30 +28,30 @@
                     <div class="row">
                         <div class="col-md-12 col-lg-6 col-xl-12 col-xxl-6">
                             <div class="col-md-12">
-                                <label class="col-form-label">Due Date</label>
+                                <label class="col-form-label">{{ __('table.due_date') }}</label>
                                 <input type="date" class="form-control" name="due_date" required="">
                             </div>
              
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Add Payment (Capital)</label>
+                                <label class="col-form-label">{{ __('table.add_payment_(capital)') }}</label>
                                 <input type="number" class="form-control" id="input-payment-amount" name="payment_amount" placeholder="10000.00" step="0.01" autocomplete="off" required>
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Add Interest</label>
+                                <label class="col-form-label">{{ __('table.add_interest') }}</label>
                                 <input type="number" class="form-control" id="input-payment-interest" name="interest_amount" placeholder="10000.00" step="0.01" autocomplete="off">
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Add Late</label>
+                                <label class="col-form-label">{{ __('table.add_late') }}</label>
                                 <input type="number" class="form-control" id="input-payment-late" name="late_amount" placeholder="10000.00" step="0.01"autocomplete="off">
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-footer text-end">
-                    <a href="{{route('loan.index')}}" class="btn btn-secondary">Back</a>
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="{{route('loan.index')}}" class="btn btn-secondary">{{ __('table.back') }}</a>
+                    <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                 </div>
             </form>
         </section>

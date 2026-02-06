@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>House Ownership @if (isset($house_ownership)) Edit @else Create @endif</h2>
+    <h2>{{ __('table.house_ownership') }} @if (isset($house_ownership)) {{ __('table.edit') }} @else {{ __('table.create') }} @endif</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -20,15 +20,15 @@
                 @csrf
                 @if (isset($house_ownership)) @method('PUT') @endif
                 <div class="card-body">
-                    <h6>House Ownership Information</h6>
+                    <h6>{{ __('table.house_ownership_information') }}</h6>
                     <div class="mb-3">
-                        <label class="col-form-label">House Ownership Type</label>
+                        <label class="col-form-label">{{ __('table.house_ownership_type') }}</label>
                         <input class="form-control" type="text" name="house_ownership" placeholder="house ownership type" value="{{ $house_ownership->house_ownership ?? '' }}" required>
                     </div>
                 </div>
                 <div class="card-footer text-end">
-                    <a href="{{ route('house_ownership.index') }}" class="btn btn-secondary">Back</a>
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="{{ route('house_ownership.index') }}" class="btn btn-secondary">{{ __('table.back') }}</a>
+                    <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                 </div>
             </form>
         </section>

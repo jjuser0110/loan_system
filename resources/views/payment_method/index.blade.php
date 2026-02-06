@@ -1,28 +1,28 @@
 @extends('layouts.app')
 @section('content')
 <header class="page-header">
-    <h2>Payment Method</h2>
+    <h2>{{ __('table.payment_method') }}</h2>
 </header>
 @include('layouts.flash-message')
 <div class="row" style="padding-top:0">
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="display:flex;justify-content:space-between;align-items:center">
-                <a href="{{ route('payment_method.logs') }}" style="text-decoration:underline">View All Logs</a>
-                <a class="btn btn-xs btn-square btn-primary" onclick="event.preventDefault();$('#modal-create-payment-method').modal('show')">Create</a>
+                <a href="{{ route('payment_method.logs') }}" style="text-decoration:underline">{{ __('table.view_all_logs') }}</a>
+                <a class="btn btn-xs btn-square btn-primary" onclick="event.preventDefault();$('#modal-create-payment-method').modal('show')">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
                 <table class="table cus-table table-bordered table-striped mb-0" id="table-payment-method">
                     <thead>
                         <tr>
-                            <th>Bank</th>
-                            <th>Account No</th>
-                            <th>Name</th>
-                            <th>Branch</th>
-                            <th>Company</th>
-                            <th>Amount</th>
-                            <th>Status</th>
-                            <th>Actions</th>
+                            <th>{{ __('table.bank') }}</th>
+                            <th>{{ __('table.account_no') }}</th>
+                            <th>{{ __('table.name') }}</th>
+                            <th>{{ __('table.branch') }}</th>
+                            <th>{{ __('table.company') }}</th>
+                            <th>{{ __('table.amount') }}</th>
+                            <th>{{ __('table.status') }}</th>
+                            <th>{{ __('table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -36,7 +36,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalCreatePaymentMethodLabel">Create Payment Method</h5>
+                <h5 class="modal-title" id="modalCreatePaymentMethodLabel">{{ __('table.create_payment_method') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -44,7 +44,7 @@
                     @csrf
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Bank</label>
+                            <label class="col-form-label">{{ __('table.bank') }}</label>
                             <select class="form-control" name="bank_id" required>
                                 @foreach($banks as $bank)
                                 <option value="{{ $bank->id }}">{{ $bank->bank_name }}</option>
@@ -52,7 +52,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Company</label>
+                            <label class="col-form-label">{{ __('table.company') }}</label>
                             <select class="form-control" name="company_id" required>
                                 @foreach($companies as $company)
                                 <option value="{{ $company->id }}">{{ $company->company_name }}</option>
@@ -62,26 +62,26 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Account No</label>
+                            <label class="col-form-label">{{ __('table.account_no') }}</label>
                             <input type="number" class="form-control" name="account_no" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Owner Name</label>
+                            <label class="col-form-label">{{ __('table.owner_name') }}</label>
                             <input type="text" class="form-control"name="owner_name" required>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3">
-                            <label class="col-form-label">Status</label>
+                            <label class="col-form-label">{{ __('table.status') }}</label>
                             <select class="form-control" name="status">
-                                <option value="1">Active</option>
-                                <option value="0">Inactive</option>
+                                <option value="1">{{ __('table.active') }}</option>
+                                <option value="0">{{ __('table.inactive') }}</option>
                             </select>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>
@@ -93,7 +93,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalUpdatePaymentMethodLabel">Update Payment Method</h5>
+                <h5 class="modal-title" id="modalUpdatePaymentMethodLabel">{{ __('table.update_payment_method') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -102,7 +102,7 @@
                     <input type="hidden" id="update-payment-method-id" name="payment_method_id">
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Bank</label>
+                            <label class="col-form-label">{{ __('table.bank') }}</label>
                             <select class="form-control" id="update-payment-method-bank-id" name="bank_id" required>
                                 @foreach($banks as $bank)
                                 <option value="{{ $bank->id }}">{{ $bank->bank_name }}</option>
@@ -110,7 +110,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Company</label>
+                            <label class="col-form-label">{{ __('table.company') }}</label>
                             <select class="form-control" id="update-payment-method-company-id" name="company_id" required>
                                 @foreach($companies as $company)
                                 <option value="{{ $company->id }}">{{ $company->company_name }}</option>
@@ -120,26 +120,26 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">Account No</label>
+                            <label class="col-form-label">{{ __('table.account_no') }}</label>
                             <input type="number" class="form-control" id="update-payment-method-account-no" name="account_no" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">Owner Name</label>
+                            <label class="col-form-label">{{ __('table.owner_name') }}</label>
                             <input type="text" class="form-control" id="update-payment-method-owner-name" name="owner_name" required>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6 mb-3">
-                            <label class="col-form-label">Status</label>
+                            <label class="col-form-label">{{ __('table.status') }}</label>
                             <select class="form-control" id="update-payment-method-status" name="status">
-                                <option value="1">Active</option>
-                                <option value="0">Inactive</option>
+                                <option value="1">{{ __('table.active') }}</option>
+                                <option value="0">{{ __('table.inactive') }}</option>
                             </select>
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>
@@ -151,7 +151,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalUpdatePaymentMethodCreditLabel">Update Payment Method Credit</h5>
+                <h5 class="modal-title" id="modalUpdatePaymentMethodCreditLabel">{{ __('table.update_payment_method_credit') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -160,20 +160,20 @@
                     <input type="hidden" id="update-payment-method-credit-id" name="payment_method_id">
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Amount</label>
+                            <label class="col-form-label">{{ __('table.amount') }}</label>
                             <input type="number" step="0.01" min="0" class="form-control" id="update-payment-method-credit-amount" name="amount" required>
                         </div>
                     </div>
                      <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Remark</label>
+                            <label class="col-form-label">{{ __('table.remark') }}</label>
                             <input type="text" class="form-control" id="update-payment-method-credit-remark" name="remark">
                         </div>
                     </div>
             
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>

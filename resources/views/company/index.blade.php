@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Company</h2>
+    <h2>{{ __('table.company') }}</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -12,20 +12,20 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align: right;">
-                <a class="btn btn-xs btn-square btn-primary" href="{{route('company.create')}}">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" href="{{route('company.create')}}">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
                 <table class="table table-bordered table-striped mb-0" id="table-company">
                     <thead>
                         <tr>
-                            <th>Company Code</th>
-                            <th>Company Name</th>
-                            <th>Branch</th>
-                            <th>Stock A</th>
-                            <th>Stock B</th>
-                            <th>Stock BB</th>
-                            <th>Amount</th>
-                            <th>Action</th>
+                            <th>{{ __('table.company_code') }}</th>
+                            <th>{{ __('table.company_name') }}</th>
+                            <th>{{ __('table.branch') }}</th>
+                            <th>{{ __('table.stock_a') }}</th>
+                            <th>{{ __('table.stock_b') }}</th>
+                            <th>{{ __('table.stock_bb') }}</th>
+                            <th>{{ __('table.amount') }}</th>
+                            <th>{{ __('table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>

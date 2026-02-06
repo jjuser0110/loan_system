@@ -145,3 +145,53 @@
         });
     }
 </script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    // Show overlay on any form submit
+    document.body.addEventListener('submit', function(e) {
+        const form = e.target;
+        
+        // Skip loading for modal forms or AJAX forms
+        if (form.id === 'form-add-payment' || form.closest('.modal')) {
+            return; // Don't show loading for modal forms
+        }
+        
+        // Check if form is valid before showing loading
+        if (form.checkValidity()) {
+            loadingOverlay.style.display = 'flex';
+        }
+    });
+
+    // Show overlay on any file upload (except in modals)
+    document.body.addEventListener('change', function(e) {
+        if (e.target.type === 'file' && e.target.files.length > 0) {
+            // Don't show loading if file input is inside a modal
+            if (!e.target.closest('.modal')) {
+                loadingOverlay.style.display = 'flex';
+            }
+        }
+    });
+
+    // Hide loading overlay if page loads with errors (validation errors from server)
+    @if($errors->any())
+        loadingOverlay.style.display = 'none';
+    @endif
+
+    // Hide loading on page show (browser back button)
+    window.addEventListener('pageshow', function(event) {
+        loadingOverlay.style.display = 'none';
+    });
+
+    // Hide loading if modal is closed
+    document.querySelectorAll('.modal').forEach(function(modal) {
+        modal.addEventListener('hidden.bs.modal', function() {
+            loadingOverlay.style.display = 'none';
+        });
+    });
+
+});
+</script>

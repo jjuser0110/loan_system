@@ -13,6 +13,7 @@ use Bouncer;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
 use DB;
 
@@ -59,4 +60,12 @@ class HomeController extends Controller
 
         return redirect()->route('home')->withSuccess('Password changed successfully.');
     }
+
+    public function change_language(Request $request, $language)
+{
+    app()->setLocale($language);
+    session(['locale' => $language]);
+    
+    return redirect()->back();
+}
 }

@@ -1,28 +1,28 @@
 @extends('layouts.app')
 @section('content')
 <header class="page-header">
-    <h2>Expenses</h2>
+    <h2>{{ __('table.expenses') }}</h2>
 </header>
 @include('layouts.flash-message')
 <div class="row" style="padding-top:0">
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align: right;">
-                <a class="btn btn-xs btn-square btn-primary" onclick="createExpense()">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" onclick="createExpense()">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
                 <table class="table cus-table table-bordered table-striped mb-0" id="table-expense">
                     <thead>
                         <tr>
-                            <th>Expense Code</th>
-                            <th>Title</th>
-                            <th>Description</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                            <th>Company</th>
-                            <th>Bank</th>
-                            <th>Created At</th>
-                            <th>Action</th>
+                            <th>{{ __('table.expense_code') }}</th>
+                            <th>{{ __('table.title') }}</th>
+                            <th>{{ __('table.description') }}</th>
+                            <th>{{ __('table.amount') }}</th>
+                            <th>{{ __('table.date') }}</th>
+                            <th>{{ __('table.company') }}</th>
+                            <th>{{ __('table.bank') }}</th>
+                            <th>{{ __('table.created_at') }}</th>
+                            <th>{{ __('table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -36,7 +36,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalUpdateExpenseLabel">Create Expense</h5>
+                <h5 class="modal-title" id="modalUpdateExpenseLabel">{{ __('table.create_expense') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -44,19 +44,19 @@
                     @csrf
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Title</label>
+                            <label class="col-form-label">{{ __('table.title') }}</label>
                             <input type="text" class="form-control" id="create-expense-title" name="expense_title" required>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Description</label>
+                            <label class="col-form-label">{{ __('table.description') }}</label>
                             <textarea class="form-control" id="create-expense-description" name="expense_description" rows="3" placeholder="Enter description here..." required></textarea>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="form-group col-md-12 border-top-0 pt-0">
-                            <label for="date">Date</label>
+                            <label for="date">{{ __('table.date') }}</label>
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <i class="fas fa-calendar-alt"></i>
@@ -67,16 +67,16 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Amount</label>
+                            <label class="col-form-label">{{ __('table.amount') }}</label>
                             <input type="number" class="form-control" name="amount" value="0">
                         </div>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Company</label>
+                        <label class="col-form-label">{{ __('table.company') }}</label>
                         <select class="form-control" name="company" id="create-expense-company" onchange="setupPaymentMethod(this.value)" required>
                             @if(!$companies)
                             @else
-                                <option value="">-- Option --</option>
+                                <option value="">-- {{ __('table.option') }} --</option>
                                 @foreach($companies as $company)
                                 <option value="{{ $company->company_code }}">{{ $company->company_name }}/{{ $company->company_code }}</option>
                                 @endforeach
@@ -84,14 +84,14 @@
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Payment Method</label>
+                        <label class="col-form-label">{{ __('table.payment_method') }}</label>
                         <select class="form-control" id="create-payment-method-id" name="payment_method_id" disabled required>
-                            <option>Please insert loan code first</option>
+                            <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>
@@ -103,7 +103,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="modalUpdateExpenseLabel">Update Expense</h5>
+                <h5 class="modal-title" id="modalUpdateExpenseLabel">{{ __('table.update_expense') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -112,19 +112,19 @@
                     <input type="hidden" name="id" id="update-expense-id">
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Title</label>
+                            <label class="col-form-label">{{ __('table.title') }}</label>
                             <input type="text" class="form-control" id="update-expense-title" name="expense_title" required>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-12">
-                            <label class="col-form-label">Description</label>
+                            <label class="col-form-label">{{ __('table.description') }}</label>
                             <textarea class="form-control" id="update-expense-description" name="expense_description" rows="3" placeholder="Enter description here..." required></textarea>
                         </div>
                     </div>
                     <div class="row mb-3">
                         <div class="form-group col-md-12 border-top-0 pt-0">
-                            <label for="date">Date</label>
+                            <label for="date">{{ __('table.date') }}</label>
                             <div class="input-group">
                                 <span class="input-group-text">
                                     <i class="fas fa-calendar-alt"></i>
@@ -134,15 +134,15 @@
                         </div>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Amount</label>
+                        <label class="col-form-label">{{ __('table.amount') }}</label>
                         <input type="number" id="update-expense-amount" class="form-control" name="amount" value="0">
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Company</label>
+                        <label class="col-form-label">{{ __('table.company') }}</label>
                         <select class="form-control" name="company" id="update-expense-company" onchange="setupUpdatePaymentMethod(this.value)" required>
                             @if(!$companies)
                             @else
-                                <option value="">-- Option --</option>
+                                <option value="">-- {{ __('table.option') }} --</option>
                                 @foreach($companies as $company)
                                 <option value="{{ $company->company_code }}">{{ $company->company_name }}/{{ $company->company_code }}</option>
                                 @endforeach
@@ -150,14 +150,14 @@
                         </select>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Payment Method</label>
+                        <label class="col-form-label">{{ __('table.payment_method') }}</label>
                         <select class="form-control" id="update-payment-method-id" name="payment_method_id" disabled required>
-                            <option>Please insert loan code first</option>
+                            <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Submit</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     </div>
                 </form>
             </div>

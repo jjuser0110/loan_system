@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Create New Payment</h2>
+    <h2>{{ __('table.create_new_payment') }}</h2>
 </header>
 @include('layouts.flash-message')
 <div class="row">
@@ -11,16 +11,16 @@
             <form class="theme-form mega-form" enctype="multipart/form-data" id="form-create-payment">
                 @csrf
                 <div class="card-body">
-                    <h4>New Payment</h4>
+                    <h4>{{ __('table.new_payment') }}</h4>
                     <div class="row">
                         <div class="col-md-12 col-lg-6 col-xl-6 col-xxl-6">
-                            <label class="col-form-label">Loan Code</label>
+                            <label class="col-form-label">{{ __('table.loan_code') }}</label>
                             <input type="text" class="form-control" id="loan-search" name="loan_code" value="{{ $loan?->loan_code ?? '' }}" placeholder="L000001" autocomplete="off">
                             <div id="loan-dropdown" class="dropdown-menu col-md-5 col-10" style="display:none; max-height: 200px; overflow-y: auto; padding:0;"></div>
                         </div>
 
                         <div class="col-md-12 col-lg-6 col-xl-6 col-xxl-6 mb-3">
-                            <label class="col-form-label">System Code / Name</label>
+                            <label class="col-form-label">{{ __('table.system_code/name') }}</label>
                             <input type="text" class="form-control" id="customer-code" value="{{ $loan?->customer->customer_code ? $loan->customer->customer_code.'/' : '' }} {{ $loan?->customer->customer_name ?? '' }}" autocomplete="off" disabled>
                         </div>
                     </div>
@@ -28,33 +28,33 @@
                     <div class="row">
                         <div class="col-md-12 col-lg-6 col-xl-12 col-xxl-6">
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Payment / Capital Amount</label>
+                                <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                                 <input type="number" class="form-control" id="input-payment-amount" name="payment_amount" placeholder="10000.00" step="0.01" autocomplete="off" required>
                                 <p class="p-note" id="loan-payment-balance">{{ $loan?->balance ?? ''}}</p>
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Discount Amount</label>
+                                <label class="col-form-label">{{ __('table.discount_amount') }}</label>
                                 <input type="number" class="form-control" name="discount_amount" placeholder="1000.00" autocomplete="off">
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Pay Late Charge</label>
+                                <label class="col-form-label">{{ __('table.pay_late_charge') }}</label>
                                 <input type="number" class="form-control" id="input-payment-late" name="late_paid_amount" placeholder="10000.00" step="0.01"autocomplete="off">
                                  <p class="p-note" id="loan-late-balance">{{ $loan?->late_balance ?? ''}}</p>
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Pay Interest</label>
+                                <label class="col-form-label">{{ __('table.pay_interest') }}</label>
                                 <input type="number" class="form-control" id="input-payment-interest" name="interest_paid_amount" placeholder="10000.00" step="0.01" autocomplete="off">
                                 <p class="p-note" id="loan-interest-balance">{{ $loan?->interest_balance ?? ''}}</p>
                             </div>
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Collection</label>
+                                <label class="col-form-label">{{ __('table.collection') }}</label>
                                 <select class="form-control" name="collection_type" required>
-                                    <option value="SKIM A">SKIM A</option>
-                                    <option value="SKIM B">SKIM B</option>
+                                    <option value="SKIM A">{{ __('table.skim_A') }}</option>
+                                    <option value="SKIM B">{{ __('table.skim_B') }}</option>
                                 </select>
                             </div>
                             <!-- 
@@ -69,17 +69,17 @@
                             </div> -->
 
                             <div class="col-md-12 mb-3">
-                                <label class="col-form-label">Payment Method</label>
+                                <label class="col-form-label">{{ __('table.payment_method') }}</label>
                                 <select class="form-control" id="payment_method_id" name="payment_method_id" disabled required>
-                                    <option>Please insert loan code first</option>
+                                    <option>{{ __('table.please_insert_loan_code_first') }}</option>
                                 </select>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="card-footer text-end">
-                    <a href="{{route('loan.index')}}" class="btn btn-secondary">Back</a>
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="{{route('loan.index')}}" class="btn btn-secondary">{{ __('table.back') }}</a>
+                    <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                 </div>
             </form>
         </section>

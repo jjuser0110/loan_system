@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Company Admin @if (isset($badmin)) Edit @else Create @endif</h2>
+    <h2>{{ __('table.company_admin') }} @if (isset($badmin)) {{ __('table.edit') }} @else {{ __('table.create') }} @endif</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -14,42 +14,42 @@
             <form class="theme-form mega-form" enctype="multipart/form-data" @if (isset($badmin)) method="post" action="{{ route('badmin.update',$badmin) }}" @else method="post" action="{{ route('badmin.store') }}" @endif onsubmit="return onSubmitForm()">
                 @csrf
                 <div class="card-body">
-                    <h6>Account Information</h6>
+                    <h6>{{ __('table.account_information') }}</h6>
                     <div class="mb-3">
-                        <label class="col-form-label">Branch Admin Name</label>
+                        <label class="col-form-label">{{ __('table.branch_admin_name') }}</label>
                         <input class="form-control" type="text" name="name" placeholder="name.." value="{{$badmin->name??''}}" required>
                     </div>
                     <div class="mb-3">
-                        <label class="col-form-label">Branch Admin Username</label>
+                        <label class="col-form-label">{{ __('table.branch_admin_username') }}</label>
                         <input class="form-control" type="text" name="username" placeholder="username.." value="{{$badmin->username??''}}" required @if (isset($badmin)) readonly @endif>
                     </div>
                     <div class="mb-3">
-                        <label class="col-form-label">Password</label>
+                        <label class="col-form-label">{{ __('table.password') }}</label>
                         <input class="form-control" type="text" name="password" placeholder="password.." value="" @if (!isset($badmin)) required @endif>
                         @if(isset($badmin))
-                        <span style="color:red;font-size:0.8em">**key in to reset password</span>
+                        <span style="color:red;font-size:0.8em">**{{ __('table.key_in_to_reset_password') }}</span>
                         @endif
                     </div>
                     <div class="mb-3">
-                        <label class="col-form-label">Branch</label>
+                        <label class="col-form-label">{{ __('table.branch') }}</label>
                         <select id="company_id" name="branch_id" data-plugin-selectTwo class="form-control populate" required>
-                            <option value="">Choose a Branch</option>
+                            <option value="">{{ __('table.choose_a_branch') }}</option>
                             @foreach($branches as $row)
                             <option value="{{ $row->id ?? '' }}" {{ isset($badmin) && $badmin->branch_id == $row->id ? 'selected' : '' }}>{{ $row->branch_code ?? '' }} / {{ $row->branch_name ?? '' }}</option>
                             @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label class="col-form-label">Status</label>
+                        <label class="col-form-label">{{ __('table.status') }}</label>
                         <select name="is_active" class="form-control" required>
-                            <option value="1" <?php echo isset($badmin)&&$badmin->is_active == 1?'selected':''?>>Active</option>
-                            <option value="0" <?php echo isset($badmin)&&$badmin->is_active == 0?'selected':''?>>Inactive</option>
+                            <option value="1" <?php echo isset($badmin)&&$badmin->is_active == 1?'selected':''?>>{{ __('table.active') }}</option>
+                            <option value="0" <?php echo isset($badmin)&&$badmin->is_active == 0?'selected':''?>>{{ __('table.inactive') }}</option>
                         </select>
                     </div>
                 </div>
                 <div class="card-footer text-end">
-                    <a href="{{route('badmin.index')}}" class="btn btn-secondary">Back</a>
-                    <button type="submit" class="btn btn-primary">Submit</button>
+                    <a href="{{route('badmin.index')}}" class="btn btn-secondary">{{ __('table.back') }}</a>
+                    <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
                     <!-- <button class="btn btn-secondary">Cancel</button> -->
                 </div>
             </form>

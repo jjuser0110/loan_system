@@ -2,7 +2,7 @@
 
 @section('content')
 <header class="page-header">
-    <h2>Company Admin</h2>
+    <h2>{{ __('table.company_admin') }}</h2>
 </header>
 
 @include('layouts.flash-message')
@@ -12,18 +12,18 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-header" style="text-align: right;">
-                <a class="btn btn-xs btn-square btn-primary" href="{{route('cadmin.create')}}">Create</a>
+                <a class="btn btn-xs btn-square btn-primary" href="{{route('cadmin.create')}}">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
                 <table class="table table-bordered table-striped mb-0" id="datatable-default">
                     <thead>
                         <tr>
-                            <th>Name</th>
-                            <th>Username</th>
-                            <th>Branch</th>
-                            <th>Company</th>
-                            <th>Status</th>
-                            <th>Action</th>
+                            <th>{{ __('table.name') }}</th>
+                            <th>{{ __('table.username') }}</th>
+                            <th>{{ __('table.branch') }}</th>
+                            <th>{{ __('table.company') }}</th>
+                            <th>{{ __('table.status') }}</th>
+                            <th>{{ __('table.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>

@@ -355,7 +355,7 @@ class CustomerController extends Controller
                 'house_ownership' => 'required',
                 'warganegara' => 'required',
                 'state' => 'required',
-                'new_nric_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+                'new_nric_image' => 'nullable|mimes:jpg,jpeg,png,webp,pdf|max:2048',
                 'new_profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
             ]);
 
