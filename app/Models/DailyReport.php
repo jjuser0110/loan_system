@@ -22,5 +22,6 @@ class DailyReport extends Model
         'expenses',
         'account_total_amount',
         'created_date',
+        'closing_date',
     ];
 }

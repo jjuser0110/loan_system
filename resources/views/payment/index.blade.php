@@ -69,7 +69,7 @@
                     </div>
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.collection') }}</label>
-                        <select class="form-control" name="collection_type" id="update-payment-collection"required>
+                        <select class="form-control" name="collection_type" id="update-payment-collection">
                             <option value="SKIM A">{{ __('table.skim_A') }}</option>
                             <option value="SKIM B">{{ __('table.skim_B') }}</option>
                         </select>
@@ -84,7 +84,7 @@
                     </div> -->
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_method') }}</label>
-                        <select class="form-control" id="update_payment_method_id" name="payment_method_id" disabled required>
+                        <select class="form-control" id="update_payment_method_id" name="payment_method_id" disabled required readonly>
                             <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
                     </div>
@@ -237,7 +237,7 @@
 
         function setupUpdatePaymentMethod(x,y){
             let d = document.getElementById('update_payment_method_id');
-            d.disabled = true;
+            d.disabled = true; // Keep it disabled
             if(x != false){
                 fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(x)}`, {
                     headers: {
@@ -253,7 +253,7 @@
                         methods.forEach(method => {
                             d.innerHTML += `<option value="${method.id}" ${y == method.id ? 'selected' : ''}>${method.bank_name} / ${method.account_no} (RM ${formatCredit(method.amount)})</option>`;
                         });
-                        d.disabled = false;
+                        // d.disabled = false; // REMOVE THIS LINE - keep it disabled
                     }
                 })
                 .catch(error => {

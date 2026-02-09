@@ -65,7 +65,7 @@
             </ul>
             <div class="tab-content">
                 <div id="personal" class="tab-pane active">
-                    <form class="p-3" method="POST" action="{{ route('customer.update', $customer->id) }}" enctype="multipart/form-data">
+                    <form class="p-3" method="POST" action="{{ route('customer.update', $customer->id) }}" enctype="multipart/form-data" onsubmit="return showLoading();">
                         @csrf
                         @method('PUT')
                         <h4 class="mb-3 font-weight-semibold text-dark">{{ __('table.personal_information') }}</h4>
@@ -279,45 +279,65 @@
                 
                 <!-- WORK TAB -->
                 <div id="work" class="tab-pane">
-                    <form class="p-3" method="POST" action="{{ route('customer.work.store', $customer->id) }}">
+                    <form class="p-3" method="POST" action="{{ route('customer.work.store', $customer->id) }}" onsubmit="return showLoading();">
                         @csrf
                         @method('PUT')
                         
                         <h4 class="mb-3 font-weight-semibold text-dark">{{ __('table.work_information') }}</h4>
                         <div class="row mb-2">
                             <div class="form-group col-md-6">
-                                <label>{{ __('table.company_name') }}</label>
-                                <input type="text" class="form-control" name="company_name" placeholder="Company Name" value="{{ $customer->company_name }}">
+                                <label>{{ __('table.company_name') }}<span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="company_name" placeholder="Company Name" value="{{ $customer->company_name }}" required>
                             </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
+                            <!-- <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label>{{ __('table.business_type') }}</label>
                                 <input type="text" class="form-control" name="biz_type" placeholder="Business Type" value="{{ $customer->biz_type }}" required>
+                            </div> -->
+                            <div class="form-group col-md-6 border-top-0 pt-0">
+                                <label>{{ __('table.monthly_income') }}<span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="monthly_income" placeholder="Monthly Income" value="{{ $customer->monthly_income }}" required>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="form-group col-md-6">
-                                <label>{{ __('table.designation') }}</label>
+                                <label>{{ __('table.designation') }}<span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="designation" placeholder="Designation..." value="{{ $customer->designation }}" required>
+                            </div>
+                            <div class="form-group col-md-6 border-top-0 pt-0">
+                                <label>{{ __('table.employer_type') }}<span class="text-danger">*</span></label>
+                                <select name="employer" class="form-control" required>
+                                    <option value="">{{ __('table.choose') }}...</option>
+                                    <option value="Private Sector" {{ $customer->employer == 'Private Sector' ? 'selected' : '' }}>{{ __('table.private_sector') }}</option>
+                                    <option value="Government" {{ $customer->employer == 'Government' ? 'selected' : '' }}>{{ __('table.government') }}</option>
+                                    <option value="Statutory Body" {{ $customer->employer == 'Statutory Body' ? 'selected' : '' }}>{{ __('table.statutory_body') }}</option>
+                                    <option value="Public Listed Company" {{ $customer->employer == 'Public Listed Company' ? 'selected' : '' }}>{{ __('table.public_listed_company') }}</option>
+                                    <option value="Multinational Corporation" {{ $customer->employer == 'Multinational Corporation' ? 'selected' : '' }}>{{ __('table.multinational_corporation') }}</option>
+                                    <option value="Self-Employed" {{ $customer->employer == 'Self-Employed' ? 'selected' : '' }}>{{ __('table.self-employed') }}</option>
+                                    <option value="NGO" {{ $customer->employer == 'NGO' ? 'selected' : '' }}>{{ __('table.non-governmental_organization_(NGO)') }}</option>
+                                    <option value="Military" {{ $customer->employer == 'Military' ? 'selected' : '' }}>{{ __('table.military/armed_forces') }}</option>
+                                    <option value="Retired" {{ $customer->employer == 'Retired' ? 'selected' : '' }}>{{ __('table.retired') }}</option>
+                                    <option value="Unemployed" {{ $customer->employer == 'Unemployed' ? 'selected' : '' }}>{{ __('table.unemployed') }}</option>
+                                </select>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="form-group col">
-                                <label for="company_address">{{ __('table.company_address') }}</label>
-                                <input type="text" class="form-control" name="company_address1" placeholder="Company Address 1" value="{{ $customer->company_address1 }}" required>
+                                <label for="company_address">{{ __('table.company_address') }}<span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="company_address1" placeholder="Company Address" value="{{ $customer->company_address1 }}" required>
                             </div>
                         </div>
                         <div class="row mb-2">
                             <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.company_postcode') }}</label>
-                                <input type="number" class="form-control" name="company_postcode" value="{{ $customer->company_postcode }}">
+                                <label>{{ __('table.company_postcode') }}<span class="text-danger">*</span></label>
+                                <input type="number" class="form-control" name="company_postcode" value="{{ $customer->company_postcode }}" required>
                             </div>
                             <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.company_city') }}</label>
-                                <input type="text" class="form-control" name="company_city" value="{{ $customer->company_city }}">
+                                <label>{{ __('table.company_city') }}<span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="company_city" value="{{ $customer->company_city }}" required>
                             </div>
                             <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.company_state') }}</label>
-                                <select name="company_state" class="form-control">
+                                <label>{{ __('table.company_state') }}<span class="text-danger">*</span></label>
+                                <select name="company_state" class="form-control" required>
                                     <option value="">{{ __('table.choose') }}...</option>
                                     @foreach($states as $state)
                                         <option value="{{ $state->state_name }}"
@@ -328,7 +348,7 @@
                                 </select>
                             </div>
                         </div>
-                        <div class="row mb-2">
+                        <!-- <div class="row mb-2">
                             <div class="form-group col-md-4 border-top-0 pt-0">
                                 <label>{{ __('table.office_telephone') }}</label>
                                 <input type="text" class="form-control" name="company_telephone" value="{{ $customer->company_telephone }}">
@@ -351,8 +371,8 @@
                                 <label>{{ __('table.vehicle_model') }}</label>
                                 <input type="text" class="form-control" name="vehicle_model" value="{{ $customer->vehicle_model }}">
                             </div>
-                        </div>
-                        <div class="row mb-2">
+                        </div> -->
+                        <!-- <div class="row mb-2">
                             <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label>{{ __('table.employer_type') }}</label>
                                 <select name="employer" class="form-control" required>
@@ -379,23 +399,23 @@
                                     <option value="Other" {{ $customer->job_type == 'Other' ? 'selected' : '' }}>{{ __('table.other') }}</option>
                                 </select>
                             </div>
-                        </div>
+                        </div> -->
                         <div class="row mb-2">
-                            <div class="form-group col-md-4 border-top-0 pt-0">
+                            <!-- <div class="form-group col-md-4 border-top-0 pt-0">
                                 <label>{{ __('table.monthly_income') }}</label>
                                 <input type="number" class="form-control" name="monthly_income" placeholder="Monthly Income" value="{{ $customer->monthly_income }}">
+                            </div> -->
+                            <div class="form-group col-md-4 border-top-0 pt-0">
+                                <label>{{ __('table.salary_date') }}<span class="text-danger">*</span></label>
+                                <input type="date" name="salary_date" class="form-control" value="{{ $customer->salary_date }}" required>
                             </div>
                             <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.salary_date') }}</label>
-                                <input type="date" name="salary_date" class="form-control" value="{{ $customer->salary_date }}">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.start_working_date') }}</label>
-                                <input type="date" name="start_working_date" class="form-control" value="{{ $customer->start_working_date }}">
+                                <label>{{ __('table.start_working_date') }}<span class="text-danger">*</span></label>
+                                <input type="date" name="start_working_date" class="form-control" value="{{ $customer->start_working_date }}" required>
                             </div>
                            
                         </div>
-                        <div class="row mb-2">
+                        <!-- <div class="row mb-2">
                             <div class="form-group col-md-4 border-top-0 pt-0">
                                 <label>{{ __('table.monthly_income_2') }}</label>
                                 <input type="number" class="form-control" name="monthly_income_2" placeholder="Monthly Income" value="{{ $customer->monthly_income_2 }}">
@@ -408,7 +428,7 @@
                                 <label>{{ __('table.end_working_date') }}</label>
                                 <input type="date" name="end_working_date" class="form-control" value="{{ $customer->end_working_date }}">
                             </div>
-                        </div>
+                        </div> -->
                         <div class="row">
                             <div class="col-md-12 text-end mt-3">
                                 <button type="submit" class="btn btn-primary">{{ __('table.save_work_info') }}</button>
@@ -545,62 +565,6 @@
                         </section>
                     </div>   
                 </div>
-
-                <!-- <div id="payment" class="tab-pane">
-                    <div class="col-lg-12 mb-3">
-                        <section class="card">
-                            <div class="card-header" style="text-align: left;">
-                                <a class="btn btn-xs btn-square btn-primary" href="#modalReferenceForm">Add Reference</a>
-                            </div>
-                            <div class="card-body">
-                                <table class="table table-bordered table-striped mb-0" id="datatable-reference">
-                                    <thead>
-                                        <tr>
-                                            <th>Reference Type</th>
-                                            <th>NRIC</th>
-                                            <th>Name</th>
-                                            <th>Mobile</th>
-                                            <th>House Ownership</th>
-                                            <th>Monthly Income</th>
-                                            <th>City</th>
-                                            <th>State</th>
-                                            <th>Designation</th>
-                                            <th>Company Name</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach($references as $reference)
-                                        <tr>
-                                            <td>{{ $reference->reference_type }}</td>
-                                            <td>{{ $reference->new_ic }}</td>
-                                            <td>{{ $reference->name }}</td>
-                                            <td>{{ $reference->mobile }}</td>
-                                            <td>{{ $reference->house_ownership }}</td>
-                                            <td>{{ $reference->monthly_income }}</td>
-                                            <td>{{ $reference->city }}</td>
-                                            <td>{{ $reference->state }}</td>
-                                            <td>{{ $reference->designation ?? $reference->job }}</td>
-                                            <td>{{ $reference->company_name }}</td>
-                                            <td>
-                                                <div class="action-buttons">
-                                                    <a href="javascript:void(0)" onclick="editReference({{ $reference->id }})" class="btn-edit" title="Edit">
-                                                        <i class="bx bx-edit"></i>
-                                                    </a>
-                                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.reference.destroy', $reference->id) }}'}" title="Delete" class="btn-delete" style="cursor:pointer">
-                                                        <i class="bx bx-trash"></i>
-                                                    </a>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        </section>
-                    </div>   
-                </div> -->
-
             </div>
         </div>
     </div>
@@ -612,7 +576,7 @@
                 <h2 class="card-title">{{ __('table.reference_form') }}</h2>
             </header>
             <div class="card-body">
-                <form method="POST" action="{{ route('customer.reference.store') }}" id="referenceForm">
+                <form method="POST" action="{{ route('customer.reference.store') }}" id="referenceForm" onsubmit="return showLoading();">
                     @csrf
                     <input type="hidden" name="customer_id" value="{{ $customer->id }}">
                     
@@ -803,7 +767,7 @@
                 <h2 class="card-title">{{ __('table.edit_reference') }}</h2>
             </header>
             <div class="card-body">
-                <form method="POST" id="referenceEditForm">
+                <form method="POST" id="referenceEditForm" onsubmit="return showLoading();">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="customer_id" value="{{ $customer->id }}">
@@ -870,7 +834,7 @@
                     <div class="row mb-3">
                         <div class="col-md-6">
                             <label>{{ __('table.house_ownership') }}</label>
-                            <select name="house_ownership" id="edit_house_ownership" class="form-control" required>
+                            <select name="house_ownership" id="edit_house_ownership" class="form-control">
                                 <option value="">{{ __('table.choose') }}...</option>
                                 @foreach($house_ownership as $houseOwnership)
                                     <option value="{{ $houseOwnership->house_ownership }}">
@@ -994,7 +958,7 @@
                 <h2 class="card-title">{{ __('table.asset_form') }}</h2>
             </header>
             <div class="card-body">
-                <form method="POST" action="{{ route('customer.asset.store') }}" id="assetForm">
+                <form method="POST" action="{{ route('customer.asset.store') }}" id="assetForm" onsubmit="return showLoading();">
                     @csrf
                     <input type="hidden" name="customer_id" value="{{ $customer->id }}">
                     
@@ -1031,7 +995,7 @@
                 <h2 class="card-title">{{ __('table.edit_asset') }}</h2>
             </header>
             <div class="card-body">
-                <form method="POST" id="assetEditForm">
+                <form method="POST" id="assetEditForm" onsubmit="return showLoading();">
                     @csrf
                     @method('PUT')
                     <input type="hidden" name="customer_id" value="{{ $customer->id }}">
