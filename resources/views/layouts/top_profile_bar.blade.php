@@ -19,7 +19,7 @@
 
         <form action="{{ route('customer.single_customer') }}" method="get" class="search nav-form">
     <div class="input-group">
-        <input type="text" class="form-control" name="nric_number" id="q" placeholder="Search Customer NRIC...">
+        <input type="text" class="form-control" name="nric_number" id="q" placeholder="Customer NRIC...">
         <button class="btn btn-default" type="submit"><i class="bx bx-search"></i></button>
     </div>
 </form>
