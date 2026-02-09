@@ -26,4 +26,7 @@ Route::prefix('/customer')->as('customer.')->middleware(['auth'])->group(functio
     Route::get('asset/{asset}/edit', [CustomerController::class, 'editAsset'])->name('asset.edit');
     Route::put('asset/{asset}', [CustomerController::class, 'updateAsset'])->name('asset.update');
     Route::get('asset/{asset}', [CustomerController::class, 'destroyAsset'])->name('asset.destroy');
+
+    Route::get('/single_customer', [CustomerController::class, 'single_customer'])->name('single_customer');
+    Route::get('/search_customer', [CustomerController::class, 'search_customer'])->name('search_customer');
 });

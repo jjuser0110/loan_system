@@ -77,4 +77,9 @@ class Customer extends Model
     {
         return $this->belongsTo(Company::class);
     }
+
+    public function loans()
+    {
+        return $this->hasMany(Loan::class);
+    }
 }

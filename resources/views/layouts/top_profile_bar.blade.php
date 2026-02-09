@@ -17,12 +17,12 @@
 
     <div class="header-right">
 
-        <form action="pages-search-results.html" class="search nav-form">
-            <div class="input-group">
-                <input type="text" class="form-control" name="q" id="q" placeholder="Search...">
-                <button class="btn btn-default" type="submit"><i class="bx bx-search"></i></button>
-            </div>
-        </form>
+        <form action="{{ route('customer.single_customer') }}" method="get" class="search nav-form">
+    <div class="input-group">
+        <input type="text" class="form-control" name="nric_number" id="q" placeholder="Search Customer NRIC...">
+        <button class="btn btn-default" type="submit"><i class="bx bx-search"></i></button>
+    </div>
+</form>
 
         <span class="separator"></span>
 

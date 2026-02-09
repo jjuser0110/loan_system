@@ -550,4 +550,38 @@ class CustomerController extends Controller
             return redirect()->back()->withError('Failed to delete asset');
         }
     }
+
+    public function single_customer(Request $request){
+        try {
+            $nric = $request->nric_number;
+
+            if(!$nric) {
+                throw new Exception('Please enter a NRIC number.');
+            }
+
+            $customer = Customer::where('nric_number', $nric)->first();
+
+            if(!$customer){
+                throw new Exception('No customer found with this NRIC.');
+            }
+
+            $loans = $customer->loans;
+
+            if($loans->isEmpty()){
+                throw new Exception('This customer has no loans.');
+            }
+
+            return view('customer.single', [
+                'success' => true,
+                'customer' => $customer,
+                'loans' => $loans
+            ]);
+
+        } catch(Exception $e){
+            return view('customer.single', [
+                'success' => false,
+                'error' => $e->getMessage()
+            ]);
+        }
+    }
 }

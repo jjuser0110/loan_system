@@ -23,7 +23,7 @@ class Kernel extends ConsoleKernel
     {
         $schedule->command('daily:cron')->daily();
         $schedule->command('dailyreport:autosave')->dailyAt('00:00');
-        // $schedule->command('cashbook:autosave')->daily();
+        $schedule->command('cashbook:autosave')->dailyAt('00:00');
         // $schedule->command('inspire')->hourly();
     }
 
