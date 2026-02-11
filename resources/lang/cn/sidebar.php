@@ -30,6 +30,9 @@ return [
 'race' => '种族',
 'marital_status' => '婚姻状况',
 'house_ownership' => '房屋所有权',
+'report' => '报告',
+'daily_report' => '每日报告',
+'cash_book_report' => '现金簿报告',
 
 ];
 

@@ -30,6 +30,9 @@ return [
 'race' => 'Bangsa',
 'marital_status' => 'Status Perkahwinan',
 'house_ownership' => 'Pemilikan Rumah',
+'report' => 'Laporan',
+'daily_report' => 'Laporan Harian',
+'cash_book_report' => 'Laporan Buku Tunai',
 
 ];
 

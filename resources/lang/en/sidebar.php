@@ -30,6 +30,9 @@ return [
 'race' => 'Race',
 'marital_status' => 'Marital Status',
 'house_ownership' => 'House Ownership',
+'report' => 'Report',
+'daily_report' => 'Daily Report',
+'cash_book_report' => 'Cash Book Report',
     
 ];
 

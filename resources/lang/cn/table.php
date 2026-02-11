@@ -246,6 +246,16 @@ return [
 'confirm' => '确认',
 'close' => '关闭',
 'save' => '保存',
+'daily_report' => '每日报告',
+'company_amount' => '公司金额',
+'loan_topup' => '贷款充值',
+'expenses' => '开销',
+'account_total' => '账户总额',
+'created_date' => '创建日期',
+'closing_date' => '结束日期',
+'cash_book_report' => '现金簿报告',
+'customer_code' => '客户代码',
+'loans' => '贷款',
 
 ];
 

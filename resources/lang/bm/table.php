@@ -246,6 +246,16 @@ return [
 'confirm' => 'Sahkan',
 'close' => 'Tutup',
 'save' => 'Simpan',
+'daily_report' => 'Laporan Harian',
+'company_amount' => 'Jumlah Syarikat',
+'loan_topup' => 'Tambah Nilai Pinjaman',
+'expenses' => 'Perbelanjaan',
+'account_total' => 'Jumlah Akaun',
+'created_date' => 'Tarikh Dicipta',
+'closing_date' => 'Tarikh Penutupan',
+'cash_book_report' => 'Laporan Buku Tunai',
+'customer_code' => 'Kod Pelanggan',
+'loans' => 'Pinjaman',
 
 ];
 

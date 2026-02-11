@@ -45,7 +45,7 @@
 </style>
 @section('content')
 <header class="page-header">
-    <h2>Customer Details</h2> 
+    <h2>{{ __('table.customer_details') }}</h2> 
 </header>
 @include('layouts.flash-message')
 <div class="row">
@@ -54,7 +54,7 @@
             <div class="card-body">
                 <div class="row">
                     <div class="col-md-8">
-                        <label class="col-form-label">Customer NRIC</label>
+                        <label class="col-form-label">{{ __('table.customer') }} NRIC</label>
                         <div id="search-wrapper">
                             <input type="text" id="input-search" class="form-control" name="nric_number" value="{{ request('nric_number') }}">
                             <button type="submit" class="btn btn-primary" id="btn-search"><i class="fas fa-search"></i></button>
@@ -77,32 +77,32 @@
                             <!-- Customer Info -->
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h4 class="cus-header">Customer</h4>
+                                    <h4 class="cus-header">{{ __('table.customer') }}</h4>
                                     <div class="row">
                                         <div class="col-xs-12 col-lg-4 mb-3">
-                                            <label class="col-form-label">Customer Code</label>
+                                            <label class="col-form-label">{{ __('table.customer_code') }}</label>
                                             <input type="text" class="form-control" value="{{ $customer->customer_code }}" disabled>
                                         </div>
                                         <div class="col-xs-12 col-lg-4 mb-3">
-                                            <label class="col-form-label">Customer Name</label>
+                                            <label class="col-form-label">{{ __('table.customer_name') }}</label>
                                             <input type="text" class="form-control" value="{{ $customer->customer_name }}" disabled>
                                         </div>
                                         <div class="col-xs-12 col-lg-4 mb-3">
-                                            <label class="col-form-label">NRIC Number</label>
+                                            <label class="col-form-label">NRIC {{ __('table.number') }}</label>
                                             <input type="text" class="form-control" value="{{ $customer->nric_number }}" disabled>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div class="col-md-6">
-                                    <h4 class="cus-header">Company</h4>
+                                    <h4 class="cus-header">{{ __('table.company') }}</h4>
                                     <div class="row">
                                         <div class="col-xs-12 col-lg-4 mb-3">
-                                            <label class="col-form-label">Company Code</label>
+                                            <label class="col-form-label">{{ __('table.company_code') }}</label>
                                             <input type="text" class="form-control" value="{{ $customer->company->company_code ?? '' }}" disabled>
                                         </div>
                                         <div class="col-xs-12 col-lg-4 mb-3">
-                                            <label class="col-form-label">Company Name</label>
+                                            <label class="col-form-label">{{ __('table.company_name') }}</label>
                                             <input type="text" class="form-control" value="{{ $customer->company->company_name ?? '' }}" disabled>
                                         </div>
                                     </div>
@@ -110,32 +110,32 @@
                             </div>
 
                             <!-- Loans -->
-<h4 class="cus-header">Loans</h4>
-@foreach($loans as $loan)
-    <div class="card mb-3">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-sm-6 col-lg-3 mb-3">
-                    <label class="col-form-label">Loan Code</label>
-                    <input type="text" class="form-control loan-clickable" value="{{ $loan->loan_code }}" readonly
-                           data-url="{{ url('loan/single_loan/'.$loan->loan_code) }}">
-                </div>
-                <div class="col-sm-6 col-lg-3 mb-3">
-                    <label class="col-form-label">Loan Amount</label>
-                    <input type="text" class="form-control" value="{{ $loan->loan_amount }}" disabled>
-                </div>
-                <div class="col-sm-6 col-lg-3 mb-3">
-                    <label class="col-form-label">Status</label>
-                    <input type="text" class="form-control" value="{{ $loan->status }}" disabled>
-                </div>
-                <div class="col-sm-6 col-lg-3 mb-3">
-                    <label class="col-form-label">Created At</label>
-                    <input type="text" class="form-control" value="{{ $loan->created_at }}" disabled>
-                </div>
-            </div>
-        </div>
-    </div>
-@endforeach
+                            <h4 class="cus-header">{{ __('table.loans') }}</h4>
+                            @foreach($loans as $loan)
+                                <div class="card mb-3">
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                <label class="col-form-label">{{ __('table.loan_code') }}</label>
+                                                <input type="text" class="form-control loan-clickable" value="{{ $loan->loan_code }}" readonly
+                                                    data-url="{{ url('loan/single_loan/'.$loan->loan_code) }}">
+                                            </div>
+                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                <label class="col-form-label">{{ __('table.loan_amount') }}</label>
+                                                <input type="text" class="form-control" value="{{ $loan->loan_amount }}" disabled>
+                                            </div>
+                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                <label class="col-form-label">{{ __('table.status') }}</label>
+                                                <input type="text" class="form-control" value="{{ $loan->status }}" disabled>
+                                            </div>
+                                            <div class="col-sm-6 col-lg-3 mb-3">
+                                                <label class="col-form-label">{{ __('table.created_at') }}</label>
+                                                <input type="text" class="form-control" value="{{ $loan->created_at }}" disabled>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
 
                         </div>
                     </form>
