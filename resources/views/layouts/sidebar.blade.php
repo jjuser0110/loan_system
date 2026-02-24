@@ -27,6 +27,24 @@ $currentRoute = request()->route()->getName();
                             <span>{{ __('sidebar.customer_list') }}</span>
                         </a>
                     </li>
+                    <li class="nav-parent {{ request()->routeIs('report.*') ? 'nav-expanded nav-active' : ''}}">
+                        <a class="nav-link" href="#">
+                            <i class="bx bx-file" aria-hidden="true"></i>
+                            <span>{{ __('sidebar.report') }}</span>
+                        </a>
+                        <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('report.daily_report') || request()->routeIs('report.load_daily_reports') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{ route('report.daily_report') }}">
+                                    {{ __('sidebar.daily_report') }}
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('report.cash_book_report') || request()->routeIs('report.load_cash_book_reports') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{ route('report.cash_book_report') }}">
+                                    {{ __('sidebar.cash_book_report') }}
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
                     @if(Auth::user()->role_id != 4)
                     <li class="nav-parent  {{ request()->routeIs('staff.*') || request()->routeIs('payment_method.*') || request()->routeIs('expense.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
@@ -156,24 +174,6 @@ $currentRoute = request()->route()->getName();
                         </ul>
                     </li>
                     @endif
-                    <li class="nav-parent {{ request()->routeIs('report.*') ? 'nav-expanded nav-active' : ''}}">
-                        <a class="nav-link" href="#">
-                            <i class="bx bx-file" aria-hidden="true"></i>
-                            <span>{{ __('sidebar.report') }}</span>
-                        </a>
-                        <ul class="nav nav-children">
-                            <li class="{{ request()->routeIs('report.daily_report') || request()->routeIs('report.load_daily_reports') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{ route('report.daily_report') }}">
-                                    {{ __('sidebar.daily_report') }}
-                                </a>
-                            </li>
-                            <li class="{{ request()->routeIs('report.cash_book_report') || request()->routeIs('report.load_cash_book_reports') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{ route('report.cash_book_report') }}">
-                                    {{ __('sidebar.cash_book_report') }}
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
                 </ul>
             </nav>
             <hr class="separator" />

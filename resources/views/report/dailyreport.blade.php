@@ -4,6 +4,35 @@
     <h2>{{ __('table.daily_report') }}</h2>
 </header>
 @include('layouts.flash-message')
+<div class="row mb-3">
+    <div class="col-md-3">
+        <label>{{ __('table.from_date') }}</label>
+        <input type="date" id="filter_from_date" class="form-control">
+    </div>
+
+    <div class="col-md-3">
+        <label>{{ __('table.to_date') }}</label>
+        <input type="date" id="filter_to_date" class="form-control">
+    </div>
+
+    <div class="col-md-3">
+        <label>{{ __('table.company') }}</label>
+        <select id="filter_company" class="form-control">
+            <option value="">{{ __('table.select_company') }}</option>
+            @foreach($companies as $company)
+                <option value="{{ $company->id }}">
+                    {{ $company->company_name }} ({{ $company->company_code }})
+                </option>
+            @endforeach
+        </select>
+    </div>
+
+    <div class="col-md-3 d-flex align-items-end">
+        <button class="btn btn-primary w-100" id="btn-filter">
+            {{ __('table.filter') }}
+        </button>
+    </div>
+</div>
 <div class="row" style="padding-top:0">
     <div class="col-lg-12 mb-3">
         <section class="card">
@@ -40,32 +69,27 @@
     
     function formatDate(dateString) {
         if (!dateString) return '';
-        let date = new Date(dateString);
-        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+        return dateString; // display raw database string
     }
     
     $(document).ready(function() {
         table_daily_reports = $('#table-daily-reports').DataTable({
-            "processing": true,
-            "serverSide": true,
-            "fixedHeader": false,
-            "ajax": {
-                "url": "{{ route('report.load_daily_reports') }}",
-                "type": "GET",
-                "error": function(xhr, error, code) {
-                    console.error('DataTables AJAX Error:');
-                    console.error('Status:', xhr.status);
-                    console.error('Response:', xhr.responseText);
-                    console.error('Error:', error);
-                    console.error('Code:', code);
-                    
-                    alert('Error loading data. Please check console for details.');
+            processing: true,
+            serverSide: true,
+            fixedHeader: false,
+            searching: false,
+            ajax: {
+                url: "{{ route('report.load_daily_reports') }}",
+                type: "GET",
+                data: function(d) {
+                    d.from_date = $('#filter_from_date').val();
+                    d.to_date = $('#filter_to_date').val();
+                    d.company_id = $('#filter_company').val();
                 }
             },
-            "order": [
-                [10, "desc"] // Order by created_date column
-            ],
-            "columns": [
+            deferLoading: 0,
+            order: [[10, "desc"]],
+            columns: [
                 {
                     "data": "company_name",
                     "name": "company_name",
@@ -140,18 +164,31 @@
                     "data": "created_date",
                     "name": "created_date",
                     "render": function(data) {
-                        return data ? formatDate(data) : '';
+                        return data ? data.substring(0, 10) : '';
                     }
                 },
                 {
                     "data": "closing_date",
                     "name": "closing_date",
                     "render": function(data) {
-                        return data ? formatDate(data) : '';
+                        return data ? data.substring(0, 10) : '';
                     }
                 }
             ]
         });
+    });
+
+    $('#btn-filter').on('click', function() {
+        let from = $('#filter_from_date').val();
+        let to = $('#filter_to_date').val();
+        let company = $('#filter_company').val();
+
+        if (!from && !to && !company) {
+            alert("{{ __('table.please_select_filter') }}");
+            return;
+        }
+
+        table_daily_reports.ajax.reload();
     });
 </script>
 @endsection

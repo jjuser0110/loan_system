@@ -39,12 +39,28 @@ class ReportController extends Controller
             $search = $request->input('search.value');
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
-            
+
+            $fromDate = $request->input('from_date');
+            $toDate = $request->input('to_date');
+            $companyId = $request->input('company_id');
+
+            if (!$fromDate && !$toDate && !$companyId) {
+                return response()->json([
+                    "draw" => intval($draw),
+                    "recordsTotal" => 0,
+                    "recordsFiltered" => 0,
+                    "data" => [],
+                ]);
+            }
+
             $orderColumnIndex = $request->input('order.0.column', 10);
             $columns = $request->input('columns', []);
-            $orderByColumn = isset($columns[$orderColumnIndex]['data']) ? $columns[$orderColumnIndex]['data'] : 'created_date';
+            $orderByColumn = isset($columns[$orderColumnIndex]['data'])
+                ? $columns[$orderColumnIndex]['data']
+                : 'created_date';
+
             $orderByDirection = $request->input('order.0.dir', 'desc');
-            
+
             $query = DailyReport::query()
                 ->select([
                     'daily_reports.*',
@@ -55,24 +71,39 @@ class ReportController extends Controller
                 ])
                 ->join('companies', 'daily_reports.company_id', '=', 'companies.id')
                 ->join('branches', 'companies.branch_id', '=', 'branches.id');
-            
+
             switch (Auth::user()->role_id) {
                 case 1:
                     break;
-                
+
                 case 2:
                     $query->where('branches.id', Auth::user()->branch_id);
                     break;
-                
+
                 case 3:
                 case 4:
                     $query->where('daily_reports.company_id', Auth::user()->company_id);
                     break;
-                
+
                 default:
                     throw new Exception('Invalid role id.');
             }
-            
+
+            if ($fromDate && $toDate) {
+                $query->whereBetween('daily_reports.created_date', [
+                    $fromDate . ' 00:00:00',
+                    $toDate . ' 23:59:59'
+                ]);
+            } elseif ($fromDate) {
+                $query->whereDate('daily_reports.created_date', '>=', $fromDate);
+            } elseif ($toDate) {
+                $query->whereDate('daily_reports.created_date', '<=', $toDate);
+            }
+
+            if ($companyId) {
+                $query->where('daily_reports.company_id', $companyId);
+            }
+
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('companies.company_name', 'like', "%{$search}%")
@@ -84,35 +115,31 @@ class ReportController extends Controller
 
             $recordsTotal = $query->count();
             $recordsFiltered = $recordsTotal;
-            
+
             $columnMap = [
                 'company_name' => 'companies.company_name',
                 'company_code' => 'companies.company_code',
                 'branch_name' => 'branches.branch_name',
                 'branch_code' => 'branches.branch_code',
             ];
-            
-            if (isset($columnMap[$orderByColumn])) {
-                $orderColumn = $columnMap[$orderByColumn];
-            } else {
-                $orderColumn = 'daily_reports.' . $orderByColumn;
-            }
-            
+
+            $orderColumn = $columnMap[$orderByColumn] ?? 'daily_reports.' . $orderByColumn;
+
             $data = $query->orderBy($orderColumn, $orderByDirection)
                 ->skip($start)
                 ->take($length)
                 ->get();
-            
+
             return response()->json([
                 "draw" => intval($draw),
                 "recordsTotal" => $recordsTotal,
                 "recordsFiltered" => $recordsFiltered,
                 "data" => $data,
             ]);
-        }
-        catch(Exception $e) {
+        } catch (Exception $e) {
+
             \Log::error('Daily Reports Load Error: ' . $e->getMessage());
-            
+
             return response()->json([
                 'error' => 'Server error occurred',
                 'message' => $e->getMessage()
@@ -142,16 +169,33 @@ class ReportController extends Controller
     public function load_cash_book_reports(Request $request)
     {
         try {
+
             $draw = $request->input('draw');
             $search = $request->input('search.value');
             $start = $request->input('start', 0);
             $length = $request->input('length', 10);
-            
+
+            $fromDate = $request->input('from_date');
+            $toDate = $request->input('to_date');
+            $companyId = $request->input('company_id');
+
+            if (!$fromDate && !$toDate && !$companyId) {
+                return response()->json([
+                    "draw" => intval($draw),
+                    "recordsTotal" => 0,
+                    "recordsFiltered" => 0,
+                    "data" => [],
+                ]);
+            }
+
             $orderColumnIndex = $request->input('order.0.column', 2);
             $columns = $request->input('columns', []);
-            $orderByColumn = isset($columns[$orderColumnIndex]['data']) ? $columns[$orderColumnIndex]['data'] : 'date';
+            $orderByColumn = isset($columns[$orderColumnIndex]['data'])
+                ? $columns[$orderColumnIndex]['data']
+                : 'date';
+
             $orderByDirection = $request->input('order.0.dir', 'desc');
-            
+
             $query = CashBookReport::query()
                 ->select([
                     'cash_book_reports.*',
@@ -162,24 +206,39 @@ class ReportController extends Controller
                 ])
                 ->join('companies', 'cash_book_reports.company_id', '=', 'companies.id')
                 ->join('branches', 'companies.branch_id', '=', 'branches.id');
-            
+
             switch (Auth::user()->role_id) {
                 case 1:
                     break;
-                
+
                 case 2:
                     $query->where('branches.id', Auth::user()->branch_id);
                     break;
-                
+
                 case 3:
                 case 4:
                     $query->where('cash_book_reports.company_id', Auth::user()->company_id);
                     break;
-                
+
                 default:
                     throw new Exception('Invalid role id.');
             }
-            
+
+            if ($fromDate && $toDate) {
+                $query->whereBetween('cash_book_reports.date', [
+                    $fromDate,
+                    $toDate
+                ]);
+            } elseif ($fromDate) {
+                $query->whereDate('cash_book_reports.date', '>=', $fromDate);
+            } elseif ($toDate) {
+                $query->whereDate('cash_book_reports.date', '<=', $toDate);
+            }
+
+            if ($companyId) {
+                $query->where('cash_book_reports.company_id', $companyId);
+            }
+
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('companies.company_name', 'like', "%{$search}%")
@@ -192,35 +251,32 @@ class ReportController extends Controller
 
             $recordsTotal = $query->count();
             $recordsFiltered = $recordsTotal;
-            
+
             $columnMap = [
                 'company_name' => 'companies.company_name',
                 'company_code' => 'companies.company_code',
                 'branch_name' => 'branches.branch_name',
                 'branch_code' => 'branches.branch_code',
             ];
-            
-            if (isset($columnMap[$orderByColumn])) {
-                $orderColumn = $columnMap[$orderByColumn];
-            } else {
-                $orderColumn = 'cash_book_reports.' . $orderByColumn;
-            }
-            
+
+            $orderColumn = $columnMap[$orderByColumn] ?? 'cash_book_reports.' . $orderByColumn;
+
             $data = $query->orderBy($orderColumn, $orderByDirection)
                 ->skip($start)
                 ->take($length)
                 ->get();
-            
+
             return response()->json([
                 "draw" => intval($draw),
                 "recordsTotal" => $recordsTotal,
                 "recordsFiltered" => $recordsFiltered,
                 "data" => $data,
             ]);
-        }
-        catch(Exception $e) {
+
+        } catch (Exception $e) {
+
             \Log::error('Cash Book Reports Load Error: ' . $e->getMessage());
-            
+
             return response()->json([
                 'error' => 'Server error occurred',
                 'message' => $e->getMessage()

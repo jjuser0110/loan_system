@@ -70,7 +70,7 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="row mb-3">
-            <div class="col-xxl-3 col-xl-6 col-lg-6">
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
                 <section class="card card-featured-left card-featured-primary mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
@@ -89,7 +89,7 @@
                     </div>
                 </section>
             </div>
-            <div class="col-xxl-3 col-xl-6 col-lg-6">
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
                 <section class="card card-featured-left card-featured-secondary mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
@@ -108,7 +108,7 @@
                     </div>
                 </section>
             </div>
-            <div class="col-xxl-3 col-xl-6 col-lg-6">
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
                 <section class="card card-featured-left card-featured-tertiary mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
@@ -127,7 +127,7 @@
                     </div>
                 </section>
             </div>
-            <div class="col-xxl-3 col-xl-6 col-lg-6">
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
                 <section class="card card-featured-left card-featured-quaternary mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
@@ -147,7 +147,7 @@
                 </section>
             </div>
 
-            <div class="col-xxl-3 col-xl-6 col-lg-6">
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
                 <section class="card card-featured-left card-featured-quaternary mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
@@ -167,7 +167,7 @@
                 </section>
             </div>
 
-            <div class="col-xxl-3 col-xl-6 col-lg-6">
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
                 <section class="card card-featured-left card-featured-quaternary mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
@@ -187,7 +187,7 @@
                 </section>
             </div>
 
-            <div class="col-xxl-3 col-xl-6 col-lg-6">
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
                 <section class="card card-featured-left card-featured-quaternary mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
@@ -207,7 +207,7 @@
                 </section>
             </div>
 
-            <div class="col-xxl-3 col-xl-6 col-lg-6">
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
                 <section class="card card-featured-left card-featured-quaternary mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
@@ -227,7 +227,7 @@
                 </section>
             </div>
 
-            <div class="col-xxl-3 col-xl-6 col-lg-6">
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
                 <section class="card card-featured-left card-featured-quaternary mb-3">
                     <div class="card-body">
                         <div class="widget-summary">

@@ -256,6 +256,11 @@ return [
 'cash_book_report' => 'Laporan Buku Tunai',
 'customer_code' => 'Kod Pelanggan',
 'loans' => 'Pinjaman',
+'from_date' => 'Tarikh Dari',
+'to_date' => 'Tarikh Hingga',
+'filter' => 'Tapis',
+'select_company' => 'Pilih Syarikat',
+'please_select_filter' => 'Sila pilih sekurang-kurangnya satu tapisan',
 
 ];
 

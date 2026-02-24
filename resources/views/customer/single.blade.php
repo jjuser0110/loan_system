@@ -111,32 +111,34 @@
 
                             <!-- Loans -->
                             <h4 class="cus-header">{{ __('table.loans') }}</h4>
-                            @foreach($loans as $loan)
-                                <div class="card mb-3">
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-sm-6 col-lg-3 mb-3">
-                                                <label class="col-form-label">{{ __('table.loan_code') }}</label>
-                                                <input type="text" class="form-control loan-clickable" value="{{ $loan->loan_code }}" readonly
-                                                    data-url="{{ url('loan/single_loan/'.$loan->loan_code) }}">
-                                            </div>
-                                            <div class="col-sm-6 col-lg-3 mb-3">
-                                                <label class="col-form-label">{{ __('table.loan_amount') }}</label>
-                                                <input type="text" class="form-control" value="{{ $loan->loan_amount }}" disabled>
-                                            </div>
-                                            <div class="col-sm-6 col-lg-3 mb-3">
-                                                <label class="col-form-label">{{ __('table.status') }}</label>
-                                                <input type="text" class="form-control" value="{{ $loan->status }}" disabled>
-                                            </div>
-                                            <div class="col-sm-6 col-lg-3 mb-3">
-                                                <label class="col-form-label">{{ __('table.created_at') }}</label>
-                                                <input type="text" class="form-control" value="{{ $loan->created_at }}" disabled>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ __('table.loan_code') }}</th>
+                                            <th>{{ __('table.loan_amount') }}</th>
+                                            <th>{{ __('table.status') }}</th>
+                                            <th>{{ __('table.created_at') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @forelse($loans as $loan)
+                                            <tr>
+                                                <td>{{ $loan->loan_code }}</td>
+                                                <td>{{ $loan->loan_amount }}</td>
+                                                <td>{{ $loan->status }}</td>
+                                                <td>{{ $loan->created_at }}</td>
+                                            </tr>
+                                        @empty
+                                            <tr>
+                                                <td colspan="4" class="text-center">
+                                                    {{ __('table.no_data') ?? 'No data available' }}
+                                                </td>
+                                            </tr>
+                                        @endforelse
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </form>
                     @elseif(!$success)

@@ -256,6 +256,11 @@ return [
 'cash_book_report' => '现金簿报告',
 'customer_code' => '客户代码',
 'loans' => '贷款',
+'from_date' => '开始日期',
+'to_date' => '结束日期',
+'filter' => '筛选',
+'select_company' => '选择公司',
+'please_select_filter' => '请至少选择一个筛选条件',
 
 ];
 
