@@ -62,9 +62,12 @@
                         <div>
                             <label class="col-form-label" style="padding:0">{{ __('table.status') }}</label>
                             <select id="loan-status" name="status" class="form-control"
-                                style="color: {{ in_array($loan->status, ['Active']) ? 'green' : 'red' }}; font-weight:700; font-size: 1.5rem; height: auto; padding: 5px 5px; width: 160px;">
+                                style="color: {{ in_array($loan->status, ['Active', 'Fully Paid']) ? 'green' : 'red' }}; font-weight:700; font-size: 1.5rem; height: auto; padding: 5px 5px; width: 170px;">
+                                
                                 <option value="Active" style="color:green" {{ $loan->status == 'Active' ? 'selected' : '' }}>Active</option>
                                 <option value="Overdue" style="color:red" {{ $loan->status == 'Overdue' ? 'selected' : '' }}>Overdue</option>
+                                <option value="Fully Paid" style="color:green" {{ $loan->status == 'Fully Paid' ? 'selected' : '' }}>Fully Paid</option>
+                                
                             </select>
                         </div>
                         @endif

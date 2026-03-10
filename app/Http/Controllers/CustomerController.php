@@ -96,6 +96,7 @@ class CustomerController extends Controller
                     ->orWhere('branches.branch_name', 'like', "%{$search}%")
                     ->orWhere('companies.company_code', 'like', "%{$search}%")
                     ->orWhere('branches.branch_code', 'like', "%{$search}%")
+                    ->orWhere('customers.status', 'like', "%{$search}%")
                     ->orWhereRaw("
                     CASE 
                         WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id) 
