@@ -4,8 +4,8 @@
     <h2>{{ __('table.loan') }}</h2>
 </header>
 @include('layouts.flash-message')
-<div class="row mb-3" style="padding-top:40px;">
-    <div class="col-xl-3">
+<div class="row mb-4" style="padding-top:40px;">
+    <div class="col-xl-4">
         <section class="card card-featured-left card-featured-primary mb-3">
             <div class="card-body">
                 <div class="widget-summary">
@@ -21,7 +21,7 @@
             </div>
         </section>
     </div>
-    <div class="col-xl-3">
+    <div class="col-xl-4">
         <section class="card card-featured-left card-featured-secondary mb-3">
             <div class="card-body">
                 <div class="widget-summary">
@@ -37,7 +37,7 @@
             </div>
         </section>
     </div>
-    <div class="col-xl-3">
+    <div class="col-xl-4">
         <section class="card card-featured-left card-featured-secondary mb-3">
             <div class="card-body">
                 <div class="widget-summary">
@@ -46,6 +46,38 @@
                             <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_outstanding') }}</h4>
                             <div class="info">
                                 <strong class="amount">RM {{ number_format($outstanding,2,'.',',') }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div class="col-xl-4">
+        <section class="card card-featured-left card-featured-secondary mb-3">
+            <div class="card-body">
+                <div class="widget-summary">
+                    <div class="widget-summary-col" style="vertical-align: middle">
+                        <div class="summary" style="min-height:1px">
+                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_loan_amount') }}</h4>
+                            <div class="info">
+                                <strong class="amount">RM {{ number_format($total_loan_amount,2,'.',',') }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    <div class="col-xl-4">
+        <section class="card card-featured-left card-featured-secondary mb-3">
+            <div class="card-body">
+                <div class="widget-summary">
+                    <div class="widget-summary-col" style="vertical-align: middle">
+                        <div class="summary" style="min-height:1px">
+                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_balance') }}</h4>
+                            <div class="info">
+                                <strong class="amount">RM {{ number_format($total_balance,2,'.',',') }}</strong>
                             </div>
                         </div>
                     </div>
@@ -65,16 +97,18 @@
                     <thead>
                         <tr>
                             <th>{{ __('table.loan_code') }}</th>
-                            <th>{{ __('table.customer') }}</th>
                             <th>{{ __('table.company') }}</th>
                             <th>{{ __('table.interest_group') }}</th>
-                            <th>{{ __('table.interest_rate') }}</th>
+                            <th>{{ __('table.loan_date') }}</th>
+                            <th>{{ __('table.due_date') }}</th>
+                            <th>{{ __('table.last_pay_date') }}</th>
                             <th>{{ __('table.loan_amount') }}</th>
-                            <th>{{ __('table.outstanding') }}</th>
-                            <th>{{ __('table.installment') }}</th>
-                            <th>{{ __('table.loan_term') }}</th>
                             <th>{{ __('table.capital') }}</th>
-                            <th>{{ __('table.created_at') }}</th>
+                            <th>{{ __('table.paid') }}</th>
+                            <th>{{ __('table.outstanding') }}</th>
+                            <th>{{ __('table.loan_term') }}</th>
+                            <th>{{ __('table.installment') }}</th>
+                            <th>{{ __('table.interest_rate') }}</th>
                             <th>{{ __('table.status') }}</th>
                             <th>{{ __('table.actions') }}</th>
                         </tr>
@@ -107,12 +141,6 @@
                     "data": "loan_code"
                 },
                 {
-                    "data": "customer_name",
-                    "render": function(data, type, row, meta) {
-                        return '<a href="{{ url('customer') }}/' + row.customer_id + '/edit" target="_blank">' +row.customer_code + "<br>" +row.customer_name+'</a>';
-                    }
-                },
-                {
                     "data": "company_code",
                     "render": function(data, type, row, meta) {
                         return `<a style="text-decoration:none" onclick="e.preventDefault()">${row.company_code}<br>${row.company_name}</a>`;
@@ -122,16 +150,35 @@
                     "data": "interest_group"
                 },
                 {
-                    "data": "interest_rate",
+                    "data": "created_at",
                     "render": function(data, type, row, meta) {
-                        return data+"%";
+                        return formatDate(data);
                     }
+                },
+                {
+                    "data": "next_due_date"
+                },
+                {
+                    "data": "last_pay_date",
+                    "defaultContent": "-"
                 },
                 {
                     "data": "loan_amount"
                 },
                 {
+                    "data": "capital"
+                },
+                {
+                    "data": "paid"
+                },
+                {
                     "data": "outstanding"
+                },
+                {
+                    "data": "loan_term",
+                    "render": function(data, type, row, meta) {
+                        return row.interest_group == 'SKIM B' ? row.loan_term : '-';
+                    }
                 },
                 {
                     "data": "installment",
@@ -144,24 +191,18 @@
                     }
                 },
                 {
-                    "data": "loan_term",
+                    "data": "interest_rate",
                     "render": function(data, type, row, meta) {
-                        return row.interest_group == 'SKIM B' ? row.loan_term : '-';
-                    }
-                },
-                {
-                    "data": "capital"
-                },
-                {
-                    "data": "created_at",
-                    "render": function(data, type, row, meta) {
-                        return formatDate(data);
+                        return data+"%";
                     }
                 },
                 {
                     "data": "status",
                     "render": function(data, type, row, meta) {
-                        return `<span style="color:${data == "Ongoing" ? '#0000ff' : '#009400'}">${data}</span>`
+                        const green = ['Active', 'Fully Paid'];
+                        const red = ['Overdue', 'Bad Debt', 'Blacklist'];
+                        let clr = green.includes(data) ? 'green' : (red.includes(data) ? 'red' : '#000000');
+                        return `<span style="color:${clr}">${data}</span>`;
                     }
                 },
                 {

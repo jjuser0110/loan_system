@@ -96,20 +96,15 @@
                 },
                 @endif
                 {
-                    "data": "stats",
+                    "data": "status",
                     "render": function(data, type, row, meta) {
-                        let clr = '#000000';
-                        if(data == "New"){
-                            clr = '#0000ff';
-                        }
-                        else if(data == "Active"){
-                            clr = '#009400';
-                        }
-                        else if(data == "Delay"){
-                            clr = "#ff0000";
-                        }
-                        return `<span style="color:${clr}">${data}</span>`
-                    
+                        const green = ['active', 'fully_paid'];
+                        const red = ['overdue', 'bad_debt', 'blacklist'];
+                        
+                        let clr = green.includes(data) ? 'green' : (red.includes(data) ? 'red' : '#000000');
+                        let label = data.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+                        
+                        return `<span style="color:${clr}">${label}</span>`;
                     }
                 },
                 {

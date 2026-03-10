@@ -61,7 +61,11 @@
                         @if($loan)
                         <div>
                             <label class="col-form-label" style="padding:0">{{ __('table.status') }}</label>
-                            <h2 style="margin:0;color:{{ $loan->status == 'Ongoing' ? '#0000ff' :' #009400' }}">{{ $loan->status }}</h2>
+                            <select id="loan-status" name="status" class="form-control"
+                                style="color: {{ in_array($loan->status, ['Active']) ? 'green' : 'red' }}; font-weight:700; font-size: 1.5rem; height: auto; padding: 5px 5px; width: 160px;">
+                                <option value="Active" style="color:green" {{ $loan->status == 'Active' ? 'selected' : '' }}>Active</option>
+                                <option value="Overdue" style="color:red" {{ $loan->status == 'Overdue' ? 'selected' : '' }}>Overdue</option>
+                            </select>
                         </div>
                         @endif
                     </div>
@@ -1167,5 +1171,21 @@
         setupPaymentMethod("{{ $loan?->company->company_code }}")
     })
     @endif
+
+    document.getElementById('loan-status').addEventListener('change', function() {
+        $.ajax({
+            url: "{{ route('loan.update_status', $loan->loan_code) }}",
+            type: "POST",
+            data: { status: this.value },
+            headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+            success: function() {
+                location.reload();
+            },
+            error: function(xhr) {
+                console.log(xhr.responseText); // check browser console for actual error
+                alert('Failed to update status');
+            }
+        });
+    });
 </script>
 @endsection

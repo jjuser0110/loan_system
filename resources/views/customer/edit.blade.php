@@ -178,9 +178,24 @@
                                     </div>
                                 </div>
                                 <div class="row mb-2">
+                                    <div class="form-group col-md-6 border-top-0 pt-0">
+                                        <label for="email">{{ __('table.email') }}</label>
+                                        <input type="email" class="form-control" id="email" name="email" autocomplete="off" value="{{ $customer->email }}" readonly onfocus="this.removeAttribute('readonly');">
+                                    </div>
+                                    <div class="form-group col-md-6 border-top-0 pt-0">
+                                        <label for="mobile">{{ __('table.mobile') }} <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="mobile" name="mobile" value="{{ $customer->mobile }}" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
                                     <div class="form-group col">
                                         <label for="address">{{ __('table.address') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="address1" name="address1" placeholder="Address" value="{{ $customer->address1 }}" required>
+                                        <input type="text" class="form-control" id="address1" name="address1" placeholder="Address 1" value="{{ $customer->address1 }}" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="form-group col">
+                                        <input type="text" class="form-control" id="address2" name="address2" placeholder="Address 2" value="{{ $customer->address2 }}">
                                     </div>
                                 </div>
                                 <div class="row mb-2">
@@ -230,42 +245,24 @@
                                     </div>
                                 </div>
                                 <div class="row mb-2">
-                                    <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="email">{{ __('table.email') }}</label>
-                                        <input type="email" class="form-control" id="email" name="email" autocomplete="off" value="{{ $customer->email }}" readonly onfocus="this.removeAttribute('readonly');">
-                                    </div>
-                                    <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="mobile">{{ __('table.mobile') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="mobile" name="mobile" value="{{ $customer->mobile }}" required>
-                                    </div>
-                                </div>
-
-                                <div class="row mb-2">
                                     <div class="form-group col">
                                         <label for="remark">{{ __('table.remark') }}</label>
-                                        <textarea class="form-control" id="remark" name="remark" rows="3" placeholder="Enter remarks here..." >{{ $customer->remark ?? ''}}</textarea>
+                                        <textarea class="form-control" id="remark" name="remark" rows="6" placeholder="Enter remarks here..." >{{ $customer->remark ?? ''}}</textarea>
                                     </div>
                                 </div>
-
-                                <!-- <div class="row mb-2">
-                                    <div class="form-group col">
-                                        <label for="image" class="form-label">Upload Image <span class="text-danger">*</span></label>
-                                        <div id="imagePreviewContainer" class="mb-3 @if(!$customer->nric_path) d-none @endif">
-                                            <div class="position-relative d-inline-block">
-                                                <img id="imagePreview" src="{{ $customer->nric_path ? asset('storage/' . $customer->nric_path) : '' }}" alt="Preview" class="img-thumbnail" style="max-width: 300px;">
-                                                <button type="button" id="removeImage" class="btn btn-remove-image btn-primary btn-sm position-absolute top-0 end-0 m-2">
-                                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round" stroke-linejoin="round" class="icon icon-tabler icons-tabler-outline icon-tabler-x">
-                                                        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-                                                        <path d="M18 6l-12 12" />
-                                                        <path d="M6 6l12 12" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                        </div>
-                                        <input type="file" class="form-control" id="image" name="new_nric_image" accept="image/*">
-                                        <input type="hidden" id="removeExistingImage" name="remove_existing_image" value="0">
+                                <div class="row mb-2">
+                                    <div class="form-group col-md-4 border-top-0 pt-0">
+                                        <label for="status">Status</label>
+                                        <select id="status" name="status" class="form-control" required onchange="updateStatusColor(this)"
+                                            style="color: {{ in_array($customer->status, ['active', 'fully_paid']) ? 'green' : 'red' }}">
+                                            <option value="active" style="color: green;" {{ $customer->status=='active'?'selected':'' }}>Active</option>
+                                            <option value="overdue" style="color: red;" {{ $customer->status=='overdue'?'selected':'' }}>Overdue</option>
+                                            <option value="bad_debt" style="color: red;" {{ $customer->status=='bad_debt'?'selected':'' }}>Bad Debt</option>
+                                            <option value="blacklist" style="color: red;" {{ $customer->status=='blacklist'?'selected':'' }}>Blacklist</option>
+                                            <option value="fully_paid" style="color: green;" {{ $customer->status=='fully_paid'?'selected':'' }}>Fully Paid</option>
+                                        </select>
                                     </div>
-                                </div> -->
+                                </div>
                             </div>
                         </div>
 
@@ -295,7 +292,7 @@
                             </div> -->
                             <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label>{{ __('table.monthly_income') }}<span class="text-danger">*</span></label>
-                                <input type="number" class="form-control" name="monthly_income" placeholder="Monthly Income" value="{{ $customer->monthly_income }}" required>
+                                <input type="double" class="form-control" name="monthly_income" placeholder="Monthly Income" value="{{ $customer->monthly_income }}" required>
                             </div>
                         </div>
                         <div class="row mb-2">
@@ -406,8 +403,8 @@
                                 <input type="number" class="form-control" name="monthly_income" placeholder="Monthly Income" value="{{ $customer->monthly_income }}">
                             </div> -->
                             <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.salary_date') }}<span class="text-danger">*</span></label>
-                                <input type="date" name="salary_date" class="form-control" value="{{ $customer->salary_date }}" required>
+                                <label>{{ __('table.salary_date') }}</label>
+                                <input type="date" name="salary_date" class="form-control" value="{{ $customer->salary_date }}">
                             </div>
                             <div class="form-group col-md-4 border-top-0 pt-0">
                                 <label>{{ __('table.start_working_date') }}<span class="text-danger">*</span></label>
@@ -429,6 +426,12 @@
                                 <input type="date" name="end_working_date" class="form-control" value="{{ $customer->end_working_date }}">
                             </div>
                         </div> -->
+                        <div class="row mb-2">
+                            <div class="form-group col">
+                                <label for="remark">{{ __('table.remark') }}</label>
+                                <textarea class="form-control" id="work_remark" name="work_remark" rows="6" placeholder="Enter remarks here..." >{{ $customer->work_remark ?? ''}}</textarea>
+                            </div>
+                        </div>
                         <div class="row">
                             <div class="col-md-12 text-end mt-3">
                                 <button type="submit" class="btn btn-primary">{{ __('table.save_work_info') }}</button>
@@ -591,8 +594,8 @@
                         </select>
                         </div>
                         <div class="col-md-6">
-                            <label>{{ __('table.reference') }} NRIC <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="new_ic" required>
+                            <label>{{ __('table.reference') }} NRIC</label>
+                            <input type="text" class="form-control" name="new_ic">
                         </div>
                     </div>
                     
@@ -628,13 +631,17 @@
                     </div>
                     
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label>{{ __('table.mobile') }}</label>
-                            <input type="number" class="form-control" name="mobile" placeholder="Mobile number">
-                        </div>
-                        <div class="col-md-6">
-                            <label>{{ __('table.telephone') }}</label>
-                            <input type="number" class="form-control" name="telephone" placeholder="Telephone number">
+                        <div class="col-md-12">
+                            <label>{{ __('table.mobile') }} / {{ __('table.telephone') }}</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <select class="form-control" name="phone_type" style="border-radius: 4px 0 0 4px;">
+                                        <option value="mobile">Mobile</option>
+                                        <option value="telephone">Telephone</option>
+                                    </select>
+                                </div>
+                                <input type="number" class="form-control" name="phone_number" placeholder="Enter number">
+                            </div>
                         </div>
                     </div>
 
@@ -711,7 +718,7 @@
                         </div>
                         <div class="form-group col-md-6 border-top-0 pt-0">
                             <label>{{ __('table.monthly_income') }}</label>
-                            <input type="number" class="form-control" name="monthly_income" placeholder="Monthly Income">
+                            <input type="double" class="form-control" name="monthly_income" placeholder="Monthly Income">
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -784,8 +791,8 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label>{{ __('table.reference') }} NRIC <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" id="edit_new_ic" name="new_ic" required>
+                            <label>{{ __('table.reference') }} NRIC</label>
+                            <input type="text" class="form-control" id="edit_new_ic" name="new_ic">
                         </div>
                     </div>
                     
@@ -821,13 +828,17 @@
                     </div>
                     
                     <div class="row mb-3">
-                        <div class="col-md-6">
-                            <label>{{ __('table.mobile') }}</label>
-                            <input type="number" class="form-control" id="edit_mobile" name="mobile" placeholder="Mobile number">
-                        </div>
-                        <div class="col-md-6">
-                            <label>{{ __('table.telephone') }}</label>
-                            <input type="number" class="form-control" id="edit_telephone" name="telephone" placeholder="Telephone number">
+                        <div class="col-md-12">
+                            <label>{{ __('table.mobile') }} / {{ __('table.telephone') }}</label>
+                            <div class="input-group">
+                                <div class="input-group-prepend">
+                                    <select class="form-control" name="phone_type" style="border-radius: 4px 0 0 4px;">
+                                        <option value="mobile">Mobile</option>
+                                        <option value="telephone">Telephone</option>
+                                    </select>
+                                </div>
+                                <input type="number" class="form-control" name="phone_number" placeholder="Enter number">
+                            </div>
                         </div>
                     </div>
 
@@ -902,7 +913,7 @@
                         </div>
                         <div class="form-group col-md-6 border-top-0 pt-0">
                             <label>{{ __('table.monthly_income') }}</label>
-                            <input type="number" class="form-control" id="edit_monthly_income" name="monthly_income" placeholder="Monthly Income">
+                            <input type="double" class="form-control" id="edit_monthly_income" name="monthly_income" placeholder="Monthly Income">
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -1031,6 +1042,13 @@
 @endsection
 
 @section('scripts')
+    <script>
+        function updateStatusColor(select) {
+            const green = ['active', 'fully_paid'];
+            select.style.color = green.includes(select.value) ? 'green' : 'red';
+        }
+    </script>
+
     <script>
         document.getElementById('uploadIcBtn').addEventListener('click', function() {
             document.getElementById('nric_image').click();

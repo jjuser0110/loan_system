@@ -132,7 +132,7 @@
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-quaternary">
+                                <div class="summary-icon bg-secondary">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -152,7 +152,7 @@
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-quaternary">
+                                <div class="summary-icon bg-tertiary">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -172,7 +172,7 @@
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-quaternary">
+                                <div class="summary-icon bg-primary">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -192,7 +192,27 @@
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-quaternary">
+                                <div class="summary-icon bg-tertiary">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                            </div>
+                            <div class="cus-card">
+                                <h4 class="title">{{ __('table.total_expenses') }}</h4>
+                                <div class="info">
+                                    <strong class="amount" id="total-expenses-amount">{{ __('table.loading') }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
+                <section class="card card-featured-left card-featured-quaternary mb-3">
+                    <div class="card-body">
+                        <div class="widget-summary">
+                            <div class="widget-summary-col widget-summary-col-icon">
+                                <div class="summary-icon bg-primary">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -212,7 +232,7 @@
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-quaternary">
+                                <div class="summary-icon bg-secondary">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -524,6 +544,20 @@
         .then(response => response.json())
         .then(data => {
             document.getElementById('total-capital-amount').innerHTML = '$'+data.total_capital ?? '0.00';
+        })
+        .catch(error => {
+            console.error('Search failed:', error);
+        });
+
+        // LOAD EXPENSES
+        fetch(`{{ route('expense.fetch_expense') }}`, {
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('total-expenses-amount').innerHTML = '$'+(data.total_expenses ?? '0.00');
         })
         .catch(error => {
             console.error('Search failed:', error);

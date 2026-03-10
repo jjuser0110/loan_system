@@ -171,6 +171,11 @@ $currentRoute = request()->route()->getName();
                                     {{ __('sidebar.house_ownership') }}
                                 </a>
                             </li>
+                            <li class="{{ request()->routeIs('reference_type.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('reference_type.index')}}">
+                                    {{ __('sidebar.reference_type') }}
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     @endif

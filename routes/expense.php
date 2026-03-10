@@ -9,4 +9,5 @@ Route::prefix('/expense')->as('expense.')->middleware(['auth'])->group(function(
     Route::post('/store', 'ExpenseController@store')->name('store');
     Route::post('/update', 'ExpenseController@update')->name('update');
     Route::post('/delete', 'ExpenseController@delete')->name('delete');
+    Route::get('/fetch-expense', 'ExpenseController@fetch_expense')->name('fetch_expense');
 });

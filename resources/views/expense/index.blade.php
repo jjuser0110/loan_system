@@ -68,7 +68,7 @@
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label class="col-form-label">{{ __('table.amount') }}</label>
-                            <input type="number" class="form-control" name="amount" value="0">
+                            <input type="number" class="form-control" name="amount" value="0" min="-999999999">
                         </div>
                     </div>
                     <div class="col-md-12 mb-3">
@@ -133,9 +133,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-12 mb-3">
-                        <label class="col-form-label">{{ __('table.amount') }}</label>
-                        <input type="number" id="update-expense-amount" class="form-control" name="amount" value="0">
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <label class="col-form-label">{{ __('table.amount') }}</label>
+                            <input type="number" class="form-control" name="amount" value="0" min="-999999999">
+                        </div>
                     </div>
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.company') }}</label>

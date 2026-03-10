@@ -104,7 +104,7 @@ return [
 'salary_date_2' => '第二发薪日',
 'end_working_date' => '结束工作日期',
 'save_work_info' => '保存工作信息',
-'reference_type' => '推荐类型',
+'reference_type' => '推荐人类型',
 'add_reference' => '添加推荐人',
 'houseownership' => '房屋拥有权',
 'actions' => '操作',
@@ -119,7 +119,7 @@ return [
 'capital' => '资本',
 'add_loan' => '添加贷款',
 'work_information' => '工作信息',
-'reference_form' => '推荐表格',
+'reference_form' => '推荐人表格',
 'reference_name' => '推荐人姓名',
 'telephone' => '电话',
 'address_1' => '地址 1',
@@ -261,6 +261,10 @@ return [
 'filter' => '筛选',
 'select_company' => '选择公司',
 'please_select_filter' => '请至少选择一个筛选条件',
+'total_expenses' => '总开销',
+'reference_type_information' => '推荐人类型信息',
+'total_balance' => '总余额',
+'last_pay_date' => '最近付款日期',
 
 ];
 

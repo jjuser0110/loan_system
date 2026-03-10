@@ -134,9 +134,24 @@
                                     </div>
                                 </div>
                                 <div class="row mb-2">
+                                    <div class="form-group col-md-6 border-top-0 pt-0">
+                                        <label for="email">{{ __('table.email') }}</label>
+                                        <input type="email" class="form-control" id="email" name="email" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');">
+                                    </div>
+                                    <div class="form-group col-md-6 border-top-0 pt-0">
+                                        <label for="mobile">{{ __('table.mobile') }} <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="mobile" name="mobile" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
                                     <div class="form-group col">
                                         <label for="address1">{{ __('table.address') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="address1" name="address1" placeholder="Address" required>
+                                        <input type="text" class="form-control" id="address1" name="address1" placeholder="Address 1" required>
+                                    </div>
+                                </div>
+                                <div class="row mb-2">
+                                    <div class="form-group col">
+                                        <input type="text" class="form-control" id="address2" name="address2" placeholder="Address 2">
                                     </div>
                                 </div>
                                 <div class="row mb-2">
@@ -186,19 +201,9 @@
                                     </div>
                                 </div>
                                 <div class="row mb-2">
-                                    <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="email">{{ __('table.email') }} <span class="text-danger">*</span></label>
-                                        <input type="email" class="form-control" id="email" name="email" autocomplete="off" readonly onfocus="this.removeAttribute('readonly');" required>
-                                    </div>
-                                    <div class="form-group col-md-4 border-top-0 pt-0">
-                                        <label for="mobile">{{ __('table.mobile') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="mobile" name="mobile" required>
-                                    </div>
-                                </div>
-                                <div class="row mb-2">
                                     <div class="form-group col">
                                         <label for="remark">{{ __('table.remark') }}</label>
-                                        <textarea class="form-control" id="remark" name="remark" rows="3" placeholder="Enter remarks here..."></textarea>
+                                        <textarea class="form-control" id="remark" name="remark" rows="6" placeholder="Enter remarks here..."></textarea>
                                     </div>
                                 </div>
 

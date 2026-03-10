@@ -33,6 +33,7 @@ return [
 'report' => 'Laporan',
 'daily_report' => 'Laporan Harian',
 'cash_book_report' => 'Laporan Buku Tunai',
+'reference_type'=>'Jenis Rujukan',
 
 ];
 

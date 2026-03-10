@@ -20,4 +20,5 @@ Route::prefix('/loan')->as('loan.')->middleware(['auth'])->group(function() {
     Route::get('/load_overdue_loan', 'LoanController@load_overdue_loan')->name('load_overdue_loan');
     Route::get('/fetch_capital/{loan_code?}', 'LoanController@fetch_capital')->name('fetch_capital');
     Route::post('/delete', 'LoanController@delete')->name('delete');
+    Route::post('update_status/{loan_code}', 'LoanController@updateStatus')->name('update_status');
 });

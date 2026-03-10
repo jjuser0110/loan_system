@@ -130,7 +130,7 @@ class ExpenseController extends Controller
             $v = $request->validate([
                 'expense_title' => 'required|string|min:3|max:255',
                 'expense_description' => 'required|string|min:3|max:255',
-                'amount' => 'required|numeric|min:0',
+                'amount' => 'required|numeric',
                 'company' => 'required',
                 'payment_method_id' => 'required',
                 'date' => 'required'
@@ -213,7 +213,7 @@ class ExpenseController extends Controller
             $v = $request->validate([
                 'expense_title' => 'required|string|min:3|max:255',
                 'expense_description' => 'required|string|min:3|max:255',
-                'amount' => 'required|numeric|min:0',
+                'amount' => 'required|numeric',
                 'company' => 'required',
                 'payment_method_id' => 'required',
                 'date' => 'required'
@@ -368,5 +368,16 @@ class ExpenseController extends Controller
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    public function fetch_expense()
+    {
+        $total_expenses = DB::table('expenses')
+            ->whereNull('deleted_at')
+            ->sum('amount');
+
+        return response()->json([
+            'total_expenses' => number_format($total_expenses, 2)
+        ]);
     }
 }

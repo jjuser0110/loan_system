@@ -39,8 +39,8 @@ class LoanController extends Controller
                 $query = DB::table('loans')->where('company_id',$companyId);
                 break;
         }
-        $loans = $query->selectRaw('SUM(capital) as total_capital, SUM(interest_paid) as total_interest_paid, SUM(late_paid) as total_late_paid ,SUM(outstanding) as outstanding')->first();
-        return view('loan.index')->with('total_capital',$loans->total_capital)->with('outstanding',$loans->outstanding)->with('total_interest_paid',$loans->total_interest_paid)->with('total_late_paid',$loans->total_late_paid);
+        $loans = $query->selectRaw('SUM(capital) as total_capital, SUM(interest_paid) as total_interest_paid, SUM(late_paid) as total_late_paid ,SUM(outstanding) as outstanding ,SUM(loan_amount) as total_loan_amount ,SUM(balance) as total_balance ,SUM(interest) as total_interest' )->first();
+        return view('loan.index')->with('total_capital',$loans->total_capital)->with('outstanding',$loans->outstanding)->with('total_interest_paid',$loans->total_interest_paid)->with('total_late_paid',$loans->total_late_paid)->with('total_loan_amount',$loans->total_loan_amount)->with('total_balance',$loans->total_balance)->with('total_interest',$loans->total_interest);
     }
 
     public function fetch_profit(Request $request)
@@ -811,7 +811,7 @@ class LoanController extends Controller
 
     public function update_outstanding(Loan $loan){
         $outstanding = $loan->balance + $loan->late_balance + $loan->interest_balance;
-        $loan->update(['outstanding'=>$outstanding, 'status'=>$outstanding > 0 ? 'Ongoing' : 'Fully Paid']);
+        $loan->update(['outstanding'=>$outstanding, 'status'=>$outstanding > 0 ? 'Active' : 'Fully Paid']);
     }
 
     public function update_loan_misc(Loan $loan){
@@ -884,5 +884,11 @@ class LoanController extends Controller
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    public function updateStatus(Request $request, $loan_code)
+    {
+        Loan::where('loan_code', $loan_code)->update(['status' => $request->status]);
+        return redirect()->back()->withSuccess('Status updated successfully');
     }
 }

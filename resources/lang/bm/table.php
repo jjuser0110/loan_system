@@ -261,6 +261,10 @@ return [
 'filter' => 'Tapis',
 'select_company' => 'Pilih Syarikat',
 'please_select_filter' => 'Sila pilih sekurang-kurangnya satu tapisan',
+'total_expenses' => 'Jumlah Perbelanjaan',
+'reference_type_information' => 'Maklumat Jenis Rujukan',
+'total_balance' => 'Jumlah Baki',
+'last_pay_date' => 'Tarikh Bayaran Terakhir',
 
 ];
 

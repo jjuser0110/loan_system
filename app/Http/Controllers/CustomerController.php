@@ -92,10 +92,23 @@ class CustomerController extends Controller
                     ->orWhere('customers.mobile', 'like', "%{$search}%")
                     ->orWhere('customers.address1', 'like', "%{$search}%")
                     ->orWhere('customers.created_at', 'like', "%{$search}%")
-                    ->orWhere('companies.company_name', 'like', "%{$search}%")
+                    ->orWhere('customers.company_name', 'like', "%{$search}%")
                     ->orWhere('branches.branch_name', 'like', "%{$search}%")
                     ->orWhere('companies.company_code', 'like', "%{$search}%")
-                    ->orWhere('branches.branch_code', 'like', "%{$search}%");
+                    ->orWhere('branches.branch_code', 'like', "%{$search}%")
+                    ->orWhereRaw("
+                    CASE 
+                        WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id) 
+                            THEN 'New'
+                        WHEN EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0 AND loans.next_due_date < CURDATE()) 
+                            THEN 'Delay'
+                        WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0) 
+                            THEN 'Settled'
+                        WHEN EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0 AND loans.next_due_date >= CURDATE()) 
+                            THEN 'Active'
+                        ELSE 'Unknown'
+                    END LIKE ?
+                ", ["%{$search}%"]);
                 });
             }
 
@@ -152,82 +165,82 @@ class CustomerController extends Controller
     }
 
     public function store(Request $request) 
-{ 
-    try {
-        // Validate only required fields
-        $validator = Validator::make($request->all(), [
-            'customer_name' => 'required|string|max:255',
-            'nric_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-            'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
+    { 
+        try {
+            // Validate only required fields
+            $validator = Validator::make($request->all(), [
+                'customer_name' => 'required|string|max:255',
+                'nric_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+                'profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            ]);
 
-        if ($validator->fails()) {
-            $message = $validator->errors()->first();
-            throw new Exception($message);
-        }
-
-        // Get company_id and company_code if company is selected
-        $company = null;
-        if ($request->company_code) {
-            $company = Company::where('company_code', $request->company_code)->first();
-            if (!$company) {
-                throw new Exception('Selected company not found.');
+            if ($validator->fails()) {
+                $message = $validator->errors()->first();
+                throw new Exception($message);
             }
-        }
 
-        // Prepare data for creation
-        $customerData = $request->all();
-        
-        // Store both company_id and company_code if company is selected
-        if ($company) {
-            $customerData['company_id'] = $company->id;
-            $customerData['company_code'] = $company->company_code;
+            // Get company_id and company_code if company is selected
+            $company = null;
+            if ($request->company_code) {
+                $company = Company::where('company_code', $request->company_code)->first();
+                if (!$company) {
+                    throw new Exception('Selected company not found.');
+                }
+            }
+
+            // Prepare data for creation
+            $customerData = $request->all();
+            
+            // Store both company_id and company_code if company is selected
+            if ($company) {
+                $customerData['company_id'] = $company->id;
+                $customerData['company_code'] = $company->company_code;
+            }
+            
+            // Convert fields to lowercase if they exist
+            if ($request->city) {
+                $customerData['city'] = strtolower($request->city);
+            }
+            if ($request->warganegara) {
+                $customerData['warganegara'] = strtolower($request->warganegara);
+            }
+            
+            $customer_code = $this->getSystemCode();
+            
+            $customerData = array_merge($customerData, [
+                'customer_code' => $customer_code,
+            ]);
+            
+            $customer = Customer::create($customerData);
+            
+            // Handle NRIC image upload (OPTIONAL)
+            if ($request->hasFile('nric_image')) { 
+                $file = $request->file('nric_image');
+                $folder = 'customers/'.$customer_code;
+                $randomCode = $customer_code.Str::upper(Str::random(12));
+                $extension  = $file->getClientOriginalExtension();
+                $filename = $randomCode . '.' . $extension;
+                $nric_path = $file->storeAs($folder, $filename, 'public');
+                $customer->update(['nric_path' => $nric_path]);
+            }
+            
+            // Handle PROFILE image upload (OPTIONAL)
+            if ($request->hasFile('profile_image')) { 
+                $file = $request->file('profile_image');
+                $folder = 'customers/'.$customer_code.'/profile';
+                $randomCode = 'profile_'.$customer_code.Str::upper(Str::random(12));
+                $extension  = $file->getClientOriginalExtension();
+                $filename = $randomCode . '.' . $extension;
+                $profile_path = $file->storeAs($folder, $filename, 'public');
+                $customer->update(['profile_image' => $profile_path]);
+            }
+            
+            return redirect()->route('customer.edit', $customer->id)->withSuccess('Customer personal information saved successfully. Please add work and reference information.'); 
         }
-        
-        // Convert fields to lowercase if they exist
-        if ($request->city) {
-            $customerData['city'] = strtolower($request->city);
+        catch(Exception $e){
+            return redirect()->back()->withError($e->getMessage())->withInput();
         }
-        if ($request->warganegara) {
-            $customerData['warganegara'] = strtolower($request->warganegara);
-        }
-        
-        $customer_code = $this->getSystemCode();
-        
-        $customerData = array_merge($customerData, [
-            'customer_code' => $customer_code,
-        ]);
-        
-        $customer = Customer::create($customerData);
-        
-        // Handle NRIC image upload (OPTIONAL)
-        if ($request->hasFile('nric_image')) { 
-            $file = $request->file('nric_image');
-            $folder = 'customers/'.$customer_code;
-            $randomCode = $customer_code.Str::upper(Str::random(12));
-            $extension  = $file->getClientOriginalExtension();
-            $filename = $randomCode . '.' . $extension;
-            $nric_path = $file->storeAs($folder, $filename, 'public');
-            $customer->update(['nric_path' => $nric_path]);
-        }
-        
-        // Handle PROFILE image upload (OPTIONAL)
-        if ($request->hasFile('profile_image')) { 
-            $file = $request->file('profile_image');
-            $folder = 'customers/'.$customer_code.'/profile';
-            $randomCode = 'profile_'.$customer_code.Str::upper(Str::random(12));
-            $extension  = $file->getClientOriginalExtension();
-            $filename = $randomCode . '.' . $extension;
-            $profile_path = $file->storeAs($folder, $filename, 'public');
-            $customer->update(['profile_image' => $profile_path]);
-        }
-        
-        return redirect()->route('customer.edit', $customer->id)->withSuccess('Customer personal information saved successfully. Please add work and reference information.'); 
     }
-    catch(Exception $e){
-        return redirect()->back()->withError($e->getMessage())->withInput();
-    }
-}
 
     public function updateWork(Request $request, $id)
     {
@@ -247,6 +260,14 @@ class CustomerController extends Controller
         $referenceData = $request->all();
         $referenceData['city'] = strtolower($request->city);
         $referenceData['company_city'] = strtolower($request->company_city);
+
+        if ($request->phone_type == 'mobile') {
+            $referenceData['mobile'] = $request->phone_number;
+            $referenceData['telephone'] = null;
+        } else {
+            $referenceData['telephone'] = $request->phone_number;
+            $referenceData['mobile'] = null;
+        }
         
         Reference::create($referenceData);
         
@@ -278,9 +299,17 @@ class CustomerController extends Controller
         $referenceData = $request->all();
         $referenceData['city'] = strtolower($request->city);
         $referenceData['company_city'] = strtolower($request->company_city);
-        
-        $reference->update($referenceData);
-        
+
+        if ($request->phone_type == 'mobile') {
+            $referenceData['mobile'] = $request->phone_number;
+            $referenceData['telephone'] = null;
+        } else {
+            $referenceData['telephone'] = $request->phone_number;
+            $referenceData['mobile'] = null;
+        }
+
+        $reference->update($referenceData); // update AFTER phone logic
+
         return redirect()->to(url()->previous() . '#reference')->withSuccess('Reference information updated successfully');
     }
 
@@ -350,7 +379,8 @@ class CustomerController extends Controller
                 'postcode' => 'required|string',
                 'city' => 'required|string',
                 'mobile'=> 'required|string',
-                'email'=> 'required|string',
+                'status' => 'required|string',
+                // 'email'=> 'required|string',
                 'marital_status' => 'required',
                 'house_ownership' => 'required',
                 'warganegara' => 'required',
@@ -414,6 +444,7 @@ class CustomerController extends Controller
                 'warganegara' => $request->warganegara,
                 'house_ownership' => $request->house_ownership,
                 'state' => $request->state,
+                'status' => $request->status,
                 'remark' => $request->remark
             ]);
 

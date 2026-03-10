@@ -35,6 +35,7 @@ class Customer extends Model
         'email',
         'telephone',
         'mobile',
+        'status',
         'remark',
         'company_name',
         'biz_type',
@@ -57,6 +58,7 @@ class Customer extends Model
         'end_working_date',
         'salary_date',
         'salary_date_2',
+        'work_remark',
     ];
 
     protected $dates = [
