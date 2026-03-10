@@ -113,6 +113,23 @@ class CustomerController extends Controller
             }
 
             $recordsTotal = $query->count();
+
+            $columnMap = [
+                'customer_code'    => 'customers.customer_code',
+                'nric_number'      => 'customers.nric_number',
+                'mobile'           => 'customers.mobile',
+                'customer_company' => 'customers.company_name',
+                'address1'         => 'customers.address1',
+                'email'            => 'customers.email',
+                'branch_name'      => 'branches.branch_name',
+                'company_name'     => 'companies.company_name',
+                'status'           => 'customers.status',
+                'created_at'       => 'customers.created_at',
+            ];
+            $orderByColumn = $columnMap[$orderByColumn] ?? 'customers.created_at';
+
+            $data = $query->orderBy($orderByColumn, $orderByDirection)->skip($start)->take($length)->get();
+
             $data = $query->orderBy($orderByColumn, $orderByDirection)->skip($start)->take($length)->get();
             return response()->json([
                 "draw" => intval($draw),

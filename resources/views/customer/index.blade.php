@@ -83,13 +83,13 @@
                 },
                 @if(Auth::user()->role_id == 1)
                 {
-                    "data": null,
+                    "data": "branch_name",
                     "render": function(data, type, row, meta) {
                         return row.branch_code + "<br>" + row.branch_name;
                     }
                 },
                 {
-                    "data": null,
+                    "data": "company_name",
                     "render": function(data, type, row, meta) {
                         return row.company_code + "<br>" + row.company_name;
                     }
