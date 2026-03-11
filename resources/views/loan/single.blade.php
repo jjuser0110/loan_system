@@ -436,6 +436,7 @@
                                     <tr>
                                         <th>{{ __('table.payment_code') }}</th>
                                         <th>{{ __('table.paid') }}</th>
+                                        <th>{{ __('table.pay_date') }}</th>
                                         <th>{{ __('table.discount') }}</th>
                                         <th>{{ __('table.interest_paid') }}</th>
                                         <th>{{ __('table.late_paid') }}</th>
@@ -809,6 +810,13 @@
                 },
                 {
                     "data": "payment_amount"
+                },
+                {
+                    "data": "created_at",
+                    "render": function(data) {
+                        if (!data) return '-';
+                        return data.substring(0, 10);
+                    }
                 },
                 {
                     "data": "discount_amount"

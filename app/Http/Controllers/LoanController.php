@@ -240,6 +240,7 @@ class LoanController extends Controller
             $length = $request->input('length', 10);
             $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
             $orderByDirection = $request->input('order.0.dir');
+
             $query = Loan::query()
                 ->select([
                     'loans.*',
@@ -258,16 +259,13 @@ class LoanController extends Controller
             switch (Auth::user()->role_id) {
                 case 1:
                     break;
-
                 case 2:
                     $query->where('companies.branch_id', Auth::user()->branch_id);
                     break;
-
                 case 3:
                 case 4:
                     $query->where('loans.company_id', Auth::user()->company_id);
                     break;
-
                 default:
                     throw new Exception('Invalid role id.');
             }
@@ -284,19 +282,34 @@ class LoanController extends Controller
                     ->orWhere('branches.branch_name', 'like', "%{$search}%");
                 });
             }
+
             if($request->customer_code){
-         
                 $query->where('customers.customer_code',$request->customer_code);
             }
-            
+
+            // clone query for totals
+            $totalQuery = clone $query;
+
             $recordsTotal = $query->count();
-            $loans = $query->orderBy($orderByColumn, $orderByDirection)->skip($start)->take($length)->get();
+
+            // totals
+            $total_loan_amount = $totalQuery->sum('loans.loan_amount');
+            $total_balance = $totalQuery->sum('loans.outstanding');
+            $total_profit = $totalQuery->sum('loans.paid') - $totalQuery->sum('loans.capital');
+
+            $loans = $query->orderBy($orderByColumn, $orderByDirection)
+                        ->skip($start)
+                        ->take($length)
+                        ->get();
 
             return response()->json([
                 "draw" => intval($draw),
                 "recordsTotal" => $recordsTotal,
                 "recordsFiltered" => $recordsTotal,
                 "data" => $loans,
+                "total_profit" => $total_profit,
+                "total_loan_amount" => $total_loan_amount,
+                "total_balance" => $total_balance
             ]);
         }
         catch(Exception $e){

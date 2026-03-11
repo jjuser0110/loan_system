@@ -161,7 +161,7 @@
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label class="col-form-label">{{ __('table.amount') }}</label>
-                            <input type="number" step="0.01" min="0" class="form-control" id="update-payment-method-credit-amount" name="amount" required>
+                            <input type="number" step="0.01" class="form-control" id="update-payment-method-credit-amount" name="amount" required>
                         </div>
                     </div>
                      <div class="row mb-3">
@@ -228,8 +228,9 @@
                         return`
                             <div class="cus-action-wrapper">
                                 <a class="cus-action-icon info" title="Update Payment" onclick="updatePaymentMethod(${meta.row},${row.company_id},${row.bank_id})"><i class="fas fa-edit"></i></a>
-                                <a class="cus-action-icon success" title="Delete Payment" onclick="updatePaymentMethodCredit(${meta.row})"><i class="fa fa-usd"></i></a>
+                                <a class="cus-action-icon success" title="Update Payment Credit" onclick="updatePaymentMethodCredit(${meta.row})"><i class="fa fa-usd"></i></a>
                                 <a class="cus-action-icon log" title="View Logs" href="/payment_method/logs?account_no=${encodeURIComponent(row.account_no)}" style="background-color: orange;"><i class="fas fa-history"></i></a>
+                                <a class="cus-action-icon danger" title="Delete Payment" onclick="deletePayment(${meta.row})"><i class="fas fa-trash-alt"></i></a>
                             </div>
                         `;
                     }
@@ -330,6 +331,36 @@
             document.getElementById('update-payment-method-credit-amount').value = null;
             document.getElementById('update-payment-method-credit-remark').value = null;
             $('#modal-update-payment-method-credit').modal('show');
+        }
+
+        function deletePayment(rowIndex) {
+            const data = table_payment.row(rowIndex).data();
+            if (confirm('Are you sure you want to delete this payment?')) {
+                $.ajax({
+                    url: '/payment_method/destroy/' + data.id,
+                    type: 'POST',
+                    data: {
+                        _token: '{{ csrf_token() }}'
+                    },
+                    success: function (response) {
+                        if (response.success == true) {
+                            setReloadSwal('success', '', response.message);
+                        } else {
+                            setDefaultSwal('error', '', response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        console.error('Delete failed - Status:', xhr.status);
+                        console.error('Response:', xhr.responseText);
+                        let msg = 'Failed to delete payment (HTTP ' + xhr.status + ').';
+                        try {
+                            let json = JSON.parse(xhr.responseText);
+                            msg += ' ' + (json.message || json.error || '');
+                        } catch(e) {}
+                        setDefaultSwal('error', '', msg);
+                    }
+                });
+            }
         }
     </script>
 @endsection

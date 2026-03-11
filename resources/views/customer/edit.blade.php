@@ -139,7 +139,7 @@
 
                                         @if($customer->nric_path)
                                             <div class="mt-1">
-                                                <a href="{{ asset('storage/' . $customer->nric_path) }}" target="_blank" class="text-primary">
+                                                <a href="{{ asset('storage/' . $customer->nric_path) }}" class="text-primary">
                                                     <i class="fas fa-eye"></i> {{ __('table.view_ic') }}
                                                 </a>
                                             </div>
@@ -286,10 +286,6 @@
                                 <label>{{ __('table.company_name') }}<span class="text-danger">*</span></label>
                                 <input type="text" class="form-control" name="company_name" placeholder="Company Name" value="{{ $customer->company_name }}" required>
                             </div>
-                            <!-- <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label>{{ __('table.business_type') }}</label>
-                                <input type="text" class="form-control" name="biz_type" placeholder="Business Type" value="{{ $customer->biz_type }}" required>
-                            </div> -->
                             <div class="form-group col-md-6 border-top-0 pt-0">
                                 <label>{{ __('table.monthly_income') }}<span class="text-danger">*</span></label>
                                 <input type="double" class="form-control" name="monthly_income" placeholder="Monthly Income" value="{{ $customer->monthly_income }}" required>
@@ -304,16 +300,11 @@
                                 <label>{{ __('table.employer_type') }}<span class="text-danger">*</span></label>
                                 <select name="employer" class="form-control" required>
                                     <option value="">{{ __('table.choose') }}...</option>
-                                    <option value="Private Sector" {{ $customer->employer == 'Private Sector' ? 'selected' : '' }}>{{ __('table.private_sector') }}</option>
-                                    <option value="Government" {{ $customer->employer == 'Government' ? 'selected' : '' }}>{{ __('table.government') }}</option>
-                                    <option value="Statutory Body" {{ $customer->employer == 'Statutory Body' ? 'selected' : '' }}>{{ __('table.statutory_body') }}</option>
-                                    <option value="Public Listed Company" {{ $customer->employer == 'Public Listed Company' ? 'selected' : '' }}>{{ __('table.public_listed_company') }}</option>
-                                    <option value="Multinational Corporation" {{ $customer->employer == 'Multinational Corporation' ? 'selected' : '' }}>{{ __('table.multinational_corporation') }}</option>
-                                    <option value="Self-Employed" {{ $customer->employer == 'Self-Employed' ? 'selected' : '' }}>{{ __('table.self-employed') }}</option>
-                                    <option value="NGO" {{ $customer->employer == 'NGO' ? 'selected' : '' }}>{{ __('table.non-governmental_organization_(NGO)') }}</option>
-                                    <option value="Military" {{ $customer->employer == 'Military' ? 'selected' : '' }}>{{ __('table.military/armed_forces') }}</option>
-                                    <option value="Retired" {{ $customer->employer == 'Retired' ? 'selected' : '' }}>{{ __('table.retired') }}</option>
-                                    <option value="Unemployed" {{ $customer->employer == 'Unemployed' ? 'selected' : '' }}>{{ __('table.unemployed') }}</option>
+                                    @foreach($employer_types as $employer_type)
+                                        <option value="{{ $employer_type->employer_type }}" {{ $customer->employer == $employer_type->employer_type ? 'selected' : '' }}>
+                                            {{ $employer_type->employer_type }}
+                                        </option>
+                                    @endforeach
                                 </select>
                             </div>
                         </div>
@@ -345,66 +336,10 @@
                                 </select>
                             </div>
                         </div>
-                        <!-- <div class="row mb-2">
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.office_telephone') }}</label>
-                                <input type="text" class="form-control" name="company_telephone" value="{{ $customer->company_telephone }}">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.office_mobile') }}</label>
-                                <input type="text" class="form-control" name="company_mobile" value="{{ $customer->company_mobile }}">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.fax') }}</label>
-                                <input type="text" class="form-control" name="company_fax" value="{{ $customer->company_fax }}">
-                            </div>
-                        </div>
                         <div class="row mb-2">
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label>{{ __('table.vehicle_number') }}</label>
-                                <input type="text" class="form-control" name="vehicle_no" value="{{ $customer->vehicle_no }}">
-                            </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label>{{ __('table.vehicle_model') }}</label>
-                                <input type="text" class="form-control" name="vehicle_model" value="{{ $customer->vehicle_model }}">
-                            </div>
-                        </div> -->
-                        <!-- <div class="row mb-2">
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label>{{ __('table.employer_type') }}</label>
-                                <select name="employer" class="form-control" required>
-                                    <option value="">{{ __('table.choose') }}...</option>
-                                    <option value="Private Sector" {{ $customer->employer == 'Private Sector' ? 'selected' : '' }}>{{ __('table.private_sector') }}</option>
-                                    <option value="Government" {{ $customer->employer == 'Government' ? 'selected' : '' }}>{{ __('table.government') }}</option>
-                                    <option value="Statutory Body" {{ $customer->employer == 'Statutory Body' ? 'selected' : '' }}>{{ __('table.statutory_body') }}</option>
-                                    <option value="Public Listed Company" {{ $customer->employer == 'Public Listed Company' ? 'selected' : '' }}>{{ __('table.public_listed_company') }}</option>
-                                    <option value="Multinational Corporation" {{ $customer->employer == 'Multinational Corporation' ? 'selected' : '' }}>{{ __('table.multinational_corporation') }}</option>
-                                    <option value="Self-Employed" {{ $customer->employer == 'Self-Employed' ? 'selected' : '' }}>{{ __('table.self-employed') }}</option>
-                                    <option value="NGO" {{ $customer->employer == 'NGO' ? 'selected' : '' }}>{{ __('table.non-governmental_organization_(NGO)') }}</option>
-                                    <option value="Military" {{ $customer->employer == 'Military' ? 'selected' : '' }}>{{ __('table.military/armed_forces') }}</option>
-                                    <option value="Retired" {{ $customer->employer == 'Retired' ? 'selected' : '' }}>{{ __('table.retired') }}</option>
-                                    <option value="Unemployed" {{ $customer->employer == 'Unemployed' ? 'selected' : '' }}>{{ __('table.unemployed') }}</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-md-6 border-top-0 pt-0">
-                                <label>{{ __('table.job_type') }}</label>
-                                   <select name="job_type" class="form-control" required>
-                                    <option value="">{{ __('table.choose') }}...</option>
-                                    <option value="Fulltime" {{ $customer->job_type == 'Fulltime' ? 'selected' : '' }}>{{ __('table.fulltime') }}</option>
-                                    <option value="Contract" {{ $customer->job_type == 'Contract' ? 'selected' : '' }}>{{ __('table.contract') }}</option>
-                                    <option value="Partime" {{ $customer->job_type == 'Partime' ? 'selected' : '' }}>{{ __('table.part_time') }}</option>
-                                    <option value="Other" {{ $customer->job_type == 'Other' ? 'selected' : '' }}>{{ __('table.other') }}</option>
-                                </select>
-                            </div>
-                        </div> -->
-                        <div class="row mb-2">
-                            <!-- <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.monthly_income') }}</label>
-                                <input type="number" class="form-control" name="monthly_income" placeholder="Monthly Income" value="{{ $customer->monthly_income }}">
-                            </div> -->
                             <div class="form-group col-md-4 border-top-0 pt-0">
                                 <label>{{ __('table.salary_date') }}</label>
-                                <input type="date" name="salary_date" class="form-control" value="{{ $customer->salary_date }}">
+                                <input type="string" name="salary_date" class="form-control" value="{{ $customer->salary_date }}">
                             </div>
                             <div class="form-group col-md-4 border-top-0 pt-0">
                                 <label>{{ __('table.start_working_date') }}<span class="text-danger">*</span></label>
@@ -412,20 +347,6 @@
                             </div>
                            
                         </div>
-                        <!-- <div class="row mb-2">
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.monthly_income_2') }}</label>
-                                <input type="number" class="form-control" name="monthly_income_2" placeholder="Monthly Income" value="{{ $customer->monthly_income_2 }}">
-                            </div>
-                            <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.salary_date_2') }}</label>
-                                <input type="date" name="salary_date_2" class="form-control" value="{{ $customer->salary_date_2 }}">
-                            </div>
-                             <div class="form-group col-md-4 border-top-0 pt-0">
-                                <label>{{ __('table.end_working_date') }}</label>
-                                <input type="date" name="end_working_date" class="form-control" value="{{ $customer->end_working_date }}">
-                            </div>
-                        </div> -->
                         <div class="row mb-2">
                             <div class="form-group col">
                                 <label for="remark">{{ __('table.remark') }}</label>
@@ -542,9 +463,86 @@
                 <div id="loan" class="tab-pane">
                     <div class="col-lg-12 mb-3">
                         <section class="card" style="overflow:auto">
-                            <div class="card-header" style="text-align: right;">
-                                <a class="btn btn-xs btn-square btn-primary" target="_blank" href="{{ route('loan.create',['customer_code'=>$customer->customer_code,'company_code'=>$customer->company_code]) }}">{{ __('table.add_loan') }}</a>
+
+                            <div class="row mb-4" style="padding-top:40px;">
+
+                                {{-- TOTAL PROFIT --}}
+                                <div class="col-xl-4">
+                                    <section class="card card-featured-left card-featured-primary mb-3">
+                                        <div class="card-body">
+                                            <div class="widget-summary">
+                                                <div class="widget-summary-col" style="vertical-align: middle">
+                                                    <div class="summary" style="min-height:1px">
+                                                        <h4 class="title" style="margin-bottom:5px">
+                                                            {{ __('table.total_profits') }}
+                                                        </h4>
+                                                        <div class="info">
+                                                            <strong class="amount">
+                                                                RM <span style="font-size:1.4rem" id="total-profit">0.00</span>
+                                                            </strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                {{-- TOTAL LOAN AMOUNT --}}
+                                <div class="col-xl-4">
+                                    <section class="card card-featured-left card-featured-secondary mb-3">
+                                        <div class="card-body">
+                                            <div class="widget-summary">
+                                                <div class="widget-summary-col" style="vertical-align: middle">
+                                                    <div class="summary" style="min-height:1px">
+                                                        <h4 class="title" style="margin-bottom:5px">
+                                                            {{ __('table.total_loan_amount') }}
+                                                        </h4>
+                                                        <div class="info">
+                                                            <strong class="amount">
+                                                                RM <span style="font-size:1.4rem" id="total-loan-amount">0.00</span>
+                                                            </strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                {{-- TOTAL BALANCE --}}
+                                <div class="col-xl-4">
+                                    <section class="card card-featured-left card-featured-secondary mb-3">
+                                        <div class="card-body">
+                                            <div class="widget-summary">
+                                                <div class="widget-summary-col" style="vertical-align: middle">
+                                                    <div class="summary" style="min-height:1px">
+                                                        <h4 class="title" style="margin-bottom:5px">
+                                                            {{ __('table.total_balance') }}
+                                                        </h4>
+                                                        <div class="info">
+                                                            <strong class="amount">
+                                                                RM <span style="font-size:1.4rem" id="total-balance">0.00</span>
+                                                            </strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+
                             </div>
+
+                            {{-- ADD LOAN BUTTON --}}
+                            <div class="card-header" style="text-align:right;">
+                                <a class="btn btn-xs btn-square btn-primary"
+                                href="{{ route('loan.create',['customer_code'=>$customer->customer_code,'company_code'=>$customer->company_code]) }}">
+                                    {{ __('table.add_loan') }}
+                                </a>
+                            </div>
+
+                            {{-- LOAN TABLE --}}
                             <div class="card-body">
                                 <table class="table cus-table table-bordered table-striped mb-0" id="table-loan">
                                     <thead>
@@ -552,22 +550,28 @@
                                             <th>{{ __('table.loan_code') }}</th>
                                             <th>{{ __('table.company') }}</th>
                                             <th>{{ __('table.interest_group') }}</th>
-                                            <th>{{ __('table.interest_rate') }}</th>
+                                            <th>{{ __('table.loan_date') }}</th>
+                                            <th>{{ __('table.due_date') }}</th>
+                                            <th>{{ __('table.last_pay_date') }}</th>
                                             <th>{{ __('table.loan_amount') }}</th>
-                                            <th>{{ __('table.outstanding') }}</th>
-                                            <th>{{ __('table.installment') }}</th>
-                                            <th>{{ __('table.loan_term') }}</th>
                                             <th>{{ __('table.capital') }}</th>
-                                            <th>{{ __('table.created_at') }}</th>
-                                            <th>{{ __('table.action') }}</th>
+                                            <th>{{ __('table.paid') }}</th>
+                                            <th>{{ __('table.outstanding') }}</th>
+                                            <th>{{ __('table.loan_term') }}</th>
+                                            <th>{{ __('table.installment') }}</th>
+                                            <th>{{ __('table.interest_rate') }}</th>
+                                            <th>{{ __('table.status') }}</th>
+                                            <th>{{ __('table.actions') }}</th>
                                         </tr>
                                     </thead>
                                     <tbody></tbody>
                                 </table>
                             </div>
+
                         </section>
-                    </div>   
+                    </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -1192,6 +1196,14 @@
                 "ajax": {
                     "url": "{{ route('loan.load_loan',['customer_code'=>$customer->customer_code]) }}",
                     "type": "GET",
+                    "dataSrc": function(json){
+
+                        $('#total-profit').text(parseFloat(json.total_profit).toFixed(2));
+                        $('#total-loan-amount').text(parseFloat(json.total_loan_amount).toFixed(2));
+                        $('#total-balance').text(parseFloat(json.total_balance).toFixed(2));
+
+                        return json.data;
+                    }
                 },
                 "order": [
                     [2, "desc"]
@@ -1210,16 +1222,35 @@
                         "data": "interest_group"
                     },
                     {
-                        "data": "interest_rate",
+                        "data": "created_at",
                         "render": function(data, type, row, meta) {
-                            return data+"%";
+                            return formatDate(data);
                         }
                     },
                     {
-                        "data": "loan_amount",
+                        "data": "next_due_date"
                     },
                     {
-                        "data": "outstanding",
+                        "data": "last_pay_date",
+                        "defaultContent": "-"
+                    },
+                    {
+                        "data": "loan_amount"
+                    },
+                    {
+                        "data": "capital"
+                    },
+                    {
+                        "data": "paid"
+                    },
+                    {
+                        "data": "outstanding"
+                    },
+                    {
+                        "data": "loan_term",
+                        "render": function(data, type, row, meta) {
+                            return row.interest_group == 'SKIM B' ? row.loan_term : '-';
+                        }
                     },
                     {
                         "data": "installment",
@@ -1232,18 +1263,18 @@
                         }
                     },
                     {
-                        "data": "loan_term",
+                        "data": "interest_rate",
                         "render": function(data, type, row, meta) {
-                            return row.interest_group == 'SKIM B' ? row.loan_term : '-';
+                            return data+"%";
                         }
                     },
                     {
-                        "data": "capital"
-                    },
-                    {
-                        "data": "created_at",
+                        "data": "status",
                         "render": function(data, type, row, meta) {
-                            return formatDate(data);
+                            const green = ['Active', 'Fully Paid'];
+                            const red = ['Overdue', 'Bad Debt', 'Blacklist'];
+                            let clr = green.includes(data) ? 'green' : (red.includes(data) ? 'red' : '#000000');
+                            return `<span style="color:${clr}">${data}</span>`;
                         }
                     },
                     {
@@ -1252,9 +1283,12 @@
                             
                             let url = `
                                 <div class="cus-action-wrapper">
-                                    <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="View Detail"><i class="fas fa-eye"></i></a>
-                                    <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="Create Payment"><i class="fas fa-money-check-alt"></i></a>
-                                    <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}" target="_blank" class="cus-action-icon info" title="Create Schedule"><i class="fas fa-calendar-alt"></i></a>
+                                    <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}" class="cus-action-icon info" title="View Detail"><i class="fas fa-eye"></i></a>
+                                    <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}" class="cus-action-icon info" title="Create Schedule"><i class="fas fa-calendar-alt"></i></a>
+                                    <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}" class="cus-action-icon info" title="Create Payment"><i class="fas fa-money-check-alt"></i></a>
+                                    @if(Auth::user()->role_id == 1)
+                                    <a class="cus-action-icon danger" title="Delete Loan" onclick="deleteLoan(${meta.row})"><i class="fas fa-trash-alt"></i></a>
+                                    @endif
                                 </div>
                                 `;
                             url = url.replaceAll(':loan_code', row.loan_code);

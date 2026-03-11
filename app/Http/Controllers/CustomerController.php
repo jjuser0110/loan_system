@@ -7,6 +7,7 @@ use Spatie\Browsershot\Browsershot;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Company;
+use App\Models\EmployerType;
 use App\Models\Race;
 use App\Models\MaritalStatuses;
 use App\Models\State;
@@ -170,6 +171,7 @@ class CustomerController extends Controller
         $races = Race::all();
         $marital_statuses = MaritalStatuses::all();
         $states = State::all();
+        $employer_types = EmployerType::all();
         $reference_types = ReferenceType::all();
         $house_ownership = HouseOwnership::all();
 
@@ -178,6 +180,7 @@ class CustomerController extends Controller
             ->with('races', $races)
             ->with('marital_statues', $marital_statuses)
             ->with('states', $states)
+            ->with('employer_types', $employer_types)
             ->with('house_ownership', $house_ownership)
             ->with('reference_types', $reference_types);
     }
@@ -353,6 +356,7 @@ class CustomerController extends Controller
         $customer = Customer::findOrFail($customer);
         $races = Race::all();
         $states = State::all();
+        $employer_types = EmployerType::all();
         $marital_statues = MaritalStatuses::all();
         $reference_types = ReferenceType::all();
         $house_ownership = HouseOwnership::all();
@@ -371,6 +375,7 @@ class CustomerController extends Controller
             'customer', 
             'company', 
             'races', 
+            'employer_types',
             'states', 
             'marital_statues', 
             'reference_types', 

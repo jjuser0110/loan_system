@@ -34,6 +34,8 @@ return [
 'daily_report' => '每日报告',
 'cash_book_report' => '现金簿报告',
 'reference_type'=>'推荐人类型',
+'employer_type' => '雇主类型',  
+'reference_list' => '参考列表',
 
 ];
 

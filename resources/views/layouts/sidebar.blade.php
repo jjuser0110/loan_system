@@ -23,8 +23,14 @@ $currentRoute = request()->route()->getName();
                     </li>
                     <li class="{{ request()->routeIs('customer.*') ? 'nav-active' : ''}}">
                         <a class="nav-link" href="{{route('customer.index')}}">
-                            <i class="bx bx-home-alt" aria-hidden="true"></i>
+                            <i class="bx bx-user" aria-hidden="true"></i>
                             <span>{{ __('sidebar.customer_list') }}</span>
+                        </a>
+                    </li>
+                    <li class="{{ request()->routeIs('reference.*') ? 'nav-active' : ''}}">
+                        <a class="nav-link" href="{{route('reference.index')}}">
+                            <i class="bx bx-user-pin" aria-hidden="true"></i>
+                            <span>{{ __('sidebar.reference_list') }}</span>
                         </a>
                     </li>
                     <li class="nav-parent {{ request()->routeIs('report.*') ? 'nav-expanded nav-active' : ''}}">
@@ -81,11 +87,11 @@ $currentRoute = request()->route()->getName();
                                     {{ __('sidebar.all_loans') }}
                                 </a>
                             </li>
-                            <li class="{{ request()->routeIs('loan.create') ? 'nav-active' : ''}}">
+                            <!-- <li class="{{ request()->routeIs('loan.create') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('loan.create')}}">
                                     {{ __('sidebar.create_loan') }}
                                 </a>
-                            </li>
+                            </li> -->
                         </ul>
                     </li>
                     <li class="nav-parent {{ request()->routeIs('schedule.*') ? 'nav-expanded nav-active' : ''}}">
@@ -125,7 +131,7 @@ $currentRoute = request()->route()->getName();
                         </ul>
                     </li>
                     @if(Auth::user()->role_id == 1)
-                    <li class="nav-parent {{ request()->routeIs('badmin.*') || request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*')|| request()->routeIs('reference_type.*') ? 'nav-expanded nav-active' : ''}}">
+                    <li class="nav-parent {{ request()->routeIs('badmin.*') || request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('employer_type.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*')|| request()->routeIs('reference_type.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>
                             <span>{{ __('sidebar.main_setting') }}</span>
@@ -154,6 +160,11 @@ $currentRoute = request()->route()->getName();
                             <li class="{{ request()->routeIs('bank.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('bank.index')}}">
                                     {{ __('sidebar.bank') }}
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('employer_type.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('employer_type.index')}}">
+                                    {{ __('sidebar.employer_type') }}
                                 </a>
                             </li>
                             <li class="{{ request()->routeIs('race.*') ? 'nav-active' : ''}}">

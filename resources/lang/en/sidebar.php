@@ -34,6 +34,8 @@ return [
 'daily_report' => 'Daily Report',
 'cash_book_report' => 'Cash Book Report',
 'reference_type'=>'Reference Type',
+'employer_type' => 'Employer Type', 
+'reference_list' => 'Reference List',
     
 ];
 

@@ -446,4 +446,15 @@ class PaymentMethodController extends Controller
             ]);
         }
     }
+
+    public function destroy($id)
+    {
+        try {
+            $paymentMethod = PaymentMethod::findOrFail($id);
+            $paymentMethod->delete();
+            return response()->json(['success' => true, 'message' => 'Payment method deleted successfully.']);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => 'Failed to delete payment method.']);
+        }
+    }
 }

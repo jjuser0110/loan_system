@@ -265,6 +265,10 @@ return [
 'reference_type_information' => '推荐人类型信息',
 'total_balance' => '总余额',
 'last_pay_date' => '最近付款日期',
+'retalonship' => '关系',
+'pay_date' => '支付日期',
+'employer_type_information' => '雇主类型信息',
+'expenses_name' => '费用名称',
 
 ];
 

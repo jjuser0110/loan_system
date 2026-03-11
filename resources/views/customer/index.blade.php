@@ -60,7 +60,7 @@
                 {
                     "data": "customer_code",
                     "render": function(data, type, row, meta) {
-                        return '<a href="{{ url('customer') }}/' + row.id + '/edit" target="_blank">' +row.customer_code + "<br>" +row.customer_name+'</a>';
+                        return '<a href="{{ url('customer') }}/' + row.id + '/edit">' +row.customer_code + "<br>" +row.customer_name+'</a>';
                     }
                 },
                 {

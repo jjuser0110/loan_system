@@ -13,4 +13,5 @@ Route::prefix('/payment_method')->as('payment_method.')->middleware(['auth'])->g
     Route::post('/update_credit', 'PaymentMethodController@update_credit')->name('update_credit');
     Route::get('/search_payment_methods', 'PaymentMethodController@search_payment_methods')->name('search_payment_methods');
     Route::get('/load_payment_method_total_amount', 'PaymentMethodController@load_payment_method_total_amount')->name('load_payment_method_total_amount');
+    Route::post('/destroy/{id}', 'PaymentMethodController@destroy')->name('destroy');
 });

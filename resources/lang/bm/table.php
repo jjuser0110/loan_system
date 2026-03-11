@@ -265,6 +265,10 @@ return [
 'reference_type_information' => 'Maklumat Jenis Rujukan',
 'total_balance' => 'Jumlah Baki',
 'last_pay_date' => 'Tarikh Bayaran Terakhir',
+'retalonship' => 'Hubungan',
+'pay_date' => 'Tarikh Gaji',
+'employer_type_information' => 'Maklumat Jenis Majikan',
+'expenses_name' => 'Nama Perbelanjaan',
 
 ];
 
