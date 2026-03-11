@@ -90,7 +90,7 @@
                         
                         let url = `
                             <div class="cus-action-wrapper">
-                                <a href="{{ route('company.edit', ['company' => ':company']) }}" class="cus-action-icon info" title="Update Company" target="_blank"><i class="fas fa-edit"></i></a>
+                                <a href="{{ route('company.edit', ['company' => ':company']) }}" class="cus-action-icon info" title="Update Company"><i class="fas fa-edit"></i></a>
                                 <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('company.destroy',1) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
                             </div>
                             `;
