@@ -89,7 +89,7 @@
             stateSave: true,
             searching: false,
             deferLoading: 0,
-            lengthMenu : [10, 25, 50, 100, 500],
+            lengthMenu : [10, 50, 100, 500, 1000],
             dom: 'lrtip',
             ajax: {
                 url: "{{ route('report.load_cash_book_reports') }}",
