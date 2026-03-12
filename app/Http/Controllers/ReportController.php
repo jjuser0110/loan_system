@@ -302,7 +302,7 @@ class ReportController extends Controller
                 break;
         }
         $companies = $query->get();
-        return view('report.cashbookreport')->with('companies', $companies);
+        return view('report.cashbookreporthistory')->with('companies', $companies);
     }
 
     public function load_cash_book_report_history(Request $request)

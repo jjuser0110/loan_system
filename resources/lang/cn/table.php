@@ -270,7 +270,6 @@ return [
 'employer_type_information' => '雇主类型信息',
 'expenses_name' => '费用名称',
 'customer_payment' => '客户付款',
-'cash_book_report_history' => '现金簿报告记录',
 
 ];
 

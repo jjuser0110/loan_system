@@ -270,7 +270,6 @@ return [
 'employer_type_information' => 'Employer Type Information',
 'expenses_name' => 'Expenses Name',
 'customer_payment' => 'Customer Payment',
-'cash_book_report_history' => '',
 '' => '',
     
 ];

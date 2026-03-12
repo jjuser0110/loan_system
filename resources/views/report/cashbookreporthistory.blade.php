@@ -253,7 +253,7 @@ $(document).ready(function() {
         $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generating...');
 
         $.ajax({
-            url: "{{ route('report.load_cash_book_reports') }}",
+            url: "{{ route('report.load_cash_book_report_history') }}",
             type: "GET",
             data: {
                 from_date:  from,
