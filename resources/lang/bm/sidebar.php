@@ -36,6 +36,7 @@ return [
 'reference_type'=>'Jenis Rujukan',
 'employer_type' => 'Jenis Majikan',
 'reference_list' => 'Senarai Rujukan',
+'cash_book_report_history' => 'Sejarah Laporan Buku Tunai',
 
 ];
 
