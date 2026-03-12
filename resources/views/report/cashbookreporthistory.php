@@ -94,7 +94,7 @@
             lengthMenu : [10, 50, 100, 500, 1000],
             dom: 'lrtip',
             ajax: {
-                url: "{{ route('report.load_cash_book_reports') }}",
+                url: "{{ route('report.load_cash_book_report_history') }}",
                 type: "GET",
                 data: function(d) {
                     d.from_date = $('#filter_from_date').val();

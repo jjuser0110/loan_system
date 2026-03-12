@@ -270,6 +270,7 @@ return [
 'employer_type_information' => 'Maklumat Jenis Majikan',
 'expenses_name' => 'Nama Perbelanjaan',
 'customer_payment' => 'bayaran pelanggan',
+'cash_book_report_history' => 'Sejarah Laporan Buku Tunai',
 
 ];
 
