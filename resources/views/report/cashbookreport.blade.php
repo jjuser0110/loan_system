@@ -52,8 +52,8 @@
                             <th>{{ __('table.expenses_name') }}</th>
                             <th>{{ __('table.customer_payment') }}</th>
                             <th>{{ __('table.loan_topup') }}</th>
-                            <th>{{ __('table.account_total') }}</th>
                             <th>{{ __('table.expenses') }}</th>
+                            <th>{{ __('table.account_total') }}</th>
                         </tr>
                     </thead>
                     <tfoot>
@@ -61,8 +61,8 @@
                             <th colspan="5" class="text-right">Total</th>
                             <th></th>  {{-- customer_payment total --}}
                             <th></th>  {{-- loan_top_up total --}}
-                            <th></th>  {{-- account_total total --}}
                             <th></th>  {{-- expenses total --}}
+                            <th></th>  {{-- account_total total --}}
                         </tr>
                     </tfoot>
                     <tbody></tbody>
@@ -161,19 +161,19 @@
                     }
                 },
                 {
+                    data: "expenses",
+                    name: "expenses",
+                    render: function(data) {
+                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                    }
+                },
+                {
                     data: "account_total_amount",
                     name: "account_total_amount",
                     render: function(data) {
                         return data ? parseFloat(data).toFixed(2) : '0.00';
                     }
                 },
-                {
-                    data: "expenses",
-                    name: "expenses",
-                    render: function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
-                    }
-                }
             ],
 
             footerCallback: function(row, data, start, end, display) {
@@ -191,8 +191,7 @@
 
                 $(api.column(5).footer()).html(totalPayment.toFixed(2));
                 $(api.column(6).footer()).html(totalLoanTopUp.toFixed(2));
-                $(api.column(7).footer()).html('');   // ← account_total blank
-                $(api.column(8).footer()).html(totalExpenses.toFixed(2));
+                $(api.column(7).footer()).html(totalExpenses.toFixed(2));
             }
         });
     });

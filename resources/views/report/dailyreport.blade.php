@@ -67,27 +67,34 @@
 <script>
     let table_daily_reports;
     
-    function formatDate(dateString) {
-        if (!dateString) return '';
-        return dateString; // display raw database string
-    }
-    
     $(document).ready(function() {
+
+        // ── Restore saved filters ────────────────────────────────────
+        let savedFrom    = sessionStorage.getItem('dr_from_date');
+        let savedTo      = sessionStorage.getItem('dr_to_date');
+        let savedCompany = sessionStorage.getItem('dr_company');
+
+        if (savedFrom)    $('#filter_from_date').val(savedFrom);
+        if (savedTo)      $('#filter_to_date').val(savedTo);
+        if (savedCompany) $('#filter_company').val(savedCompany);
+
+        // ── Init DataTable ───────────────────────────────────────────
         table_daily_reports = $('#table-daily-reports').DataTable({
             processing: true,
             serverSide: true,
             fixedHeader: false,
             searching: false,
+            stateSave: true,
+            deferLoading: 0,
             ajax: {
                 url: "{{ route('report.load_daily_reports') }}",
                 type: "GET",
                 data: function(d) {
-                    d.from_date = $('#filter_from_date').val();
-                    d.to_date = $('#filter_to_date').val();
+                    d.from_date  = $('#filter_from_date').val();
+                    d.to_date    = $('#filter_to_date').val();
                     d.company_id = $('#filter_company').val();
                 }
             },
-            deferLoading: 0,
             order: [[10, "desc"]],
             columns: [
                 {
@@ -176,17 +183,28 @@
                 }
             ]
         });
+
+        // ── Auto reload if saved filters exist ───────────────────────
+        if (savedFrom || savedTo || savedCompany) {
+            table_daily_reports.ajax.reload();
+        }
     });
 
+    // ── Filter button ────────────────────────────────────────────────
     $('#btn-filter').on('click', function() {
-        let from = $('#filter_from_date').val();
-        let to = $('#filter_to_date').val();
+        let from    = $('#filter_from_date').val();
+        let to      = $('#filter_to_date').val();
         let company = $('#filter_company').val();
 
         if (!from && !to && !company) {
             alert("{{ __('table.please_select_filter') }}");
             return;
         }
+
+        // Save to sessionStorage
+        sessionStorage.setItem('dr_from_date', from);
+        sessionStorage.setItem('dr_to_date',   to);
+        sessionStorage.setItem('dr_company',   company);
 
         table_daily_reports.ajax.reload();
     });
