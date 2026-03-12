@@ -42,31 +42,33 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-body">
-                <table class="table cus-table table-bordered table-striped mb-0" id="table-cash-book-reports">
-                    <thead>
-                        <tr>
-                            <th>No</th>
-                            <th>{{ __('table.description') }}</th>
-                            <th>{{ __('table.date') }}</th>
-                            <th>{{ __('table.customer_name') }}</th>
-                            <th>{{ __('table.expenses_name') }}</th>
-                            <th>{{ __('table.customer_payment') }}</th>
-                            <th>{{ __('table.loan_topup') }}</th>
-                            <th>{{ __('table.expenses') }}</th>
-                            <th>{{ __('table.account_total') }}</th>
-                        </tr>
-                    </thead>
-                    <tfoot>
-                        <tr>
-                            <th colspan="5" class="text-right">Total</th>
-                            <th></th>  {{-- customer_payment total --}}
-                            <th></th>  {{-- loan_top_up total --}}
-                            <th></th>  {{-- expenses total --}}
-                            <th></th>  {{-- account_total total --}}
-                        </tr>
-                    </tfoot>
-                    <tbody></tbody>
-                </table>
+                <div class="table-responsive">
+                    <table class="table cus-table table-bordered table-striped mb-0" id="table-cash-book-reports">
+                        <thead>
+                            <tr>
+                                <th>No</th>
+                                <th>{{ __('table.description') }}</th>
+                                <th>{{ __('table.date') }}</th>
+                                <th>{{ __('table.customer_name') }}</th>
+                                <th>{{ __('table.expenses_name') }}</th>
+                                <th>{{ __('table.customer_payment') }}</th>
+                                <th>{{ __('table.loan_topup') }}</th>
+                                <th>{{ __('table.expenses') }}</th>
+                                <th>{{ __('table.account_total') }}</th>
+                            </tr>
+                        </thead>
+                        <tfoot>
+                            <tr>
+                                <th colspan="5" class="text-right">Total</th>
+                                <th></th>  {{-- customer_payment total --}}
+                                <th></th>  {{-- loan_top_up total --}}
+                                <th></th>  {{-- expenses total --}}
+                                <th></th>  {{-- account_total total --}}
+                            </tr>
+                        </tfoot>
+                        <tbody></tbody>
+                    </table>
+                </div>
             </div>
         </section>
     </div>
@@ -91,14 +93,6 @@
             deferLoading: 0,
             lengthMenu : [10, 50, 100, 500, 1000],
             dom: 'lrtip',
-            columnDefs: [                                    
-                { targets: [0],         width: '40px'  },   
-                { targets: [1],         width: '150px' },   
-                { targets: [2],         width: '80px'  },   
-                { targets: [3],         width: '250px' },   
-                { targets: [4],         width: '200px' },   
-                { targets: [5,6,7,8],   width: '50px'  },   
-            ],
             ajax: {
                 url: "{{ route('report.load_cash_book_reports') }}",
                 type: "GET",
@@ -113,6 +107,7 @@
                 {
                     data: null,
                     name: "id",
+                    width: "10px",
                     render: function (data, type, row, meta) {
                         return meta.row + meta.settings._iDisplayStart + 1;
                     }
@@ -120,20 +115,20 @@
                 {
                     data: "description",
                     name: "description",
+                    width: "200px",
                     render: function(data) {
                         if (!data || data === '-') return '-';
-                        
                         if (data.startsWith('Loan #')) {
                             let loanCode = data.replace('Loan #', '').trim();
                             return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '">' + data + '</a>';
                         }
-                        
                         return data;
                     }
                 },
                 {
                     data: "date",
                     name: "date",
+                    width: "60px",
                     render: function(data) {
                         return data ? data.substring(0, 10) : '';
                     }
@@ -141,6 +136,7 @@
                 {
                     data: "customer_name",
                     name: "customer_name",
+                    width: "200px",
                     render: function(data, type, row) {
                         return data && row.customer_id
                             ? '<a href="{{ url("customer") }}/' + row.customer_id + '/edit">' + data + '</a>'
@@ -150,6 +146,7 @@
                 {
                     data: "expenses_name",
                     name: "expenses_name",
+                    width: "160px",
                     render: function(data) {
                         return data ? data : '-';
                     }
@@ -157,6 +154,7 @@
                 {
                     data: "customer_payment",
                     name: "customer_payment",
+                    width: "50px",  
                     render: function(data) {
                         return data ? parseFloat(data).toFixed(2) : '0.00';
                     }
@@ -164,6 +162,7 @@
                 {
                     data: "loan_top_up",
                     name: "loan_top_up",
+                    width: "50px",
                     render: function(data) {
                         return data ? parseFloat(data).toFixed(2) : '0.00';
                     }
@@ -171,6 +170,7 @@
                 {
                     data: "expenses",
                     name: "expenses",
+                    width: "50px",
                     render: function(data) {
                         return data ? parseFloat(data).toFixed(2) : '0.00';
                     }
@@ -178,6 +178,7 @@
                 {
                     data: "account_total_amount",
                     name: "account_total_amount",
+                    width: "50px",
                     render: function(data) {
                         return data ? parseFloat(data).toFixed(2) : '0.00';
                     }
