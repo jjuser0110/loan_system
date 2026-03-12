@@ -38,47 +38,78 @@ class CashBookAutoSave extends Command
             // Build description
             $description = '-';
 
-            if ($log->content_type && $log->content) {
-                $type = class_basename($log->content_type);
+            $type = $log->type
+                ? strtolower(class_basename($log->type))
+                : 'manual';
 
-                $description = match (strtolower($type)) {
-                    'payment' => "Payment #{$log->content->payment_code}",
-                    'loan'    => "Loan #{$log->content->loan_code}",
-                    'expense' => "Expense #{$log->content->id}",
+            if ($type === 'manual') {
+                $description = "Manual # " . ($log->description ?? '-');
+            } elseif ($log->content) {
+                $description = match ($type) {
+                    'payment' => $log->content->payment_code
+                                    ? "Payment #{$log->content->payment_code}"
+                                    : "Payment # " . ($log->description ?? '-'),
+                    'loan'    => $log->content->loan_code
+                                    ? "Loan #{$log->content->loan_code}"
+                                    : "Loan # " . ($log->description ?? '-'),
+                    'expense' => $log->content->expense_code
+                                    ? "Expense #{$log->content->expense_code}"
+                                    : "Expense # " . ($log->description ?? '-'),
+                    default   => '-',
+                };
+            } else {
+                // content is null — related record was deleted
+                $description = match ($type) {
+                    'payment' => "Payment # " . ($log->description ?? '-'),
+                    'loan'    => "Loan # " . ($log->description ?? '-'),
+                    'expense' => "Expense # " . ($log->description ?? '-'),
                     default   => '-',
                 };
             }
 
-            $amount = abs($log->amount ?? 0);
+            $customerName = null;
+            $expenseName  = null;
+
+            if (in_array($type, ['payment', 'loan']) && $log->content) {
+                $customerName = $log->content->customer?->customer_name ?? null;
+            }
+
+            if ($type === 'expense' && $log->content) {
+                $expenseName = $log->content->expense_title ?? null;
+            }
+
+            $amount    = $log->amount ?? 0;
             $loanTopUp = 0;
             $payment   = 0;
             $expense   = 0;
+            $manual    = 0;
 
-            if ($log->content) {
-                $type = strtolower(class_basename($log->content_type));
-
-                if ($type === 'loan') {
-                    $loanTopUp = $amount;
-                }
-
-                if ($type === 'payment') {
-                    $payment = $amount;
-                }
-
-                if ($type === 'expense') {
-                    $expense = $amount;
-                }
+            if ($type === 'loan') {
+                $loanTopUp = $amount;
+            } elseif ($type === 'payment') {
+                $payment = $amount;
+            } elseif ($type === 'expense') {
+                $expense = $amount;
+            } elseif ($type === 'manual') {
+                $manual = $amount;
             }
 
-            $report = CashBookReport::create([
-                'company_id' => $paymentMethod->company_id,
-                'date' => Carbon::parse($log->created_at)->format('Y-m-d'), // Use log's creation date
-                'description' => $description,
-                'account_total_amount' => $log->total ?? 0,
-                'payment' => $payment,
-                'loan_top_up' => $loanTopUp,
-                'expenses' => $expense,
-            ]);
+            $report = CashBookReport::updateOrCreate(
+                [
+                    'payment_method_log_id' => $log->id,
+                ],
+                [
+                    'company_id'           => $paymentMethod->company_id,
+                    'date'                 => Carbon::parse($log->created_at)->format('Y-m-d'),
+                    'description'          => $description,
+                    'account_total_amount' => $log->total ?? 0,
+                    'payment'              => $payment,
+                    'loan_top_up'          => $loanTopUp,
+                    'expenses'             => $expense,
+                    'customer_name'        => $customerName,
+                    'expenses_name'        => $expenseName,
+                ]
+            );
 
             $this->info("Created report ID: " . $report->id);
         }

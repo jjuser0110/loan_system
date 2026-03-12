@@ -269,7 +269,7 @@ return [
 'pay_date' => 'Pay Date',
 'employer_type_information' => 'Employer Type Information',
 'expenses_name' => 'Expenses Name',
-'' => '',
+'customer_payment' => '',
 '' => '',
 '' => '',
     

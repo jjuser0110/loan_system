@@ -203,9 +203,11 @@ class ReportController extends Controller
                     'companies.company_code',
                     'branches.branch_name',
                     'branches.branch_code',
+                    'customers.id as customer_id',
                 ])
                 ->join('companies', 'cash_book_reports.company_id', '=', 'companies.id')
-                ->join('branches', 'companies.branch_id', '=', 'branches.id');
+                ->join('branches', 'companies.branch_id', '=', 'branches.id')
+                ->leftJoin('customers', 'customers.customer_name', '=', 'cash_book_reports.customer_name');
 
             switch (Auth::user()->role_id) {
                 case 1:

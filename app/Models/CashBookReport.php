@@ -12,6 +12,7 @@ class CashBookReport extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'payment_method_log_id',
         'company_id',
         'date',
         'description',
@@ -19,5 +20,7 @@ class CashBookReport extends Model
         'payment',
         'expenses',
         'account_total_amount',
+        'customer_name',
+        'expenses_name',
     ];
 }
