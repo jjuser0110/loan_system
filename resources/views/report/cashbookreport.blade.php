@@ -86,6 +86,7 @@
             processing: true,
             serverSide: true,
             fixedHeader: false,
+            stateSave: true,
             searching: false,
             deferLoading: 0,
             lengthMenu : [10, 25, 50, 100, 500],
@@ -178,40 +179,61 @@
             footerCallback: function(row, data, start, end, display) {
                 let api = this.api();
 
-                let totalPayment  = 0;
+                let totalPayment   = 0;
                 let totalLoanTopUp = 0;
-                let totalAccount  = 0;
-                let totalExpenses = 0;
+                let totalExpenses  = 0;
 
                 api.rows({ search: 'applied' }).data().each(function(row) {
-                    totalPayment   += parseFloat(row.customer_payment     || 0);
-                    totalLoanTopUp += parseFloat(row.loan_top_up          || 0);
-                    totalAccount   += parseFloat(row.account_total_amount || 0);
-                    totalExpenses  += parseFloat(row.expenses             || 0);
+                    totalPayment   += parseFloat(row.customer_payment || 0);
+                    totalLoanTopUp += parseFloat(row.loan_top_up      || 0);
+                    totalExpenses  += parseFloat(row.expenses         || 0);
                 });
 
                 $(api.column(5).footer()).html(totalPayment.toFixed(2));
                 $(api.column(6).footer()).html(totalLoanTopUp.toFixed(2));
-                $(api.column(7).footer()).html(totalAccount.toFixed(2));
+                $(api.column(7).footer()).html('');   // ← account_total blank
                 $(api.column(8).footer()).html(totalExpenses.toFixed(2));
             }
         });
     });
 
     $('#btn-filter').on('click', function() {
-        let from = $('#filter_from_date').val();
-        let to = $('#filter_to_date').val();
-        let company = $('#filter_company').val();
+    let from    = $('#filter_from_date').val();
+    let to      = $('#filter_to_date').val();
+    let company = $('#filter_company').val();
 
-        if (!from && !to && !company) {
-            alert("{{ __('table.please_select_filter') }}");
-            return;
-        }
+    if (!from && !to && !company) {
+        alert("{{ __('table.please_select_filter') }}");
+        return;
+    }
 
+    // Save to sessionStorage
+    sessionStorage.setItem('cbr_from_date', from);
+    sessionStorage.setItem('cbr_to_date', to);
+    sessionStorage.setItem('cbr_company', company);
+
+    table_cash_book_reports.ajax.reload(function() {
+        $('#btn-download-pdf').prop('disabled', false);
+    });
+});
+
+// Restore filter values on page load
+$(document).ready(function() {
+    let from    = sessionStorage.getItem('cbr_from_date');
+    let to      = sessionStorage.getItem('cbr_to_date');
+    let company = sessionStorage.getItem('cbr_company');
+
+    if (from)    $('#filter_from_date').val(from);
+    if (to)      $('#filter_to_date').val(to);
+    if (company) $('#filter_company').val(company);
+
+    // Auto trigger filter if saved values exist
+    if (from || to || company) {
         table_cash_book_reports.ajax.reload(function() {
             $('#btn-download-pdf').prop('disabled', false);
         });
-    });
+    }
+});
 
     $('#btn-download-pdf').on('click', function() {
         let from     = $('#filter_from_date').val();

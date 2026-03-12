@@ -269,6 +269,7 @@ return [
 'pay_date' => '支付日期',
 'employer_type_information' => '雇主类型信息',
 'expenses_name' => '费用名称',
+'customer_payment' => '客户付款',
 
 ];
 
