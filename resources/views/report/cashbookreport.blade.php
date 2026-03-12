@@ -91,6 +91,14 @@
             deferLoading: 0,
             lengthMenu : [10, 50, 100, 500, 1000],
             dom: 'lrtip',
+            columnDefs: [                                    
+                { targets: [0],         width: '40px'  },   
+                { targets: [1],         width: '150px' },   
+                { targets: [2],         width: '80px'  },   
+                { targets: [3],         width: '250px' },   
+                { targets: [4],         width: '200px' },   
+                { targets: [5,6,7,8],   width: '50px'  },   
+            ],
             ajax: {
                 url: "{{ route('report.load_cash_book_reports') }}",
                 type: "GET",
