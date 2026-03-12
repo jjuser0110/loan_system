@@ -122,6 +122,14 @@
                             let loanCode = data.replace('Loan #', '').trim();
                             return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '">' + data + '</a>';
                         }
+                        if (data.startsWith('Expense #')) {
+                            let loanCode = data.replace('Loan #', '').trim();
+                            return '<a href="{{ url("expense/index") }}">' + data + '</a>';
+                        }
+                        if (data.startsWith('Payment #')) {
+                            let loanCode = data.replace('Loan #', '').trim();
+                            return '<a href="{{ url("expense/index") }}">' + data + '</a>';
+                        }
                         return data;
                     }
                 },
