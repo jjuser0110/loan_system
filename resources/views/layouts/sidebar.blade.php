@@ -49,6 +49,11 @@ $currentRoute = request()->route()->getName();
                                     {{ __('sidebar.cash_book_report') }}
                                 </a>
                             </li>
+                            <li class="{{ request()->routeIs('report.cash_book_report_history') || request()->routeIs('report.load_cash_book_reports') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{ route('report.cash_book_report_history') }}">
+                                    {{ __('sidebar.cash_book_report_history') }}
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     @if(Auth::user()->role_id != 4)
