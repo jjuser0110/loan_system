@@ -206,42 +206,42 @@
     });
 
     $('#btn-filter').on('click', function() {
-    let from    = $('#filter_from_date').val();
-    let to      = $('#filter_to_date').val();
-    let company = $('#filter_company').val();
+        let from    = $('#filter_from_date').val();
+        let to      = $('#filter_to_date').val();
+        let company = $('#filter_company').val();
 
-    if (!from && !to && !company) {
-        alert("{{ __('table.please_select_filter') }}");
-        return;
-    }
+        if (!from && !to && !company) {
+            alert("{{ __('table.please_select_filter') }}");
+            return;
+        }
 
-    // Save to sessionStorage
-    sessionStorage.setItem('cbr_from_date', from);
-    sessionStorage.setItem('cbr_to_date', to);
-    sessionStorage.setItem('cbr_company', company);
+        // Save to sessionStorage
+        sessionStorage.setItem('cbr_from_date', from);
+        sessionStorage.setItem('cbr_to_date', to);
+        sessionStorage.setItem('cbr_company', company);
 
-    table_cash_book_reports.ajax.reload(function() {
-        $('#btn-download-pdf').prop('disabled', false);
-    });
-});
-
-// Restore filter values on page load
-$(document).ready(function() {
-    let from    = sessionStorage.getItem('cbr_from_date');
-    let to      = sessionStorage.getItem('cbr_to_date');
-    let company = sessionStorage.getItem('cbr_company');
-
-    if (from)    $('#filter_from_date').val(from);
-    if (to)      $('#filter_to_date').val(to);
-    if (company) $('#filter_company').val(company);
-
-    // Auto trigger filter if saved values exist
-    if (from || to || company) {
         table_cash_book_reports.ajax.reload(function() {
             $('#btn-download-pdf').prop('disabled', false);
         });
-    }
-});
+    });
+
+    // Restore filter values on page load
+    $(document).ready(function() {
+        let from    = sessionStorage.getItem('cbr_from_date');
+        let to      = sessionStorage.getItem('cbr_to_date');
+        let company = sessionStorage.getItem('cbr_company');
+
+        if (from)    $('#filter_from_date').val(from);
+        if (to)      $('#filter_to_date').val(to);
+        if (company) $('#filter_company').val(company);
+
+        // Auto trigger filter if saved values exist
+        if (from || to || company) {
+            table_cash_book_reports.ajax.reload(function() {
+                $('#btn-download-pdf').prop('disabled', false);
+            });
+        }
+    });
 
     $('#btn-download-pdf').on('click', function() {
         let from     = $('#filter_from_date').val();
@@ -300,10 +300,11 @@ $(document).ready(function() {
                 let dailyNet     = 0;
 
                 let tableRows = rows.map(function(row, index) {
-                    let rowDate      = row.date ? row.date.substring(0, 10) : '';
-                    let custPayment  = parseFloat(row.customer_payment  || 0);
-                    let loanTopUp    = parseFloat(row.loan_top_up        || 0);
-                    let expenses     = parseFloat(row.expenses           || 0);
+                    let rowDate       = row.date ? row.date.substring(0, 10) : '';
+                    let custPayment   = parseFloat(row.customer_payment     || 0);
+                    let loanTopUp     = parseFloat(row.loan_top_up          || 0);
+                    let expenses      = parseFloat(row.expenses             || 0);
+                    let account_total = parseFloat(row.account_total_amount || 0);
 
                     // Running balance: add inflows, subtract outflows
                     // Inflows: customer_payment + loan_top_up
@@ -319,15 +320,17 @@ $(document).ready(function() {
                         custPayment.toFixed(2),
                         loanTopUp.toFixed(2),
                         expenses.toFixed(2),
+                        account_total.toFixed(2),
                         runningTotal.toFixed(2)   // ← live running balance
                     ];
                 });
 
                 // Totals footer
-                let totalCustPayment = rows.reduce((s, r) => s + parseFloat(r.customer_payment || 0), 0);
-                let totalLoanTopUp   = rows.reduce((s, r) => s + parseFloat(r.loan_top_up      || 0), 0);
-                let totalExpenses    = rows.reduce((s, r) => s + parseFloat(r.expenses         || 0), 0);
-                let totalAccount     = totalCustPayment + totalLoanTopUp - totalExpenses;
+                let totalCustPayment = rows.reduce((s, r) => s + parseFloat(r.customer_payment     || 0), 0);
+                let totalLoanTopUp   = rows.reduce((s, r) => s + parseFloat(r.loan_top_up          || 0), 0);
+                let totalExpenses    = rows.reduce((s, r) => s + parseFloat(r.expenses             || 0), 0);
+                let lastRow          = rows[rows.length - 1];
+                let totalAccount     = lastRow ? parseFloat(lastRow.account_total_amount || 0) : 0;
 
                 doc.autoTable({
                     startY: 30,

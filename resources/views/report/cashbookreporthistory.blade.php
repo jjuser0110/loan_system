@@ -1,7 +1,7 @@
 @extends('layouts.app')
 @section('content')
 <header class="page-header">
-    <h2>{{ __('table.cash_book_report') }}</h2>
+    <h2>{{ __('sidebar.cash_book_report_history') }}</h2>
 </header>
 @include('layouts.flash-message')
 <div class="row mb-3">
@@ -304,6 +304,7 @@ $(document).ready(function() {
                     let custPayment  = parseFloat(row.customer_payment  || 0);
                     let loanTopUp    = parseFloat(row.loan_top_up        || 0);
                     let expenses     = parseFloat(row.expenses           || 0);
+                    let account_total= parseFloat(row.account_total_amount || 0);
 
                     // Running balance: add inflows, subtract outflows
                     // Inflows: customer_payment + loan_top_up
@@ -319,15 +320,17 @@ $(document).ready(function() {
                         custPayment.toFixed(2),
                         loanTopUp.toFixed(2),
                         expenses.toFixed(2),
+                        account_total.toFixed(2),
                         runningTotal.toFixed(2)   // ← live running balance
                     ];
                 });
 
                 // Totals footer
-                let totalCustPayment = rows.reduce((s, r) => s + parseFloat(r.customer_payment || 0), 0);
-                let totalLoanTopUp   = rows.reduce((s, r) => s + parseFloat(r.loan_top_up      || 0), 0);
-                let totalExpenses    = rows.reduce((s, r) => s + parseFloat(r.expenses         || 0), 0);
-                let totalAccount     = totalCustPayment + totalLoanTopUp - totalExpenses;
+                let totalCustPayment = rows.reduce((s, r) => s + parseFloat(r.customer_payment     || 0), 0);
+                let totalLoanTopUp   = rows.reduce((s, r) => s + parseFloat(r.loan_top_up          || 0), 0);
+                let totalExpenses    = rows.reduce((s, r) => s + parseFloat(r.expenses             || 0), 0);
+                let lastRow          = rows[rows.length - 1];
+                let totalAccount     = lastRow ? parseFloat(lastRow.account_total_amount || 0) : 0;
 
                 doc.autoTable({
                     startY: 30,
