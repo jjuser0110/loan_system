@@ -205,7 +205,12 @@
                         "data": "amount"
                     },
                     {
-                        "data": "date"
+                        "data": "date",
+                        "render": function(data, type, row, meta) {
+                            if (!data) return '-';
+                            const parts = data.substring(0, 10).split('-');
+                            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        }
                     },
                     {
                         "data": "company",
