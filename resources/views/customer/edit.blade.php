@@ -403,9 +403,11 @@
                                                     <a href="javascript:void(0)" onclick="editReference({{ $reference->id }})" class="btn-edit" title="Edit">
                                                         <i class="bx bx-edit"></i>
                                                     </a>
+                                                    @if(Auth::user()->role_id != 4)
                                                     <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('customer.reference.destroy', $reference->id) }}'}" title="Delete" class="btn-delete" style="cursor:pointer">
                                                         <i class="bx bx-trash"></i>
                                                     </a>
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>
