@@ -30,7 +30,7 @@
                             <div class="col-md-12 mb-3">
                                 <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                                 <input type="number" class="form-control" id="input-payment-amount" name="payment_amount" placeholder="10000.00" step="0.01" autocomplete="off" required>
-                                <p class="p-note" id="loan-payment-balance">{{ $loan?->balance ?? ''}}</p>
+                                <p class="p-note" id="loan-payment-balance">Outstanding: {{ $loan?->outstanding ?? '' }} &nbsp;&nbsp;&nbsp; Next Payment: {{ $loan?->next_due_amount ?? '' }}</p>
                             </div>
 
                             <div class="col-md-12 mb-3">

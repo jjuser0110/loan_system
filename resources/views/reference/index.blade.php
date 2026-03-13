@@ -45,7 +45,7 @@
                                 <td>{{$s->city??''}}</td>
                                 <td>{{$s->state??''}}</td>
                                 <td>{{$s->email??''}}</td>
-                                <td>{{$s->created_at??''}}</td>
+                                <td>{{ $s->created_at ? \Carbon\Carbon::parse($s->created_at)->format('d-m-Y') : '' }}</td>
                                 <td>
                                     <a href="{{ url('customer/'.($s->customer_id ?? 0).'/edit#reference') }}" title="Edit"><i class="bx bx-edit-alt"></i></a>
                                     <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('reference.destroy',$s) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>

@@ -170,15 +170,19 @@
                 {
                     "data": "created_date",
                     "name": "created_date",
-                    "render": function(data) {
-                        return data ? data.substring(0, 10) : '';
+                    "render": function(data, type, row, meta) {
+                        if (!data) return '-';
+                        const parts = data.substring(0, 10).split('-');
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
                     }
                 },
                 {
                     "data": "closing_date",
                     "name": "closing_date",
-                    "render": function(data) {
-                        return data ? data.substring(0, 10) : '';
+                    "render": function(data, type, row, meta) {
+                        if (!data) return '-';
+                        const parts = data.substring(0, 10).split('-');
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
                     }
                 }
             ]

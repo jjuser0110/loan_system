@@ -221,8 +221,10 @@
                     },
                     {
                         "data": "created_at",
-                        "render": function(data, type, row, meta){
-                            return formatDate(row.created_at);
+                        "render": function(data, type, row, meta) {
+                            if (!data) return '-';
+                            const parts = data.substring(0, 10).split('-');
+                            return `${parts[2]}-${parts[1]}-${parts[0]}`;
                         }
                     },
                     {

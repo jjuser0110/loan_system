@@ -1224,15 +1224,28 @@
                     {
                         "data": "created_at",
                         "render": function(data, type, row, meta) {
-                            return formatDate(data);
+                            if (!data) return '-';
+                            const parts = data.substring(0, 10).split('-');
+                            return `${parts[2]}-${parts[1]}-${parts[0]}`;
                         }
                     },
                     {
-                        "data": "next_due_date"
+                        "data": "next_due_date",
+                        "render": function(data, type, row, meta) {
+                            if (!data) return '-';
+                            const parts = data.substring(0, 10).split('-');
+                            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        }
+                        
                     },
                     {
                         "data": "last_pay_date",
-                        "defaultContent": "-"
+                        "defaultContent": "-",
+                        "render": function(data, type, row, meta) {
+                            if (!data) return '-';
+                            const parts = data.substring(0, 10).split('-');
+                            return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        }
                     },
                     {
                         "data": "loan_amount"

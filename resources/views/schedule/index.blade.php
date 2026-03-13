@@ -157,7 +157,12 @@
                     "data": "schedule_code"
                 },
                 {
-                    "data": "due_date"
+                    "data": "due_date",
+                    "render": function(data, type, row, meta) {
+                        if (!data) return '-';
+                        const parts = data.substring(0, 10).split('-');
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
                 },
                 {
                     "data": "payment_amount"
