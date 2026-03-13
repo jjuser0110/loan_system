@@ -37,6 +37,7 @@ return [
 'employer_type' => '雇主类型',  
 'reference_list' => '参考列表',
 'cash_book_report_history' => '现金簿报告记录',
+'expenses_type' => '费用类型',
 
 ];
 

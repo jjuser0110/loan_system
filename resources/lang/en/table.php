@@ -270,9 +270,9 @@ return [
 'employer_type_information' => 'Employer Type Information',
 'expenses_name' => 'Expenses Name',
 'customer_payment' => 'Customer Payment',
-'relationship' => '',
-'' => '',
-'' => '',
+'relationship' => 'Relationship',
+'expenses_type' => 'Expenses Type',
+'expenses_type_information' => 'Expenses Type Information',
 '' => '',
 '' => '',
     

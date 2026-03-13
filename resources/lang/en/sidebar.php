@@ -37,6 +37,7 @@ return [
 'employer_type' => 'Employer Type', 
 'reference_list' => 'Reference List',
 'cash_book_report_history' => 'Cash Book Report History',
+'expenses_type' => 'Expenses Type',
     
 ];
 

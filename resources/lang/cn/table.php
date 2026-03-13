@@ -270,6 +270,9 @@ return [
 'employer_type_information' => '雇主类型信息',
 'expenses_name' => '费用名称',
 'customer_payment' => '客户付款',
+'relationship' => '关系',
+'expenses_type' => '费用类型',
+'expenses_type_information' => '费用类型信息',
 
 ];
 
