@@ -273,6 +273,7 @@ return [
 'relationship' => '关系',
 'expenses_type' => '费用类型',
 'expenses_type_information' => '费用类型信息',
+'loan_date' => '贷款日期',
 
 ];
 

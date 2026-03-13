@@ -273,6 +273,7 @@ return [
 'relationship' => 'Hubungan',
 'expenses_type' => 'Jenis Perbelanjaan',
 'expenses_type_information' => 'Maklumat Jenis Perbelanjaan',
+'loan_date' => 'Tarikh Pinjaman',
 
 ];
 
