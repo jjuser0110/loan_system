@@ -136,7 +136,7 @@ $currentRoute = request()->route()->getName();
                         </ul>
                     </li>
                     @if(Auth::user()->role_id == 1)
-                    <li class="nav-parent {{ request()->routeIs('badmin.*') || request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('employer_type.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*')|| request()->routeIs('reference_type.*') ? 'nav-expanded nav-active' : ''}}">
+                    <li class="nav-parent {{ request()->routeIs('badmin.*') || request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('employer_type.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*')|| request()->routeIs('reference_type.*')|| request()->routeIs('expenses_type.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>
                             <span>{{ __('sidebar.main_setting') }}</span>
@@ -190,6 +190,11 @@ $currentRoute = request()->route()->getName();
                             <li class="{{ request()->routeIs('reference_type.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('reference_type.index')}}">
                                     {{ __('sidebar.reference_type') }}
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('expenses_type.*') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('expenses_type.index')}}">
+                                    {{ __('sidebar.expenses_type') }}
                                 </a>
                             </li>
                         </ul>

@@ -36,7 +36,7 @@
                                 <td><?php echo isset($s)&&$s->is_active == 1?'<span style="color:green">Active</span>':'<span style="color:red">Inactive</span>'?></td>
                                 <td>
                                     <a href="{{ route('cadmin.edit',$s) }}" title="Edit"><i class="bx bx-edit-alt"></i></a>
-                                    <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('cadmin.destroy',$s) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
+                                    <!-- <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('cadmin.destroy',$s) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a> -->
                                 </td>
                             </tr>
                         @endforeach

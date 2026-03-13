@@ -10,6 +10,7 @@ use App\Models\Company;
 use App\Models\Customer;
 use App\Models\PaymentMethod;
 use App\Models\Expense;
+use App\Models\ExpensesType;
 use App\Models\PaymentMethodLog;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -24,29 +25,22 @@ class ExpenseController extends Controller
 {
     public function index(Request $request)
     {
-        try{
+        try {
             $query = Company::query();
             switch (Auth::user()->role_id) {
-                case 1:
-                    break;
-
-                case 2:
-                    $query->where('branch_id', Auth::user()->branch_id);
-                    break;
-
+                case 1: break;
+                case 2: $query->where('branch_id', Auth::user()->branch_id); break;
                 case 3:
-                case 4:
-                    $query->where('id', Auth::user()->company_id);
-                    break;
-
-                default:
-                    throw new Exception('Invalid role id.');
+                case 4: $query->where('id', Auth::user()->company_id); break;
+                default: throw new Exception('Invalid role id.');
             }
             $companies = $query->get();
+            $expenseTypes = ExpensesType::orderBy('title')->get(); // <-- add
 
-            return view('expense.index')->with('companies',$companies);
-        }
-        catch(Exception $e){
+            return view('expense.index')
+                ->with('companies', $companies)
+                ->with('expenseTypes', $expenseTypes); // <-- add
+        } catch (Exception $e) {
             dd($e->getMessage());
         }
     }

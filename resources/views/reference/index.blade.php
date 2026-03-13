@@ -21,8 +21,12 @@
                             <th>No</th>
                             <th>{{ __('table.customer_name') }}</th>
                             <th>{{ __('table.relationship') }}</th>
+                            <th>NRIC</th>
                             <th>{{ __('table.reference_name') }}</th>
+                            <th>{{ __('table.designation') }}</th>
                             <th>{{ __('table.mobile') }}</th>
+                            <th>{{ __('table.city') }}</th>
+                            <th>{{ __('table.state') }}</th>
                             <th>{{ __('table.email') }}</th>
                             <th>{{ __('table.created_at') }}</th>
                             <th>{{ __('table.actions') }}</th>
@@ -34,8 +38,12 @@
                                 <td>{{$s->id??''}}</td>
                                 <td>{{$s->customer->customer_name??''}}</td>
                                 <td>{{$s->reference_type??''}}</td>
+                                <td>{{$s->new_ic??''}}</td>
                                 <td>{{$s->name??''}}</td>
+                                <td>{{$s->designation??''}}</td>
                                 <td>{{$s->mobile??''}}</td>
+                                <td>{{$s->city??''}}</td>
+                                <td>{{$s->state??''}}</td>
                                 <td>{{$s->email??''}}</td>
                                 <td>{{$s->created_at??''}}</td>
                                 <td>

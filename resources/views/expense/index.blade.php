@@ -45,7 +45,12 @@
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label class="col-form-label">{{ __('table.title') }}</label>
-                            <input type="text" class="form-control" id="create-expense-title" name="expense_title" required>
+                            <select class="form-control" id="create-expense-title" name="expense_title" required>
+                                <option value="">-- {{ __('table.option') }} --</option>
+                                @foreach($expenseTypes as $type)
+                                    <option value="{{ $type->title }}">{{ $type->title }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -68,7 +73,7 @@
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label class="col-form-label">{{ __('table.amount') }}</label>
-                            <input type="number" class="form-control" name="amount" value="0" min="-999999999">
+                            <input type="double" class="form-control" name="amount" value="0" min="-999999999">
                         </div>
                     </div>
                     <div class="col-md-12 mb-3">
@@ -113,7 +118,12 @@
                     <div class="row mb-3">
                         <div class="col-md-12">
                             <label class="col-form-label">{{ __('table.title') }}</label>
-                            <input type="text" class="form-control" id="update-expense-title" name="expense_title" required>
+                            <select class="form-control" id="update-expense-title" name="expense_title" required>
+                                <option value="">-- {{ __('table.option') }} --</option>
+                                @foreach($expenseTypes as $type)
+                                    <option value="{{ $type->title }}">{{ $type->title }}</option>
+                                @endforeach
+                            </select>
                         </div>
                     </div>
                     <div class="row mb-3">
@@ -135,7 +145,7 @@
                     </div>
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.amount') }}</label>
-                        <input type="number" id="update-expense-amount" class="form-control" name="amount" value="0" min="-999999999">
+                        <input type="double" id="update-expense-amount" class="form-control" name="amount" value="0" min="-999999999">
                     </div>
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.company') }}</label>
