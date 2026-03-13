@@ -48,7 +48,9 @@
                                 <td>{{ $s->created_at ? \Carbon\Carbon::parse($s->created_at)->format('d-m-Y') : '' }}</td>
                                 <td>
                                     <a href="{{ url('customer/'.($s->customer_id ?? 0).'/edit#reference') }}" title="Edit"><i class="bx bx-edit-alt"></i></a>
+                                    @if(Auth::user()->role_id != 4)
                                     <a onclick="if(confirm('Are you sure you want to delete?')){window.location.href='{{ route('reference.destroy',$s) }}'}" title = "Delete" style="cursor:pointer"><i class="bx bx-trash"></i></a>
+                                    @endif
                                 </td>
                             </tr>
                         @endforeach

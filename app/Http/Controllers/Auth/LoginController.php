@@ -51,13 +51,15 @@ class LoginController extends Controller
 
     public function authenticated(Request $request, $user)
     {
-        // dd($user);
         if ($user->is_active != 1) {
             Auth::logout();
-            
             return redirect()->route('login')->withErrors('Your account has been locked. Please contact your Boss!');
-        }else{
-            return redirect()->route('home')->withSuccess('Successfully Login');
         }
+
+        if ($user->role_id == 4) {
+            return redirect()->route('customer.index');
+        }
+
+        return redirect()->route('home')->withSuccess('Successfully Login');
     }
 }

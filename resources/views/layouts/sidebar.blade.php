@@ -15,12 +15,14 @@ $currentRoute = request()->route()->getName();
         <div class="nano-content">
             <nav id="menu" class="nav-main" role="navigation">
                 <ul class="nav nav-main">
+                    @if(Auth::user()->role_id != 4)
                     <li>
                         <a class="nav-link" href="{{route('home')}}">
                             <i class="bx bx-home-alt" aria-hidden="true"></i>
                             <span>{{ __('sidebar.dashboard') }}</span>
                         </a>
                     </li>
+                    @endif
                     <li class="{{ request()->routeIs('customer.*') ? 'nav-active' : ''}}">
                         <a class="nav-link" href="{{route('customer.index')}}">
                             <i class="bx bx-user" aria-hidden="true"></i>
@@ -33,6 +35,7 @@ $currentRoute = request()->route()->getName();
                             <span>{{ __('sidebar.reference_list') }}</span>
                         </a>
                     </li>
+                    @if(Auth::user()->role_id != 4)
                     <li class="nav-parent {{ request()->routeIs('report.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-file" aria-hidden="true"></i>
@@ -56,6 +59,7 @@ $currentRoute = request()->route()->getName();
                             </li>
                         </ul>
                     </li>
+                    @endif
                     @if(Auth::user()->role_id != 4)
                     <li class="nav-parent  {{ request()->routeIs('staff.*') || request()->routeIs('payment_method.*') || request()->routeIs('expense.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
@@ -135,7 +139,7 @@ $currentRoute = request()->route()->getName();
                             </li>
                         </ul>
                     </li>
-                    @if(Auth::user()->role_id == 1)
+                    @if(Auth::user()->role_id != 4)
                     <li class="nav-parent {{ request()->routeIs('badmin.*') || request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('employer_type.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*')|| request()->routeIs('reference_type.*')|| request()->routeIs('expenses_type.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-layout" aria-hidden="true"></i>

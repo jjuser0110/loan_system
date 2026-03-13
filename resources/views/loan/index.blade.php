@@ -5,6 +5,8 @@
 </header>
 @include('layouts.flash-message')
 <div class="row mb-4" style="padding-top:40px;">
+    
+    @if(Auth::user()->role_id != 4)
     <div class="col-xl-4">
         <section class="card card-featured-left card-featured-primary mb-3">
             <div class="card-body">
@@ -85,6 +87,7 @@
             </div>
         </section>
     </div>
+    @endif
 </div>
 <div class="row" style="padding-top:0">
     <div class="col-lg-12 mb-3">
@@ -166,7 +169,7 @@
                     }
                 },
                 {
-                    "data": "last_pay_date",
+                    "data": "updated_at",
                     "defaultContent": "-",
                     "render": function(data, type, row, meta) {
                         if (!data) return '-';
