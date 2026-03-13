@@ -1241,7 +1241,7 @@
                         
                     },
                     {
-                        "data": "last_pay_date",
+                        "data": "updated_at",
                         "defaultContent": "-",
                         "render": function(data, type, row, meta) {
                             if (!data) return '-';
