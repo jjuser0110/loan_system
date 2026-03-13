@@ -30,7 +30,7 @@
                             <div class="col-md-12 mb-3">
                                 <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                                 <input type="number" class="form-control" id="input-payment-amount" name="payment_amount" placeholder="10000.00" step="0.01" autocomplete="off" required>
-                                <p class="p-note" id="loan-payment-balance">Outstanding: {{ $loan?->outstanding ?? '' }} &nbsp;&nbsp;&nbsp; Next Payment: {{ $loan?->next_due_amount ?? '' }}</p>
+                                <p class="p-note" id="loan-payment-balance">Outstanding: {{ $loan?->outstanding ?? '' }} &nbsp;&nbsp;&nbsp; Next: {{ $loan?->outstanding ?? '' }}</p>
                             </div>
 
                             <div class="col-md-12 mb-3">
@@ -132,7 +132,7 @@
                             searchInput.value = loan.loan_code;
                             selected = loan;
                             document.getElementById('customer-code').value = `${loan.customer_code} / ${loan.customer_name}`;
-                            document.getElementById('loan-payment-balance').innerHTML = `Outstanding: ${loan.total_payment_balance}`;
+                            document.getElementById('loan-payment-balance').innerHTML = `Outstanding: ${loan.outstanding ?? ''} &nbsp;&nbsp;&nbsp; Next Payment: ${loan.next_due_amount ?? ''}`;
                             document.getElementById('loan-late-balance').innerHTML = `Outstanding: ${loan.total_late_balance}`;
                             document.getElementById('loan-interest-balance').innerHTML = `Outstanding: ${loan.total_interest_balance}`;
                             dropdown.style.display = 'none';
