@@ -108,182 +108,221 @@
                 <div id="overview" class="tab-pane active">
                     <div class="col-lg-12">
                         <section class="card cus-display-only">
-                            @if(!$loan)
-                            <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">{{ __('table.no_loan_found') }}</p>
-                            @else
-                            <form class="theme-form mega-form" id="form-loan-overview">
-                                <div class="row">
-                                    <div class="col-xl-3">
-                                        <section class="card mb-3">
-                                            <div class="card-body">
-                                                <div class="widget-summary cus-summary">
-                                                    <div class="widget-summary-col">
-                                                        <div class="summary">
-                                                            <h4 class="title">{{ __('table.loan_amount') }}</h4>
-                                                            <div class="info">
-                                                                <strong class="amount">RM {{ $loan->loan_amount }}</strong>
-                                                            </div>
+                        @if(!$loan)
+                            <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">
+                                {{ __('table.no_loan_found') }}
+                            </p>
+                        @else
+
+                        <form class="theme-form mega-form" id="form-loan-overview">
+                            <div class="row">
+
+                                <!-- LOAN AMOUNT -->
+                                <div class="col-xl-3">
+                                    <section class="card mb-3">
+                                        <div class="card-body" style="background-color:#e6f2ff;">
+                                            <div class="widget-summary cus-summary">
+                                                <div class="widget-summary-col">
+                                                    <div class="summary">
+                                                        <h4 class="title">{{ __('table.loan_amount') }}</h4>
+                                                        <div class="info">
+                                                            <strong class="amount">RM {{ $loan->loan_amount }}</strong>
                                                         </div>
-                                                        <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">{{ $loan->interest_group }} | {{ $loan->interest_rate.'%'}} {{ $loan->interest_group == "SKIM B" ? '| '.$loan->loan_term.' months' : '' }}</a>
-                                                        </div>
+                                                    </div>
+                                                    <div class="summary-footer">
+                                                        <a class="text-muted text-uppercase">
+                                                            {{ $loan->interest_group }} |
+                                                            {{ $loan->interest_rate.'%'}}
+                                                            {{ $loan->interest_group == "SKIM B" ? '| '.$loan->loan_term.' months' : '' }}
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </section>
-                                    </div>
+                                        </div>
+                                    </section>
+                                </div>
 
-                                    <div class="col-xl-3">
-                                        <section class="card mb-3">
-                                            <div class="card-body">
-                                                <div class="widget-summary cus-summary">
-                                                    <div class="widget-summary-col">
-                                                        <div class="summary">
-                                                            <h4 class="title">{{ __('table.outstanding') }}</h4>
-                                                            <div class="info">
-                                                                <strong class="amount">RM {{ $loan->outstanding }}</strong>
-                                                            </div>
+                                <!-- OUTSTANDING -->
+                                <div class="col-xl-3">
+                                    <section class="card mb-3">
+                                        <div class="card-body" style="background-color:#e6f2ff;">
+                                            <div class="widget-summary cus-summary">
+                                                <div class="widget-summary-col">
+                                                    <div class="summary">
+                                                        <h4 class="title">{{ __('table.outstanding') }}</h4>
+                                                        <div class="info">
+                                                            <strong class="amount">RM {{ $loan->outstanding }}</strong>
                                                         </div>
-                                                        <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">{{ __('table.next') }}: {{ $loan->next_due_amount }} ({{ $loan->next_due_date}})</a>
-                                                        </div>
+                                                    </div>
+                                                    <div class="summary-footer">
+                                                        <a class="text-muted text-uppercase">
+                                                            {{ __('table.next') }}:
+                                                            {{ $loan->next_due_amount }}
+                                                            ({{ $loan->next_due_date}})
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </section>
-                                    </div>
+                                        </div>
+                                    </section>
+                                </div>
 
-                                    <div class="col-xl-3">
-                                        <section class="card mb-3">
-                                            <div class="card-body">
-                                                <div class="widget-summary cus-summary">
-                                                    <div class="widget-summary-col">
-                                                        <div class="summary">
-                                                            <h4 class="title">{{ __('table.balance') }}</h4>
-                                                            <div class="info">
-                                                                <strong class="amount">RM {{ $loan->balance }}</strong>
-                                                            </div>
+                                <!-- BALANCE -->
+                                <div class="col-xl-3">
+                                    <section class="card mb-3">
+                                        <div class="card-body" style="background-color:#e6f2ff;">
+                                            <div class="widget-summary cus-summary">
+                                                <div class="widget-summary-col">
+                                                    <div class="summary">
+                                                        <h4 class="title">{{ __('table.balance') }}</h4>
+                                                        <div class="info">
+                                                            <strong class="amount">RM {{ $loan->balance }}</strong>
                                                         </div>
-                                                        <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">{{ __('table.capital') }}: RM{{ $loan->capital }}</a>
-                                                        </div>
+                                                    </div>
+                                                    <div class="summary-footer">
+                                                        <a class="text-muted text-uppercase">
+                                                            {{ __('table.capital') }}: RM{{ $loan->capital }}
+                                                        </a>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </section>
-                                    </div>
+                                        </div>
+                                    </section>
+                                </div>
 
-                                    <div class="col-xl-3">
-                                        <section class="card mb-3">
-                                            <div class="card-body">
-                                                <div class="widget-summary cus-summary">
-                                                    <div class="widget-summary-col">
-                                                        @if($loan->interest_group == 'SKIM B')
+                                <!-- PAYMENT -->
+                                <div class="col-xl-3">
+                                    <section class="card mb-3">
+                                        <div class="card-body">
+                                            <div class="widget-summary cus-summary">
+                                                <div class="widget-summary-col">
+
+                                                    @if($loan->interest_group == 'SKIM B')
                                                         <div class="summary">
                                                             <h4 class="title">{{ __('table.total_payment') }}</h4>
                                                             <div class="info">
-                                                                <strong class="amount">RM {{ number_format(($loan->installment * ($loan->loan_term - 2)) + $loan->first_payment + $loan->last_payment,2,'.',',') }}</strong>
+                                                                <strong class="amount">
+                                                                    RM {{ number_format(($loan->installment * ($loan->loan_term - 2)) + $loan->first_payment + $loan->last_payment,2,'.',',') }}
+                                                                </strong>
                                                             </div>
                                                         </div>
-                                                        @else
+                                                    @else
                                                         <div class="summary">
                                                             <h4 class="title">{{ __('table.payment') }}</h4>
                                                             <div class="info">
-                                                                <strong class="amount">RM {{ ($loan->balance/100) * $loan->interest_rate }}/m</strong>
+                                                                <strong class="amount">
+                                                                    RM {{ ($loan->balance/100) * $loan->interest }}/m
+                                                                </strong>
                                                             </div>
                                                         </div>
-                                                        @endif
-                                                        <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">{{ __('table.paid') }}: RM {{ $loan->paid }}</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </section>
-                                    </div>
-                                    
-                                    <div class="col-xl-3">
-                                        <section class="card mb-3">
-                                            <div class="card-body" style="{{ $loan->total_late_charge - $loan->tota_late_paid > 0 ? 'background:var(--background-outstanding)' : '' }}">
-                                                <div class="widget-summary cus-summary">
-                                                    <div class="widget-summary-col">
-                                                        <div class="summary">
-                                                            <h4 class="title">{{ __('table.total_interest') }}</h4>
-                                                            <div class="info">
-                                                                <strong class="amount">RM {{ $loan->interest }}</strong>
-                                                            </div>
-                                                        </div>
-                                                        <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">{{ __('table.paid') }}: RM{{ $loan->interest_paid }}</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </section>
-                                    </div>
+                                                    @endif
 
-                                    <div class="col-xl-3">
-                                        <section class="card mb-3">
-                                            <div class="card-body" style="{{ $loan->total_late_charge - $loan->tota_late_paid > 0 ? 'background:var(--background-outstanding)' : '' }}">
-                                                <div class="widget-summary cus-summary">
-                                                    <div class="widget-summary-col">
-                                                        <div class="summary">
-                                                            <h4 class="title">{{ __('table.total_late') }}</h4>
-                                                            <div class="info">
-                                                                <strong class="amount">RM {{ $loan->late }}</strong>
-                                                            </div>
-                                                        </div>
-                                                        <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">{{ __('table.paid') }}: RM{{ $loan->late_paid }}</a>
-                                                        </div>
+                                                    <div class="summary-footer">
+                                                        <a class="text-muted text-uppercase">
+                                                            {{ __('table.paid') }}: RM {{ $loan->paid }}
+                                                        </a>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        </section>
-                                    </div>
-                                    
-                                    <div class="col-xl-3">
-                                        <section class="card mb-3">
-                                            <div class="card-body">
-                                                <div class="widget-summary cus-summary">
-                                                    <div class="widget-summary-col">
-                                                        <div class="summary">
-                                                            <h4 class="title">{{ __('table.total_discount') }}</h4>
-                                                            <div class="info">
-                                                                <strong class="amount">RM {{ $loan->discount }}</strong>
-                                                            </div>
-                                                        </div>
-                                                        <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">-</a>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </section>
-                                    </div>
 
-                                    <div class="col-xl-3">
-                                        <section class="card mb-3">
-                                            <div class="card-body">
-                                                <div class="widget-summary cus-summary">
-                                                    <div class="widget-summary-col">
-                                                        <div class="summary">
-                                                            <h4 class="title">{{ __('table.total_profit') }}</h4>
-                                                            <div class="info">
-                                                                <strong class="amount">RM <span style="vertical-align:unset" id="total-profit">{{ __('table.loading') }}</span></strong>
-                                                            </div>
-                                                        </div>
-                                                        <div class="summary-footer">
-                                                            <a class="text-muted text-uppercase">-</a>
-                                                        </div>
-                                                    </div>
                                                 </div>
                                             </div>
-                                        </section>
-                                    </div>
+                                        </div>
+                                    </section>
                                 </div>
-                            </form>
-                            @endif
+
+                                <!-- INTEREST -->
+                                <div class="col-xl-3">
+                                    <section class="card mb-3">
+                                        <div class="card-body" style="{{ $loan->total_late_charge - $loan->tota_late_paid > 0 ? 'background:var(--background-outstanding)' : '' }}">
+                                            <div class="widget-summary cus-summary">
+                                                <div class="widget-summary-col">
+                                                    <div class="summary">
+                                                        <h4 class="title">{{ __('table.total_interest') }}</h4>
+                                                        <div class="info">
+                                                            <strong class="amount">RM {{ $loan->interest }}</strong>
+                                                        </div>
+                                                    </div>
+                                                    <div class="summary-footer">
+                                                        <a class="text-muted text-uppercase">
+                                                            {{ __('table.paid') }}: RM{{ $loan->interest_paid }}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                <!-- LATE -->
+                                <div class="col-xl-3">
+                                    <section class="card mb-3">
+                                        <div class="card-body" style="{{ $loan->total_late_charge - $loan->tota_late_paid > 0 ? 'background:var(--background-outstanding)' : '' }}">
+                                            <div class="widget-summary cus-summary">
+                                                <div class="widget-summary-col">
+                                                    <div class="summary">
+                                                        <h4 class="title">{{ __('table.total_late') }}</h4>
+                                                        <div class="info">
+                                                            <strong class="amount">RM {{ $loan->late }}</strong>
+                                                        </div>
+                                                    </div>
+                                                    <div class="summary-footer">
+                                                        <a class="text-muted text-uppercase">
+                                                            {{ __('table.paid') }}: RM{{ $loan->late_paid }}
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                <!-- DISCOUNT -->
+                                <div class="col-xl-3">
+                                    <section class="card mb-3">
+                                        <div class="card-body">
+                                            <div class="widget-summary cus-summary">
+                                                <div class="widget-summary-col">
+                                                    <div class="summary">
+                                                        <h4 class="title">{{ __('table.total_discount') }}</h4>
+                                                        <div class="info">
+                                                            <strong class="amount">RM {{ $loan->discount }}</strong>
+                                                        </div>
+                                                    </div>
+                                                    <div class="summary-footer">
+                                                        <a class="text-muted text-uppercase">-</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+
+                                <!-- PROFIT -->
+                                <div class="col-xl-3">
+                                    <section class="card mb-3">
+                                        <div class="card-body">
+                                            <div class="widget-summary cus-summary">
+                                                <div class="widget-summary-col">
+                                                    <div class="summary">
+                                                        <h4 class="title">{{ __('table.total_profit') }}</h4>
+                                                        <div class="info">
+                                                            <strong class="amount">
+                                                                RM <span id="total-profit">{{ __('table.loading') }}</span>
+                                                            </strong>
+                                                        </div>
+                                                    </div>
+                                                    <div class="summary-footer">
+                                                        <a class="text-muted text-uppercase">-</a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+
+                            </div>
+                        </form>
+
+                        @endif
                         </section>
                     </div>
                 </div>
