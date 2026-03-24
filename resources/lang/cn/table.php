@@ -274,6 +274,11 @@ return [
 'expenses_type' => '费用类型',
 'expenses_type_information' => '费用类型信息',
 'loan_date' => '贷款日期',
+'first_payment' => '首次付款',
+'last_payment' => '最后付款',
+'this_loan_is_lock' => '此贷款已锁定，因为客户已经付款。',
+'next_payment' => '下次付款',
+'total_payment' => '总付款',
 
 ];
 

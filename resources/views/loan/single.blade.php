@@ -283,142 +283,162 @@
                 <div id="loan" class="tab-pane">
                     <div class="col-lg-12">
                         <section class="card cus-display-only">
+
                             @if(!$loan)
-                            <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">{{ __('table.no_loan_found') }}</p>
+                                <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">
+                                    {{ __('table.no_loan_found') }}
+                                </p>
                             @else
-                            <form class="theme-form mega-form">
-                                @csrf
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h4 class="cus-header">{{ __('table.customer') }}</h4>
-                                            <div class="row">
-                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">{{ __('table.system_code') }}</label>
-                                                    <input type="text" class="form-control" value="{{ $loan?->customer->customer_code ?? '' }}" disabled>
-                                                </div>
-                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">{{ __('table.customer_name') }}</label>
-                                                    <input type="text" class="form-control" value="{{ $loan?->customer->customer_name ?? '' }}" disabled>
-                                                </div>
-                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">NRIC {{ __('table.number') }}</label>
-                                                    <input type="text" class="form-control" value="{{ $loan?->customer->nric_number ?? '' }}" disabled>
-                                                </div>
-                                            </div>
-                                        </div>
 
-                                        <div class="col-6">
-                                            <h4 class="cus-header">{{ __('table.company') }}</h4>
-                                            <div class="row">
-                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">{{ __('table.company_code') }}</label>
-                                                    <input type="text" class="form-control" value="{{ $loan?->company->company_code ?? '' }}" disabled>
-                                                </div>
-                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">{{ __('table.company_name') }}</label>
-                                                    <input type="text" class="form-control" value="{{ $loan?->company->company_name ?? '' }}" disabled>
-                                                </div>
-                                                <div class="col-xs-12 col-lg-4 col-lg-6 col-xl-4 mb-3">
-                                                    <label class="col-form-label">{{ __('table.branch') }}</label>
-                                                    <input type="text" class="form-control" value="{{ $loan?->company?->branch->branch_name ?? '' }}" disabled>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
+                            @php
+    $hasPayment = \App\Models\Payment::where('payment_code', 'LIKE', $loan->loan_code . '%')->exists();
+@endphp
 
-                                    <h4 class="cus-header">{{ __('table.loan') }} {{ $loan?->loan_code ? "(".$loan->loan_code.")" : '' }} </h4>
-                                    <div class="row">
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.interest_group') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->interest_group ?? '' }}" disabled>
-                                        </div>
+<form action="{{ route('loan.update', $loan->loan_code) }}" method="POST">
+    @csrf
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.loan_amount') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->loan_amount ?? '' }}" disabled>
-                                        </div>
+    <div class="card-body">
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.interest_rate') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->interest_rate.'%' ?? '' }}" disabled>
-                                        </div>
+        <!-- CUSTOMER -->
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="cus-header">{{ __('table.customer') }}</h4>
+                <div class="row">
+                    <div class="col-xl-4 mb-3">
+                        <label class="col-form-label">{{ __('table.system_code') }}</label>
+                        <input type="text" class="form-control"
+                            value="{{ $loan?->customer->customer_code ?? '' }}" readonly>
+                    </div>
+                    <div class="col-xl-4 mb-3">
+                        <label class="col-form-label">{{ __('table.customer_name') }}</label>
+                        <input type="text" class="form-control"
+                            value="{{ $loan?->customer->customer_name ?? '' }}" readonly>
+                    </div>
+                    <div class="col-xl-4 mb-3">
+                        <label class="col-form-label">NRIC {{ __('table.number') }}</label>
+                        <input type="text" class="form-control"
+                            value="{{ $loan?->customer->nric_number ?? '' }}" readonly>
+                    </div>
+                </div>
+            </div>
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.start_date') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->year_month ?? '' }}" disabled>
-                                        </div>
+            <!-- COMPANY -->
+            <div class="col-md-6">
+                <h4 class="cus-header">{{ __('table.company') }}</h4>
+                <div class="row">
+                    <div class="col-xl-4 mb-3">
+                        <label class="col-form-label">{{ __('table.company_code') }}</label>
+                        <input type="text" class="form-control"
+                            value="{{ $loan?->company->company_code ?? '' }}" readonly>
+                    </div>
+                    <div class="col-xl-4 mb-3">
+                        <label class="col-form-label">{{ __('table.company_name') }}</label>
+                        <input type="text" class="form-control"
+                            value="{{ $loan?->company->company_name ?? '' }}" readonly>
+                    </div>
+                    <div class="col-xl-4 mb-3">
+                        <label class="col-form-label">{{ __('table.branch') }}</label>
+                        <input type="text" class="form-control"
+                            value="{{ $loan?->company?->branch->branch_name ?? '' }}" readonly>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                                        @if($loan?->interest_group == 'SKIM B')
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.loan_term') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->loan_term ?? '' }}" disabled>
-                                        </div>
+        <h4 class="cus-header">
+            {{ __('table.loan') }} ({{ $loan->loan_code }})
+        </h4>
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.first_payment') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->first_payment ?? '' }}" disabled>
-                                        </div>
+        <div class="row">
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.last_payment') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->last_payment ?? '' }}" disabled>
-                                        </div>
-                                        @endif
+            <div class="col-xl-3 mb-3">
+                <label class="col-form-label">{{ __('table.interest_group') }}</label>
+                <input type="text" class="form-control"
+                    value="{{ $loan?->interest_group ?? '' }}" readonly>
+            </div>
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.installment') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->installment ?? '' }}" disabled>
-                                        </div>
+            <div class="col-xl-3 mb-3">
+                <label class="col-form-label">{{ __('table.loan_amount') }}</label>
+                <input type="text" name="loan_amount" class="form-control"
+                    value="{{ $loan?->loan_amount ?? '' }}"
+                    {{ $hasPayment ? 'readonly' : '' }}>
+            </div>
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.processing_fee') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->processing_fee ?? '' }}" disabled>
-                                        </div>
+            <div class="col-xl-3 mb-3">
+                <label class="col-form-label">{{ __('table.interest_rate') }}</label>
+                <input type="text" name="interest_rate" class="form-control"
+                    value="{{ $loan?->interest_rate ?? '' }}"
+                    {{ $hasPayment ? 'readonly' : '' }}>
+            </div>
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.stamp_fee') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->stamp_fee ?? '' }}" disabled>
-                                        </div>
+            <div class="col-xl-3 mb-3">
+                <label class="col-form-label">{{ __('table.start_date') }}</label>
+                <input type="text" class="form-control"
+                    value="{{ $loan?->year_month ?? '' }}" readonly>
+            </div>
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.capital') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->capital ?? '' }}" disabled>
-                                        </div>
+            @if($loan?->interest_group == 'SKIM B')
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.alternate_code') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->alternate_code ?? '' }}" disabled>
-                                        </div>
+            <div class="col-xl-3 mb-3">
+                <label class="col-form-label">{{ __('table.loan_term') }}</label>
+                <input type="text" class="form-control"
+                    value="{{ $loan?->loan_term ?? '' }}" readonly>
+            </div>
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.receipt_no') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->receipt_no ?? '' }}" disabled>
-                                        </div>
+            <div class="col-xl-3 mb-3">
+                <label class="col-form-label">{{ __('table.first_payment') }}</label>
+                <input type="text" name="first_payment" class="form-control"
+                    value="{{ $loan?->first_payment ?? '' }}"
+                    {{ $hasPayment ? 'readonly' : '' }}>
+            </div>
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.created_at') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->created_at ?? '' }}" disabled>
-                                        </div>
+            <div class="col-xl-3 mb-3">
+                <label class="col-form-label">{{ __('table.last_payment') }}</label>
+                <input type="text" name="last_payment" class="form-control"
+                    value="{{ $loan?->last_payment ?? '' }}"
+                    {{ $hasPayment ? 'readonly' : '' }}>
+            </div>
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.created_by') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->creator->username ?? '' }}" disabled>
-                                        </div>
+            @endif
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.last_update') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->updated_at ?? '' }}" disabled>
-                                        </div>
+            <div class="col-xl-3 mb-3">
+                <label class="col-form-label">{{ __('table.installment') }}</label>
+                <input type="text" name="installment" class="form-control"
+                    value="{{ $loan?->installment ?? '' }}"
+                    {{ $hasPayment ? 'readonly' : '' }}>
+            </div>
 
-                                        <div class="col-sm-6 col-lg-4 col-lg-4 col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.updated_by') }}</label>
-                                            <input type="text" class="form-control" value="{{ $loan?->updater?->username ?? '' }}" disabled>
-                                        </div>
-                                    </div>
-                                </div>
-                            </form>
+            <div class="col-xl-3 mb-3">
+                <label class="col-form-label">{{ __('table.processing_fee') }}</label>
+                <input type="text" name="processing_fee" class="form-control"
+                    value="{{ $loan?->processing_fee ?? '' }}"
+                    {{ $hasPayment ? 'readonly' : '' }}>
+            </div>
+
+            <div class="col-xl-3 mb-3">
+                <label class="col-form-label">{{ __('table.created_at') }}</label>
+                <input type="text" class="form-control"
+                    value="{{ $loan?->created_at ?? '' }}" readonly>
+            </div>
+
+        </div>
+
+        <button type="submit" class="btn btn-primary"
+            {{ $hasPayment ? 'disabled' : '' }}>
+            Submit
+        </button>
+
+        @if($hasPayment)
+            <div class="alert alert-warning mt-3">
+                {{ __('table.this_loan_is_lock') }}
+            </div>
+        @endif
+
+    </div>
+</form>
+
                             @endif
+
                         </section>
                     </div>
                 </div>
@@ -615,7 +635,7 @@
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" id="input-payment-amount" name="payment_amount" value="0">
-                            <p class="p-note" id="loan-payment-balance">{{ $loan->balance ?? '0.00' }}</p>
+                            <p class="p-note" id="loan-payment-balance">{{ __('table.outstanding') }}: {{ $loan->balance ?? '0.00' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->first_payment ?? '' }}</p>
                         </div>
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.discount') }}</label>

@@ -274,6 +274,11 @@ return [
 'expenses_type' => 'Jenis Perbelanjaan',
 'expenses_type_information' => 'Maklumat Jenis Perbelanjaan',
 'loan_date' => 'Tarikh Pinjaman',
+'first_payment' => 'Bayaran Pertama',
+'last_payment' => 'Bayaran Terakhir',
+'this_loan_is_lock' => 'Pinjaman ini dikunci kerana pelanggan telah membuat pembayaran.',
+'next_payment' => 'Bayaran Seterusnya',
+'total_payment' => 'Jumlah Bayaran',
 
 ];
 

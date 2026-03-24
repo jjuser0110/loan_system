@@ -906,4 +906,27 @@ class LoanController extends Controller
         Loan::where('loan_code', $loan_code)->update(['status' => $request->status]);
         return redirect()->back()->withSuccess('Status updated successfully');
     }
+
+    public function update(Request $request, $loan_code)
+    {
+        $loan = Loan::where('loan_code', $loan_code)->firstOrFail();
+
+        $loan->update([
+            'loan_amount'    => $request->loan_amount,
+            'interest_rate'  => $request->interest_rate,
+            'processing_fee' => $request->processing_fee,
+            'first_payment'  => $request->first_payment ?: null,
+            'last_payment'   => $request->last_payment ?: null,
+            'installment'    => $request->installment,
+        ]);
+
+        if ($request->first_payment) {
+            PaymentSchedule::where('loan_code', 'LIKE', $loan_code . '%')
+                ->update([
+                    'payment_amount' => $request->first_payment
+                ]);
+        }
+
+        return redirect()->back()->with('success', 'Updated successfully');
+    }
 }
