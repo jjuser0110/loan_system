@@ -122,50 +122,71 @@
                 {
                     "data": "stock_b",
                     "name": "stock_b",
-                    "render": function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                    render: function(data) {
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
                 {
                     "data": "stock_bb",
                     "name": "stock_bb",
-                    "render": function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                    render: function(data) {
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
                 {
                     "data": "company_amount",
                     "name": "company_amount",
-                    "render": function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                    render: function(data) {
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
                 {
                     "data": "loan_topup",
                     "name": "loan_topup",
-                    "render": function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                    render: function(data) {
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
                 {
                     "data": "payment",
                     "name": "payment",
-                    "render": function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                    render: function(data) {
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
                 {
                     "data": "expenses",
                     "name": "expenses",
-                    "render": function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                    render: function(data) {
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
                 {
                     "data": "account_total_amount",
                     "name": "account_total_amount",
-                    "render": function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                    render: function(data) {
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
                 {

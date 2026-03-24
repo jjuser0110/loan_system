@@ -237,7 +237,13 @@
                 { "data": "expense_code" },
                 { "data": "expense_title" },
                 { "data": "expense_description" },
-                { "data": "amount" },
+                {
+                    data: "amount",
+                    render: function(data) {
+                        let color = data < 0 ? 'red' : 'green';
+                        return `<span style="color:${color}">${data}</span>`;
+                    }
+                },
                 {
                     "data": "date",
                     "render": function(data) {
@@ -398,6 +404,27 @@
                         totalAmount.toFixed(2)
                     ]],
                     theme: 'grid',
+                    didParseCell: function(data) {
+                        if (data.section === 'body' && data.column.index === 7) {
+                            let value = parseFloat(data.cell.raw || 0);
+
+                            if (value < 0) {
+                                data.cell.styles.textColor = [255, 0, 0]; // red
+                            } else if (value > 0) {
+                                data.cell.styles.textColor = [0, 128, 0]; // green
+                            }
+                        }
+
+                        if (data.section === 'foot' && data.column.index === 7) {
+                            let value = totalAmount;
+
+                            if (value < 0) {
+                                data.cell.styles.textColor = [255, 0, 0];
+                            } else if (value > 0) {
+                                data.cell.styles.textColor = [0, 128, 0];
+                            }
+                        }
+                    },
                     headStyles: {
                         fillColor: [41, 128, 185],
                         textColor: 255,

@@ -188,7 +188,10 @@
                     name: "customer_payment",
                     width: "50px",  
                     render: function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
                 {
@@ -196,7 +199,10 @@
                     name: "loan_top_up",
                     width: "50px",
                     render: function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
                 {
@@ -204,7 +210,10 @@
                     name: "expenses",
                     width: "50px",
                     render: function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
                 {
@@ -212,7 +221,10 @@
                     name: "account_total_amount",
                     width: "50px",
                     render: function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '0.00';
+                        let value = data ? parseFloat(data) : 0;
+                        let color = value < 0 ? 'red' : 'green';
+
+                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
                     }
                 },
             ],
@@ -379,6 +391,34 @@ $(document).ready(function() {
                         totalAccount.toFixed(2)
                     ]],
                     theme: 'grid',
+                    didParseCell: function(data) {
+                        if (data.section === 'body') {
+                            let value = parseFloat(data.cell.raw || 0);
+                            if (data.column.index === 6) {
+                                if (value < 0) data.cell.styles.textColor = [255, 0, 0];
+                                else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
+                            }
+                            if (data.column.index === 7) {
+                                if (value < 0) data.cell.styles.textColor = [255, 0, 0];
+                                else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
+                            }
+                            if (data.column.index === 8) {
+                                if (value < 0) data.cell.styles.textColor = [255, 0, 0];
+                                else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
+                            }
+                            if (data.column.index === 9) {
+                                if (value < 0) data.cell.styles.textColor = [255, 0, 0];
+                                else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
+                            }
+                        }
+                        if (data.section === 'foot') {
+                            let value = parseFloat(data.cell.raw || 0);
+                            if ([6,7,8,9].includes(data.column.index)) {
+                                if (value < 0) data.cell.styles.textColor = [255, 0, 0];
+                                else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
+                            }
+                        }
+                    },
                     headStyles: {
                         fillColor: [41, 128, 185],
                         textColor: 255,

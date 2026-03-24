@@ -62,12 +62,22 @@
                         <div>
                             <label class="col-form-label" style="padding:0">{{ __('table.status') }}</label>
                             <select id="loan-status" name="status" class="form-control"
-                                style="color: {{ in_array($loan->status, ['Active', 'Fully Paid']) ? 'green' : 'red' }}; font-weight:700; font-size: 1.5rem; height: auto; padding: 5px 5px; width: 170px;">
+                                style="
+                                    color: 
+                                    {{ $loan->status == 'Active' ? 'green' : 
+                                    ($loan->status == 'Overdue' ? 'red' : 
+                                    ($loan->status == 'Fully Paid' ? 'blue' : 'black')) }};
+                                    font-weight:700; 
+                                    font-size: 1.5rem; 
+                                    height: auto; 
+                                    padding: 5px 5px; 
+                                    width: 170px;
+                                ">
                                 
                                 <option value="Active" style="color:green" {{ $loan->status == 'Active' ? 'selected' : '' }}>Active</option>
                                 <option value="Overdue" style="color:red" {{ $loan->status == 'Overdue' ? 'selected' : '' }}>Overdue</option>
-                                <option value="Fully Paid" style="color:green" {{ $loan->status == 'Fully Paid' ? 'selected' : '' }}>Fully Paid</option>
-                                
+                                <option value="Fully Paid" style="color:blue" {{ $loan->status == 'Fully Paid' ? 'selected' : '' }}>Fully Paid</option>
+
                             </select>
                         </div>
                         @endif
@@ -284,160 +294,186 @@
                     <div class="col-lg-12">
                         <section class="card cus-display-only">
 
-                            @if(!$loan)
-                                <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">
-                                    {{ __('table.no_loan_found') }}
-                                </p>
-                            @else
+                        @if(!$loan)
+                            <p style="width:100%;text-align:center;margin:5px 0;font-size:14px">
+                                {{ __('table.no_loan_found') }}
+                            </p>
+                        @else
 
-                            @php
-                                $hasPayment = \App\Models\Payment::where('payment_code', 'LIKE', $loan->loan_code . '%')->exists();
-                            @endphp
+                        @php
+                            $hasPayment = \App\Models\Payment::where('payment_code', 'LIKE', $loan->loan_code . '%')->exists();
 
-                            <form action="{{ route('loan.update', $loan->loan_code) }}" method="POST">
-                                @csrf
+                            $editableClass = $hasPayment ? 'readonly-field' : 'editable-field';
+                        @endphp
 
-                                <div class="card-body">
+                        <style>
+                            .editable-field {
+                                background-color: #ffffff;
+                            }
 
-                                    <!-- CUSTOMER -->
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <h4 class="cus-header">{{ __('table.customer') }}</h4>
-                                            <div class="row">
-                                                <div class="col-xl-4 mb-3">
-                                                    <label class="col-form-label">{{ __('table.system_code') }}</label>
-                                                    <input type="text" class="form-control"
-                                                        value="{{ $loan?->customer->customer_code ?? '' }}" readonly>
-                                                </div>
-                                                <div class="col-xl-4 mb-3">
-                                                    <label class="col-form-label">{{ __('table.customer_name') }}</label>
-                                                    <input type="text" class="form-control"
-                                                        value="{{ $loan?->customer->customer_name ?? '' }}" readonly>
-                                                </div>
-                                                <div class="col-xl-4 mb-3">
-                                                    <label class="col-form-label">NRIC {{ __('table.number') }}</label>
-                                                    <input type="text" class="form-control"
-                                                        value="{{ $loan?->customer->nric_number ?? '' }}" readonly>
-                                                </div>
+                            .readonly-field {
+                                background-color: #f2f2f2;
+                                cursor: not-allowed;
+                            }
+                        </style>
+
+                        <form action="{{ route('loan.update', $loan->loan_code) }}" method="POST">
+                            @csrf
+
+                            <div class="card-body">
+
+                                <!-- CUSTOMER -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h4 class="cus-header">{{ __('table.customer') }}</h4>
+                                        <div class="row">
+                                            <div class="col-xl-4 mb-3">
+                                                <label class="col-form-label">{{ __('table.system_code') }}</label>
+                                                <input type="text" class="form-control" value="{{ $loan?->customer->customer_code ?? '' }}" readonly>
                                             </div>
-                                        </div>
 
-                                        <!-- COMPANY -->
-                                        <div class="col-md-6">
-                                            <h4 class="cus-header">{{ __('table.company') }}</h4>
-                                            <div class="row">
-                                                <div class="col-xl-4 mb-3">
-                                                    <label class="col-form-label">{{ __('table.company_code') }}</label>
-                                                    <input type="text" class="form-control"
-                                                        value="{{ $loan?->company->company_code ?? '' }}" readonly>
-                                                </div>
-                                                <div class="col-xl-4 mb-3">
-                                                    <label class="col-form-label">{{ __('table.company_name') }}</label>
-                                                    <input type="text" class="form-control"
-                                                        value="{{ $loan?->company->company_name ?? '' }}" readonly>
-                                                </div>
-                                                <div class="col-xl-4 mb-3">
-                                                    <label class="col-form-label">{{ __('table.branch') }}</label>
-                                                    <input type="text" class="form-control"
-                                                        value="{{ $loan?->company?->branch->branch_name ?? '' }}" readonly>
-                                                </div>
+                                            <div class="col-xl-4 mb-3">
+                                                <label class="col-form-label">{{ __('table.customer_name') }}</label>
+                                                <input type="text" class="form-control" value="{{ $loan?->customer->customer_name ?? '' }}" readonly>
+                                            </div>
+
+                                            <div class="col-xl-4 mb-3">
+                                                <label class="col-form-label">NRIC {{ __('table.number') }}</label>
+                                                <input type="text" class="form-control" value="{{ $loan?->customer->nric_number ?? '' }}" readonly>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <h4 class="cus-header">
-                                        {{ __('table.loan') }} ({{ $loan->loan_code }})
-                                    </h4>
+                                    <!-- COMPANY -->
+                                    <div class="col-md-6">
+                                        <h4 class="cus-header">{{ __('table.company') }}</h4>
+                                        <div class="row">
+                                            <div class="col-xl-4 mb-3">
+                                                <label class="col-form-label">{{ __('table.company_code') }}</label>
+                                                <input type="text" class="form-control" value="{{ $loan?->company->company_code ?? '' }}" readonly>
+                                            </div>
 
-                                    <div class="row">
+                                            <div class="col-xl-4 mb-3">
+                                                <label class="col-form-label">{{ __('table.company_name') }}</label>
+                                                <input type="text" class="form-control" value="{{ $loan?->company->company_name ?? '' }}" readonly>
+                                            </div>
 
-                                        <div class="col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.interest_group') }}</label>
-                                            <input type="text" class="form-control"
-                                                value="{{ $loan?->interest_group ?? '' }}" readonly>
+                                            <div class="col-xl-4 mb-3">
+                                                <label class="col-form-label">{{ __('table.branch') }}</label>
+                                                <input type="text" class="form-control" value="{{ $loan?->company?->branch->branch_name ?? '' }}" readonly>
+                                            </div>
                                         </div>
+                                    </div>
+                                </div>
 
-                                        <div class="col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.loan_amount') }}</label>
-                                            <input type="text" name="loan_amount" class="form-control"
-                                                value="{{ $loan?->loan_amount ?? '' }}"
-                                                {{ $hasPayment ? 'readonly' : '' }}>
-                                        </div>
+                                <h4 class="cus-header">
+                                    {{ __('table.loan') }} ({{ $loan->loan_code }})
+                                </h4>
 
-                                        <div class="col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.interest_rate') }}</label>
-                                            <input type="text" name="interest_rate" class="form-control"
-                                                value="{{ $loan?->interest_rate ?? '' }}"
-                                                {{ $hasPayment ? 'readonly' : '' }}>
-                                        </div>
+                                <div class="row">
 
-                                        <div class="col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.start_date') }}</label>
-                                            <input type="text" class="form-control"
-                                                value="{{ $loan?->year_month ?? '' }}" readonly>
-                                        </div>
-
-                                        @if($loan?->interest_group == 'SKIM B')
-
-                                        <div class="col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.loan_term') }}</label>
-                                            <input type="text" class="form-control"
-                                                value="{{ $loan?->loan_term ?? '' }}" readonly>
-                                        </div>
-
-                                        <div class="col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.first_payment') }}</label>
-                                            <input type="text" name="first_payment" class="form-control"
-                                                value="{{ $loan?->first_payment ?? '' }}"
-                                                {{ $hasPayment ? 'readonly' : '' }}>
-                                        </div>
-
-                                        <div class="col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.last_payment') }}</label>
-                                            <input type="text" name="last_payment" class="form-control"
-                                                value="{{ $loan?->last_payment ?? '' }}"
-                                                {{ $hasPayment ? 'readonly' : '' }}>
-                                        </div>
-
-                                        @endif
-
-                                        <div class="col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.installment') }}</label>
-                                            <input type="text" name="installment" class="form-control"
-                                                value="{{ $loan?->installment ?? '' }}"
-                                                {{ $hasPayment ? 'readonly' : '' }}>
-                                        </div>
-
-                                        <div class="col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.processing_fee') }}</label>
-                                            <input type="text" name="processing_fee" class="form-control"
-                                                value="{{ $loan?->processing_fee ?? '' }}"
-                                                {{ $hasPayment ? 'readonly' : '' }}>
-                                        </div>
-
-                                        <div class="col-xl-3 mb-3">
-                                            <label class="col-form-label">{{ __('table.created_at') }}</label>
-                                            <input type="text" class="form-control"
-                                                value="{{ $loan?->created_at ?? '' }}" readonly>
-                                        </div>
-
+                                    <!-- Editable fields -->
+                                    <div class="col-xl-3 mb-3">
+                                        <label>{{ __('table.loan_amount') }}</label>
+                                        <input type="text" name="loan_amount"
+                                            class="form-control {{ $editableClass }}"
+                                            value="{{ $loan?->loan_amount ?? '' }}"
+                                            {{ $hasPayment ? 'readonly' : '' }}>
                                     </div>
 
-                                    <button type="submit" class="btn btn-primary"
-                                        {{ $hasPayment ? 'disabled' : '' }}>
-                                        Submit
-                                    </button>
+                                    <div class="col-xl-3 mb-3">
+                                        <label>{{ __('table.interest_rate') }}</label>
+                                        <input type="text" name="interest_rate"
+                                            class="form-control {{ $editableClass }}"
+                                            value="{{ $loan?->interest_rate ?? '' }}"
+                                            {{ $hasPayment ? 'readonly' : '' }}>
+                                    </div>
 
-                                    @if($hasPayment)
-                                        <div class="alert alert-warning mt-3">
-                                            {{ __('table.this_loan_is_lock') }}
-                                        </div>
+                                    <div class="col-xl-3 mb-3">
+                                        <label>{{ __('table.start_date') }}</label>
+                                        <input type="text"
+                                            class="form-control readonly-field"
+                                            value="{{ $loan?->year_month ?? '' }}"
+                                            readonly>
+                                    </div>
+
+                                    @if($loan?->interest_group == 'SKIM B')
+
+                                    <div class="col-xl-3 mb-3">
+                                        <label>{{ __('table.loan_term') }}</label>
+                                        <input type="text"
+                                            class="form-control {{ $editableClass }}"
+                                            value="{{ $loan?->loan_term ?? '' }}"
+                                            {{ $hasPayment ? 'readonly' : '' }}>
+                                    </div>
+
+                                    <div class="col-xl-3 mb-3">
+                                        <label>{{ __('table.first_payment') }}</label>
+                                        <input type="text" name="first_payment"
+                                            class="form-control {{ $editableClass }}"
+                                            value="{{ $loan?->first_payment ?? '' }}"
+                                            {{ $hasPayment ? 'readonly' : '' }}>
+                                    </div>
+
+                                    <div class="col-xl-3 mb-3">
+                                        <label>{{ __('table.last_payment') }}</label>
+                                        <input type="text" name="last_payment"
+                                            class="form-control {{ $editableClass }}"
+                                            value="{{ $loan?->last_payment ?? '' }}"
+                                            {{ $hasPayment ? 'readonly' : '' }}>
+                                    </div>
+
                                     @endif
 
-                                </div>
-                            </form>
+                                    <div class="col-xl-3 mb-3">
+                                        <label>{{ __('table.installment') }}</label>
+                                        <input type="text" name="installment"
+                                            class="form-control {{ $editableClass }}"
+                                            value="{{ $loan?->installment ?? '' }}"
+                                            {{ $hasPayment ? 'readonly' : '' }}>
+                                    </div>
 
-                            @endif
+                                    <div class="col-xl-3 mb-3">
+                                        <label>{{ __('table.capital') }}</label>
+                                        <input type="text" name="capital"
+                                            class="form-control readonly-field"
+                                            value="{{ $loan?->capital ?? '' }}"
+                                            readonly>
+                                    </div>
+
+                                    <div class="col-xl-3 mb-3">
+                                        <label>{{ __('table.processing_fee') }}</label>
+                                        <input type="text" name="processing_fee"
+                                            class="form-control readonly-field"
+                                            value="{{ $loan?->processing_fee ?? '' }}"
+                                            readonly>
+                                    </div>
+
+                                    <div class="col-xl-3 mb-3">
+                                        <label>{{ __('table.created_at') }}</label>
+                                        <input type="text"
+                                            class="form-control readonly-field"
+                                            value="{{ $loan?->created_at ?? '' }}"
+                                            readonly>
+                                    </div>
+
+                                </div>
+
+                                <button type="submit" class="btn btn-primary"
+                                    {{ $hasPayment ? 'disabled' : '' }}>
+                                    Submit
+                                </button>
+
+                                @if($hasPayment)
+                                    <div class="alert alert-warning mt-3">
+                                        {{ __('table.this_loan_is_lock') }}
+                                    </div>
+                                @endif
+
+                            </div>
+                        </form>
+
+                        @endif
 
                         </section>
                     </div>
@@ -785,7 +821,16 @@
                     "data": "payment_amount"
                 },
                 {
-                    "data": "paid_amount"
+                    data: "paid_amount",
+                    render: function(data) {
+                        let value = parseFloat(data);
+
+                        if (!isNaN(value) && value !== 0) {
+                            return `<span style="font-weight:bold">${value.toFixed(2)}</span>`;
+                        }
+
+                        return data ? parseFloat(data).toFixed(2) : '-';
+                    }
                 },
                 {
                     "data": "discount_amount"
@@ -800,7 +845,18 @@
                     "data": "late_amount"
                 },
                 {
-                    "data": "late_paid_amount"
+                    data: "late_paid_amount",
+                    render: function(data) {
+                        let value = parseFloat(data);
+
+                        // check if it is a valid number and > 0
+                        if (!isNaN(value) && value !== 0) {
+                            return `<span style="color:orange">${value.toFixed(2)}</span>`;
+                        }
+
+                        // no number → normal display
+                        return data ? parseFloat(data).toFixed(2) : '-';
+                    }
                 },
                 @if(Auth::user()->role_id <= 3)
                 {
@@ -834,7 +890,16 @@
                     "data": "payment_code"
                 },
                 {
-                    "data": "payment_amount"
+                    data: "payment_amount",
+                    render: function(data) {
+                        let value = parseFloat(data);
+
+                        if (!isNaN(value) && value !== 0) {
+                            return `<span style="font-weight:bold">${value.toFixed(2)}</span>`;
+                        }
+
+                        return data ? parseFloat(data).toFixed(2) : '-';
+                    }
                 },
                 {
                     "data": "created_at",
@@ -851,7 +916,18 @@
                     "data": "interest_paid_amount"
                 },
                 {
-                    "data": "late_paid_amount"
+                    data: "late_paid_amount",
+                    render: function(data) {
+                        let value = parseFloat(data);
+
+                        // check if it is a valid number and > 0
+                        if (!isNaN(value) && value !== 0) {
+                            return `<span style="color:orange">${value.toFixed(2)}</span>`;
+                        }
+
+                        // no number → normal display
+                        return data ? parseFloat(data).toFixed(2) : '-';
+                    }
                 },
                 {
                     "data": "bank",
