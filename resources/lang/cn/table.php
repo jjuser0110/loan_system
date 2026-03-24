@@ -279,6 +279,9 @@ return [
 'this_loan_is_lock' => '此贷款已锁定，因为客户已经付款。',
 'next_payment' => '下次付款',
 'total_payment' => '总付款',
+'expenses_description' => '支出说明',
+'amount_in' => '收入金额',
+'amount_out' => '支出金额',
 
 ];
 

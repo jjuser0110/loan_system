@@ -83,6 +83,7 @@
             processing: true,
             serverSide: true,
             fixedHeader: false,
+            lengthMenu: [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
             searching: false,
             stateSave: true,
             deferLoading: 0,

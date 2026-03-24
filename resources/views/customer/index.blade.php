@@ -42,13 +42,83 @@
 @endsection
 
 @section('scripts')
+<style>
+    #table-customer thead th {
+        position: relative;
+        min-width: 50px;
+    }
+    .col-resize-handle {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 8px;
+        cursor: col-resize;
+        z-index: 9999;
+        background: transparent;
+    }
+    .col-resize-handle:hover {
+        background: rgba(0, 136, 204, 0.4);
+    }
+</style>
+
 <script>
     let table_customer;
+
+    function makeResizable(tableId, dtInstance) {
+        $('#' + tableId + ' thead th').each(function(colIndex) {
+            $(this).css('position', 'relative');
+
+            const handle = $('<div class="col-resize-handle">').appendTo(this);
+
+            handle.on('mousedown', function(e) {
+                const th = $(this).parent();
+                const startX = e.pageX;
+                const startWidth = th.outerWidth();
+                let didDrag = false;
+
+                // Disable ALL column sorting on the DataTable instance
+                dtInstance.settings()[0].aoColumns.forEach(function(col) {
+                    col.bSortable = false;
+                });
+
+                $(document).on('mousemove.colresize', function(e) {
+                    didDrag = true;
+                    const newWidth = startWidth + (e.pageX - startX);
+                    if (newWidth > 50) {
+                        th.css('width', newWidth + 'px');
+                        th.css('min-width', newWidth + 'px');
+                    }
+                });
+
+                $(document).on('mouseup.colresize', function() {
+                    $(document).off('mousemove.colresize mouseup.colresize');
+
+                    // Re-enable sorting after drag is done
+                    setTimeout(function() {
+                        dtInstance.settings()[0].aoColumns.forEach(function(col) {
+                            col.bSortable = true;
+                        });
+                    }, 200);
+                });
+
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            });
+
+            handle.on('click', function(e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            });
+        });
+    }
+
     $(document).ready(function() {
         table_customer = $('#table-customer').DataTable({
             "processing": true,
             "serverSide": true,
             "fixedHeader": false,
+            "lengthMenu": [[10, 100, 500, 1000], [10, 100, 500, 1000]],
             "ajax": {
                 "url": "{{ route('customer.fetch') }}",
                 "type": "GET"
@@ -60,7 +130,7 @@
                 {
                     "data": "customer_code",
                     "render": function(data, type, row, meta) {
-                        return '<a href="{{ url('customer') }}/' + row.id + '/edit">' +row.customer_code + "<br>" +row.customer_name+'</a>';
+                        return '<a href="{{ url('customer') }}/' + row.id + '/edit">' + row.customer_code + "<br>" + row.customer_name + '</a>';
                     }
                 },
                 {
@@ -100,10 +170,10 @@
                     "render": function(data, type, row, meta) {
                         const green = ['active', 'fully_paid'];
                         const red = ['overdue', 'bad_debt', 'blacklist'];
-                        
+
                         let clr = green.includes(data) ? 'green' : (red.includes(data) ? 'red' : '#000000');
                         let label = data.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-                        
+
                         return `<span style="color:${clr}">${label}</span>`;
                     }
                 },
@@ -130,28 +200,30 @@
                         return a;
                     }
                 }
-            ]
+            ],
+            "initComplete": function() {
+                makeResizable('table-customer', table_customer);
+            }
         });
     });
 
     function deleteCustomer(rowIndex) {
         const data = table_customer.row(rowIndex).data();
-        function submitDelete(){
+        function submitDelete() {
             $.ajax({
                 url: "{{ route('customer.delete') }}",
                 type: "POST",
-                data: {customer_id:data.id},
-                headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
-                success: function (response) {
-                    if(response.success == true){
-                        setReloadSwal('success','',response.message);
-                    }
-                    else{
-                        setDefaultSwal('error','',response.message);
+                data: { customer_id: data.id },
+                headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+                success: function(response) {
+                    if (response.success == true) {
+                        setReloadSwal('success', '', response.message);
+                    } else {
+                        setDefaultSwal('error', '', response.message);
                     }
                 },
-                error: function (xhr) {
-                    setDefaultSwal('error','','There is something wrong, please try again.');
+                error: function(xhr) {
+                    setDefaultSwal('error', '', 'There is something wrong, please try again.');
                 }
             });
         }

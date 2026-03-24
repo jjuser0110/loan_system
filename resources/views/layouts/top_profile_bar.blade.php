@@ -18,26 +18,26 @@
     <div class="header-right">
 
         <form action="{{ route('customer.single_customer') }}" method="get" class="search nav-form">
-    <div class="input-group">
-        <input type="text" class="form-control" name="nric_number" id="q" placeholder="Customer NRIC...">
-        <button class="btn btn-default" type="submit"><i class="bx bx-search"></i></button>
-    </div>
-</form>
+            <div class="input-group">
+                <input type="text" class="form-control" name="nric_number" id="q" placeholder="Customer NRIC...">
+                <button class="btn btn-default" type="submit"><i class="bx bx-search"></i></button>
+            </div>
+        </form>
 
         <span class="separator"></span>
 
         <!-- Language Selector -->
         <div class="dropdown" style="display: inline-block; vertical-align: middle;">
-    <a href="#" class="dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" aria-expanded="false" 
-       style="display: inline-block; padding: 10px 25px; color: #777; font-size: 18px; text-decoration: none;">
-        <i class="bx bx-globe" style="font-size: 30px;"></i>
-    </a>
-    <ul class="dropdown-menu dropdown-menu-end">
-        <li><a class="dropdown-item" href="{{route('change_language','en')}}">English</a></li>
-        <li><a class="dropdown-item" href="{{route('change_language','cn')}}">中文</a></li>
-        <li><a class="dropdown-item" href="{{route('change_language','bm')}}">Bahasa Melayu</a></li>
-    </ul>
-</div>
+            <a href="#" class="dropdown-toggle dropdown-toggle-no-caret" data-bs-toggle="dropdown" aria-expanded="false" 
+            style="display: inline-block; padding: 10px 25px; color: #777; font-size: 18px; text-decoration: none;">
+                <i class="bx bx-globe" style="font-size: 30px;"></i>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{{route('change_language','en')}}">English</a></li>
+                <li><a class="dropdown-item" href="{{route('change_language','cn')}}">中文</a></li>
+                <li><a class="dropdown-item" href="{{route('change_language','bm')}}">Bahasa Melayu</a></li>
+            </ul>
+        </div>
 
         <!-- Removed extra separator here -->
 

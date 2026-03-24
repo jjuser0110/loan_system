@@ -10,4 +10,5 @@ Route::prefix('/reference')->as('reference.')->middleware(['auth'])->group(funct
     Route::get('/edit/{reference}', 'ReferenceController@edit')->name('edit');
     Route::post('/update/{reference}', 'ReferenceController@update')->name('update');
     Route::get('/destroy/{reference}', 'ReferenceController@destroy')->name('destroy');
+    Route::get('/fetch', 'ReferenceController@fetch')->name('fetch');
 });

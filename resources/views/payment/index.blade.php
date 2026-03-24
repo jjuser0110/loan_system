@@ -108,6 +108,7 @@
                 "processing": true,
                 "serverSide": true,
                 "fixedHeader": false,
+                "lengthMenu": [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
                 "ajax": {
                     "url": "{{ route('payment.load_payment') }}",
                     "type": "GET"

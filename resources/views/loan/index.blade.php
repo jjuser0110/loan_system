@@ -132,6 +132,7 @@
             "processing": true,
             "serverSide": true,
             "fixedHeader": false,
+            "lengthMenu": [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
             "ajax": {
                 "url": "{{ route('loan.load_loan') }}",
                 "type": "GET"

@@ -51,6 +51,7 @@
                                 <th>{{ __('table.date') }}</th>
                                 <th>{{ __('table.customer_name') }}</th>
                                 <th>{{ __('table.expenses_name') }}</th>
+                                <th>{{ __('table.expenses_description') }}</th>
                                 <th>{{ __('table.customer_payment') }}</th>
                                 <th>{{ __('table.loan_topup') }}</th>
                                 <th>{{ __('table.expenses') }}</th>
@@ -91,7 +92,7 @@
             stateSave: true,
             searching: false,
             deferLoading: 0,
-            lengthMenu : [10, 50, 100, 500, 1000],
+            lengthMenu: [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
             dom: 'lrtip',
             ajax: {
                 url: "{{ route('report.load_cash_book_report_history') }}",
@@ -118,16 +119,31 @@
                     width: "200px",
                     render: function(data) {
                         if (!data || data === '-') return '-';
+
                         if (data.startsWith('Loan #')) {
                             let loanCode = data.replace('Loan #', '').trim();
-                            return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '">' + data + '</a>';
+                            return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '#loan">' + data + '</a>';
                         }
+
                         if (data.startsWith('Expense #')) {
                             return '<a href="{{ url("expense/index") }}">' + data + '</a>';
                         }
+
                         if (data.startsWith('Payment #')) {
+                            // Extract payment code e.g. S260009-001-P003
+                            let paymentCode = data.replace('Payment #', '').trim();
+
+                            // Extract loan code: remove last -PXXX part e.g. S260009-001
+                            let match = paymentCode.match(/^(.+)-P\d+$/);
+                            if (match) {
+                                let loanCode = match[1];
+                                return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '#payment">' + data + '</a>';
+                            }
+
+                            // Fallback if pattern doesn't match
                             return '<a href="{{ url("payment/index") }}">' + data + '</a>';
                         }
+
                         return data;
                     }
                 },
@@ -154,6 +170,14 @@
                 {
                     data: "expenses_name",
                     name: "expenses_name",
+                    width: "160px",
+                    render: function(data) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    data: "expenses_description",
+                    name: "expenses_description",
                     width: "160px",
                     render: function(data) {
                         return data ? data : '-';

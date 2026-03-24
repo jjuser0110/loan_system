@@ -35,56 +35,6 @@ $currentRoute = request()->route()->getName();
                             <span>{{ __('sidebar.reference_list') }}</span>
                         </a>
                     </li>
-                    @if(Auth::user()->role_id != 4)
-                    <li class="nav-parent {{ request()->routeIs('report.*') ? 'nav-expanded nav-active' : ''}}">
-                        <a class="nav-link" href="#">
-                            <i class="bx bx-file" aria-hidden="true"></i>
-                            <span>{{ __('sidebar.report') }}</span>
-                        </a>
-                        <ul class="nav nav-children">
-                            <li class="{{ request()->routeIs('report.daily_report') || request()->routeIs('report.load_daily_reports') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{ route('report.daily_report') }}">
-                                    {{ __('sidebar.daily_report') }}
-                                </a>
-                            </li>
-                            <li class="{{ request()->routeIs('report.cash_book_report') || request()->routeIs('report.load_cash_book_reports') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{ route('report.cash_book_report') }}">
-                                    {{ __('sidebar.cash_book_report') }}
-                                </a>
-                            </li>
-                            <li class="{{ request()->routeIs('report.cash_book_report_history') || request()->routeIs('report.load_cash_book_reports') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{ route('report.cash_book_report_history') }}">
-                                    {{ __('sidebar.cash_book_report_history') }}
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    @endif
-                    @if(Auth::user()->role_id != 4)
-                    <li class="nav-parent  {{ request()->routeIs('staff.*') || request()->routeIs('payment_method.*') || request()->routeIs('expense.*') ? 'nav-expanded nav-active' : ''}}">
-                        <a class="nav-link" href="#">
-                            <i class="bx bx-layout" aria-hidden="true"></i>
-                            <span>{{ __('sidebar.setting') }}</span>
-                        </a>
-                        <ul class="nav nav-children">
-                            <li class="{{ request()->routeIs('expense.*') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{ route('expense.index') }}">
-                                    {{ __('sidebar.expenses') }}
-                                </a>
-                            </li>
-                            <li class="{{ request()->routeIs('staff.index') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{route('staff.index')}}">
-                                    {{ __('sidebar.company_staff') }}
-                                </a>
-                            </li>
-                            <li class="{{ request()->routeIs('payment_method.index') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{route('payment_method.index')}}">
-                                    {{ __('sidebar.payment_method') }}
-                                </a>
-                            </li>
-                        </ul>
-                    </li>
-                    @endif
                     <li class="nav-parent {{ request()->routeIs('loan.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="far fa-file-alt" aria-hidden="true"></i>
@@ -139,6 +89,57 @@ $currentRoute = request()->route()->getName();
                             </li>
                         </ul>
                     </li>
+                    @if(Auth::user()->role_id != 4)
+                    <li class="nav-parent {{ request()->routeIs('report.*') ? 'nav-expanded nav-active' : ''}}">
+                        <a class="nav-link" href="#">
+                            <i class="bx bx-file" aria-hidden="true"></i>
+                            <span>{{ __('sidebar.report') }}</span>
+                        </a>
+                        <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('report.daily_report') || request()->routeIs('report.load_daily_reports') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{ route('report.daily_report') }}">
+                                    {{ __('sidebar.daily_report') }}
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('report.cash_book_report') || request()->routeIs('report.load_cash_book_reports') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{ route('report.cash_book_report') }}">
+                                    {{ __('sidebar.cash_book_report') }}
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('report.cash_book_report_history') || request()->routeIs('report.load_cash_book_reports') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{ route('report.cash_book_report_history') }}">
+                                    {{ __('sidebar.cash_book_report_history') }}
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    @endif
+                    <li class="{{ request()->routeIs('expense.*') ? 'nav-active' : ''}}">
+                        <a class="nav-link" href="{{ route('expense.index') }}">
+                            <i class="fas fa-receipt" aria-hidden="true"></i>  {{-- icon added --}}
+                            <span>{{ __('sidebar.expenses') }}</span>
+                        </a>
+                    </li>
+                    @if(Auth::user()->role_id != 4)
+                    <li class="nav-parent  {{ request()->routeIs('staff.*') || request()->routeIs('payment_method.*') ? 'nav-expanded nav-active' : ''}}">
+                        <a class="nav-link" href="#">
+                            <i class="bx bx-layout" aria-hidden="true"></i>
+                            <span>{{ __('sidebar.setting') }}</span>
+                        </a>
+                        <ul class="nav nav-children">
+                            <li class="{{ request()->routeIs('staff.index') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('staff.index')}}">
+                                    {{ __('sidebar.company_staff') }}
+                                </a>
+                            </li>
+                            <li class="{{ request()->routeIs('payment_method.index') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{route('payment_method.index')}}">
+                                    {{ __('sidebar.payment_method') }}
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    @endif
                     @if(Auth::user()->role_id != 4)
                     <li class="nav-parent {{ request()->routeIs('badmin.*') || request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('employer_type.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*')|| request()->routeIs('reference_type.*')|| request()->routeIs('expenses_type.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">

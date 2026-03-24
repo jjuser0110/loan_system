@@ -51,6 +51,7 @@
                                 <th>{{ __('table.date') }}</th>
                                 <th>{{ __('table.customer_name') }}</th>
                                 <th>{{ __('table.expenses_name') }}</th>
+                                <th>{{ __('table.expenses_description') }}</th>
                                 <th>{{ __('table.customer_payment') }}</th>
                                 <th>{{ __('table.loan_topup') }}</th>
                                 <th>{{ __('table.expenses') }}</th>
@@ -91,7 +92,7 @@
             stateSave: true,
             searching: false,
             deferLoading: 0,
-            lengthMenu : [10, 50, 100, 500, 1000],
+            lengthMenu: [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
             dom: 'lrtip',
             ajax: {
                 url: "{{ route('report.load_cash_book_reports') }}",
@@ -118,16 +119,31 @@
                     width: "200px",
                     render: function(data) {
                         if (!data || data === '-') return '-';
+
                         if (data.startsWith('Loan #')) {
                             let loanCode = data.replace('Loan #', '').trim();
-                            return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '">' + data + '</a>';
+                            return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '#loan">' + data + '</a>';
                         }
+
                         if (data.startsWith('Expense #')) {
                             return '<a href="{{ url("expense/index") }}">' + data + '</a>';
                         }
+
                         if (data.startsWith('Payment #')) {
+                            // Extract payment code e.g. S260009-001-P003
+                            let paymentCode = data.replace('Payment #', '').trim();
+
+                            // Extract loan code: remove last -PXXX part e.g. S260009-001
+                            let match = paymentCode.match(/^(.+)-P\d+$/);
+                            if (match) {
+                                let loanCode = match[1];
+                                return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '#payment">' + data + '</a>';
+                            }
+
+                            // Fallback if pattern doesn't match
                             return '<a href="{{ url("payment/index") }}">' + data + '</a>';
                         }
+
                         return data;
                     }
                 },
@@ -154,6 +170,14 @@
                 {
                     data: "expenses_name",
                     name: "expenses_name",
+                    width: "160px",
+                    render: function(data) {
+                        return data ? data : '-';
+                    }
+                },
+                {
+                    data: "expenses_description",
+                    name: "expenses_description",
                     width: "160px",
                     render: function(data) {
                         return data ? data : '-';
@@ -321,10 +345,11 @@
 
                     return [
                         index + 1,
-                        row.description   || '-',
+                        row.description         || '-',
                         rowDate,
-                        row.customer_name || '-',
-                        row.expenses_name || '-',
+                        row.customer_name       || '-',
+                        row.expenses_name       || '-',
+                        row.expenses_description || '-',
                         custPayment.toFixed(2),
                         loanTopUp.toFixed(2),
                         expenses.toFixed(2),
@@ -344,11 +369,11 @@
                     startY: 30,
                     head: [[
                         'No', 'Description', 'Date', 'Customer Name',
-                        'Expenses Name', 'Customer Payment', 'Loan Top Up', 'Expenses', 'Account Total'
+                        'Expenses Name', 'Expenses Description', 'Customer Payment', 'Loan Top Up', 'Expenses', 'Account Total'
                     ]],
                     body: tableRows,
                     foot: [[
-                        '', '', '', '', 'Total',
+                        '', '', '', '', 'Total', '',
                         totalCustPayment.toFixed(2),
                         totalLoanTopUp.toFixed(2),
                         totalExpenses.toFixed(2),
@@ -371,14 +396,15 @@
                     bodyStyles: { fontSize: 7.5 },
                     columnStyles: {
                         0: { halign: 'center', cellWidth: 8  },   // No
-                        1: { cellWidth: 28 },                      // Description (shorter)
-                        2: { halign: 'center', cellWidth: 22 },   // Date
-                        3: { cellWidth: 38 },                      // Customer Name (wider)
-                        4: { cellWidth: 28 },                      // Expenses Name
-                        5: { halign: 'right',  cellWidth: 26 },   // Customer Payment
-                        6: { halign: 'right',  cellWidth: 22 },   // Loan Top Up
-                        7: { halign: 'right',  cellWidth: 22 },   // Expenses
-                        8: { halign: 'right',  cellWidth: 26 }    // Account Total
+                        1: { cellWidth: 25 },                      // Description
+                        2: { halign: 'center', cellWidth: 20 },   // Date
+                        3: { cellWidth: 30 },                      // Customer Name
+                        4: { cellWidth: 25 },                      // Expenses Name
+                        5: { cellWidth: 25 },                      // Expenses Description
+                        6: { halign: 'right',  cellWidth: 24 },   // Customer Payment
+                        7: { halign: 'right',  cellWidth: 20 },   // Loan Top Up
+                        8: { halign: 'right',  cellWidth: 20 },   // Expenses
+                        9: { halign: 'right',  cellWidth: 24 }    // Account Total
                     },
                     didDrawPage: function(data) {
                         doc.setFontSize(8);

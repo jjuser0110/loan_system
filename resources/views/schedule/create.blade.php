@@ -32,10 +32,10 @@
                                 <input type="date" class="form-control" name="due_date" required="">
                             </div>
              
-                            <div class="col-md-12 mb-3">
+                            <!-- <div class="col-md-12 mb-3">
                                 <label class="col-form-label">{{ __('table.add_payment_(capital)') }}</label>
                                 <input type="number" class="form-control" id="input-payment-amount" name="payment_amount" placeholder="10000.00" step="0.01" autocomplete="off" required>
-                            </div>
+                            </div> -->
 
                             <div class="col-md-12 mb-3">
                                 <label class="col-form-label">{{ __('table.add_interest') }}</label>

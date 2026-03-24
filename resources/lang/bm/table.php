@@ -279,6 +279,9 @@ return [
 'this_loan_is_lock' => 'Pinjaman ini dikunci kerana pelanggan telah membuat pembayaran.',
 'next_payment' => 'Bayaran Seterusnya',
 'total_payment' => 'Jumlah Bayaran',
+'expenses_description' => 'Penerangan Perbelanjaan',
+'amount_in' => 'Jumlah Masuk',
+'amount_out' => 'Jumlah Keluar',
 
 ];
 

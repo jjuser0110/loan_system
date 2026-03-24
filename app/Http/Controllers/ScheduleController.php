@@ -138,7 +138,7 @@ class ScheduleController extends Controller
             DB::beginTransaction();
             $v = $request->validate([
                 'loan_code' => 'required|string',
-                'payment_amount' => 'nullable|numeric|min:0',
+                // 'payment_amount' => 'nullable|numeric|min:0',
                 'late_amount' => 'nullable|numeric',
                 'interest_amount' => 'nullable|numeric',
                 'due_date' => "required|date"
@@ -148,9 +148,9 @@ class ScheduleController extends Controller
                 throw new Exception('Invalid loan code.');
             }
 
-            if($v['interest_amount'] + $v['late_amount'] + $v['payment_amount'] <= 0){
-                throw new Exception('Total amount is 0.');
-            }
+            // if($v['interest_amount'] + $v['late_amount'] + $v['payment_amount'] <= 0){
+            //     throw new Exception('Total amount is 0.');
+            // }
             
             $prefix = $loan->loan_code.'-SM' ?? $customer->company_code."LN";
             $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
@@ -159,7 +159,7 @@ class ScheduleController extends Controller
                 'loan_code' => $v['loan_code'],
                 'customer_id' => $loan->customer_id,
                 'company_id' => $loan->company_id,
-                'payment_amount' => ($v['payment_amount'] ?? 0),
+                // 'payment_amount' => ($v['payment_amount'] ?? 0),
                 'interest_amount' => ($v['interest_amount'] ?? 0),
                 'late_amount' => ($v['late_amount'] ?? 0),
                 'due_date'=> $v['due_date']
@@ -203,7 +203,7 @@ class ScheduleController extends Controller
             DB::beginTransaction();
             $v = $request->validate([
                 'schedule_id' => 'required|numeric',
-                'payment_amount' => 'nullable|numeric|min:0',
+                // 'payment_amount' => 'nullable|numeric|min:0',
                 'late_amount' => 'nullable|numeric',
                 'interest_amount' => 'nullable|numeric',
                 'paid_amount' => 'nullable|numeric|min:0',
@@ -218,9 +218,9 @@ class ScheduleController extends Controller
                 throw new Exception('Fail to get selected schedule.');
             }
 
-            if($v['interest_amount'] + $v['late_amount'] + $v['payment_amount'] <= 0){
-                throw new Exception('Total amount is 0.');
-            }
+            // if($v['interest_amount'] + $v['late_amount'] + $v['payment_amount'] <= 0){
+            //     throw new Exception('Total amount is 0.');
+            // }
 
             $loan = Loan::where('loan_code',$schedule->loan_code)->first();
             if(!$loan){
@@ -229,7 +229,7 @@ class ScheduleController extends Controller
 
             $old = clone $schedule;
             $schedule->update([
-                'payment_amount' => $v['payment_amount'] ?? 0,
+                // 'payment_amount' => $v['payment_amount'] ?? 0,
                 'late_amount' => $v['late_amount'] ?? 0,
                 'interest_amount' => $v['interest_amount'] ?? 0,
                 'paid_amount' => $v['paid_amount'] ?? 0,
@@ -239,7 +239,7 @@ class ScheduleController extends Controller
                 'due_date' =>  $v['due_date']
             ]);
 
-            $paymentDiff = $schedule->payment_amount - $old->payment_amount;
+            // $paymentDiff = $schedule->payment_amount - $old->payment_amount;
             $paidDiff = $schedule->paid_amount - $old->paid_amount;
             $interestDiff = $schedule->interest_amount - $old->interest_amount;
             $interestPaidDiff = $schedule->interest_paid_amount - $old->interest_paid_amount;

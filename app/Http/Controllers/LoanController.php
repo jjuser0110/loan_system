@@ -525,6 +525,7 @@ class LoanController extends Controller
         $data = $loans->select(
             'loans.loan_code',
             'loans.next_due_amount',
+            'loans.next_due_date',
             'loans.outstanding',
             'customers.customer_name',
             'customers.customer_code',

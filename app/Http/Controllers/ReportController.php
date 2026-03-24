@@ -197,6 +197,7 @@ class ReportController extends Controller
                     'customers.id as customer_id',
                     'customers.customer_name',
                     'expenses.expense_title as expenses_name',
+                    'expenses.expense_description as expenses_description',
                     // Conditional amounts
                     \DB::raw("CASE WHEN payment_method_logs.type = 'payment' THEN payment_method_logs.amount ELSE 0 END as customer_payment"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
@@ -335,6 +336,7 @@ class ReportController extends Controller
                     'customers.id as customer_id',
                     'customers.customer_name',
                     'expenses.expense_title as expenses_name',
+                    'expenses.expense_description as expenses_description',
                     // Conditional amounts
                     \DB::raw("CASE WHEN payment_method_logs.type = 'payment' THEN payment_method_logs.amount ELSE 0 END as customer_payment"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),

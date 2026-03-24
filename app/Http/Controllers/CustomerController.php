@@ -605,37 +605,29 @@ class CustomerController extends Controller
         }
     }
 
-    public function single_customer(Request $request){
-        try {
-            $nric = $request->nric_number;
+    public function single_customer(Request $request)
+    {
+        $nric = $request->nric_number;
 
-            if(!$nric) {
-                throw new Exception('Please enter a NRIC number.');
-            }
-
-            $customer = Customer::where('nric_number', $nric)->first();
-
-            if(!$customer){
-                throw new Exception('No customer found with this NRIC.');
-            }
-
-            $loans = $customer->loans;
-
-            if($loans->isEmpty()){
-                throw new Exception('This customer has no loans.');
-            }
-
-            return view('customer.single', [
-                'success' => true,
-                'customer' => $customer,
-                'loans' => $loans
-            ]);
-
-        } catch(Exception $e){
-            return view('customer.single', [
-                'success' => false,
-                'error' => $e->getMessage()
-            ]);
+        if (!$nric) {
+            return back()->with('error', 'Please enter a NRIC number.');
         }
+
+        // 1. Search in customers table (by nric_number)
+        $customer = Customer::where('nric_number', $nric)->first();
+
+        if ($customer) {
+            return redirect()->route('customer.edit', $customer->id);
+        }
+
+        // 2. Search in references table (by new_ic)
+        $reference = \App\Models\Reference::where('new_ic', $nric)->first();
+
+        if ($reference) {
+            return redirect()->to(route('customer.edit', $reference->customer_id) . '#reference');
+        }
+
+        // 3. Not found
+        return back()->with('error', 'No record found with this NRIC.');
     }
 }
