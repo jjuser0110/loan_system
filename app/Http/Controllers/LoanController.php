@@ -910,24 +910,71 @@ class LoanController extends Controller
 
     public function update(Request $request, $loan_code)
     {
-        $loan = Loan::where('loan_code', $loan_code)->firstOrFail();
+        try {
+            $loan = Loan::where('loan_code', $loan_code)->firstOrFail();
 
-        $loan->update([
-            'loan_amount'    => $request->loan_amount,
-            'interest_rate'  => $request->interest_rate,
-            'processing_fee' => $request->processing_fee,
-            'first_payment'  => $request->first_payment ?: null,
-            'last_payment'   => $request->last_payment ?: null,
-            'installment'    => $request->installment,
-        ]);
+            $v = $request->validate([
+                'loan_amount'   => 'required|numeric|min:1',
+                'interest_rate' => 'required|numeric|min:0',
+                'installment'   => 'required|numeric|min:0',
+                'capital'       => 'required|numeric|min:0',
+                'first_payment' => 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
+                'last_payment'  => 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
+                'loan_term'     => 'nullable|integer|min:1|required_if:interest_group,SKIM B',
+                'loan_term'     => 'nullable|integer|min:1|required_if:interest_group,SKIM B',
+            ]);
 
-        if ($request->first_payment) {
-            PaymentSchedule::where('loan_code', 'LIKE', $loan_code . '%')
-                ->update([
-                    'payment_amount' => $request->first_payment
+            bcscale(10);
+            $loan_amount   = $v['loan_amount'];
+            $interest_rate = $v['interest_rate'];
+            $installment   = $v['installment'];
+            $capital = $v['capital'];
+
+            if ($loan->interest_group == 'SKIM A') {
+                // Same logic as store() for SKIM A
+                $interest = bcmul($loan_amount, bcdiv($interest_rate, '100', 10), 10);
+
+                $loan->update([
+                    'loan_amount'   => $loan_amount,
+                    'interest_rate' => $interest_rate,
+                    'installment'   => $installment,
+                    'capital'       => $capital,
+                    'interest'      => $interest,
+                    'interest_balance' => $interest,
+                    'outstanding'   => bcadd($loan_amount, $interest, 2),
+                    'balance'       => $loan_amount,
+                    'payment'       => $loan_amount,
                 ]);
-        }
 
-        return redirect()->back()->with('success', 'Updated successfully');
+            } else if ($loan->interest_group == 'SKIM B') {
+                $loan_term     = $v['loan_term'];
+                $first_payment = $v['first_payment'];
+                $last_payment  = $v['last_payment'];
+
+                // Same logic as store() for SKIM B
+                $total_loan = $first_payment + $last_payment + ($installment * ($loan_term - 2));
+
+                $loan->update([
+                    'loan_amount'   => $loan_amount,
+                    'interest_rate' => $interest_rate,
+                    'loan_term'     => $loan_term,
+                    'first_payment' => $first_payment,
+                    'last_payment'  => $last_payment,
+                    'installment'   => $installment,
+                    'capital'       => $capital,
+                    'payment'       => $total_loan,
+                    'balance'       => $total_loan,
+                    'outstanding'   => $total_loan,
+                    'next_due_amount' => $first_payment,
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Updated successfully');
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return redirect()->back()->with('error', $e->validator->errors()->first());
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
     }
 }

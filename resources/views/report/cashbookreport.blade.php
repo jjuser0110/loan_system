@@ -242,9 +242,9 @@
                     totalExpenses  += parseFloat(row.expenses         || 0);
                 });
 
-                $(api.column(5).footer()).html(totalPayment.toFixed(2));
-                $(api.column(6).footer()).html(totalLoanTopUp.toFixed(2));
-                $(api.column(7).footer()).html(totalExpenses.toFixed(2));
+                $(api.column(6).footer()).html(totalPayment.toFixed(2));
+                $(api.column(7).footer()).html(totalLoanTopUp.toFixed(2));
+                $(api.column(8).footer()).html(totalExpenses.toFixed(2));
             }
         });
     });

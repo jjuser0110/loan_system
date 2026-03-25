@@ -35,23 +35,12 @@ $currentRoute = request()->route()->getName();
                             <span>{{ __('sidebar.reference_list') }}</span>
                         </a>
                     </li>
-                    <li class="nav-parent {{ request()->routeIs('loan.*') ? 'nav-expanded nav-active' : ''}}">
-                        <a class="nav-link" href="#">
+                    
+                    <li class="{{ request()->routeIs('loan.index') ? 'nav-active' : ''}}">
+                        <a class="nav-link" href="{{route('loan.index')}}">
                             <i class="far fa-file-alt" aria-hidden="true"></i>
-                            <span>{{ __('sidebar.loan') }}</span>
+                            <span>{{ __('sidebar.all_loans') }}</span>
                         </a>
-                        <ul class="nav nav-children">
-                            <li class="{{ request()->routeIs('loan.index') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{route('loan.index')}}">
-                                    {{ __('sidebar.all_loans') }}
-                                </a>
-                            </li>
-                            <!-- <li class="{{ request()->routeIs('loan.create') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{route('loan.create')}}">
-                                    {{ __('sidebar.create_loan') }}
-                                </a>
-                            </li> -->
-                        </ul>
                     </li>
                     <li class="nav-parent {{ request()->routeIs('schedule.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">

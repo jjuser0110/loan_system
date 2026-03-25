@@ -51,81 +51,91 @@ class ReferenceController extends Controller
     }
 
     public function fetch(Request $request)
-    {
-        try {
-            $draw = $request->input('draw');
-            $search = $request->input('search.value');
-            $start = $request->input('start', 0);
-            $length = $request->input('length', 10);
-            $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
-            $orderByDirection = $request->input('order.0.dir');
+{
+    try {
 
-            $query = Reference::with('customer')
-                ->select('references.*');
+        $draw = $request->input('draw');
+        $search = $request->input('search.value');
+        $start = $request->input('start', 0);
+        $length = $request->input('length', 10);
 
-            if (!empty($search)) {
-                $query->where(function ($q) use ($search) {
-                    $q->where('references.name', 'like', "%{$search}%")
-                    ->orWhere('references.new_ic', 'like', "%{$search}%")
-                    ->orWhere('references.mobile', 'like', "%{$search}%")
-                    ->orWhere('references.email', 'like', "%{$search}%")
-                    ->orWhere('references.city', 'like', "%{$search}%")
-                    ->orWhere('references.state', 'like', "%{$search}%")
-                    ->orWhere('references.designation', 'like', "%{$search}%")
-                    ->orWhere('references.reference_type', 'like', "%{$search}%");
-                });
-            }
+        $orderColumnIndex = $request->input('order.0.column');
+        $orderDirection = $request->input('order.0.dir');
 
-            $recordsTotal = $query->count();
+        $columns = $request->input('columns');
+        $orderColumnName = $columns[$orderColumnIndex]['data'] ?? 'id';
 
-            $columnMap = [
-                'id'             => 'references.id',
-                'reference_type' => 'references.reference_type',
-                'new_ic'         => 'references.new_ic',
-                'name'           => 'references.name',
-                'designation'    => 'references.designation',
-                'mobile'         => 'references.mobile',
-                'city'           => 'references.city',
-                'state'          => 'references.state',
-                'email'          => 'references.email',
-                'created_at'     => 'references.created_at',
-            ];
-            $orderByColumn = $columnMap[$orderByColumn] ?? 'references.id';
+        // Join customer
+        $query = Reference::select('references.*', 'customers.customer_name')
+            ->leftJoin('customers', 'references.customer_id', '=', 'customers.id');
 
-            $data = $query->orderBy($orderByColumn, $orderByDirection)
-                        ->skip($start)
-                        ->take($length)
-                        ->get()
-                        ->map(function ($row) {
-                            return [
-                                'id'             => $row->id,
-                                'customer_id'    => $row->customer_id,
-                                'customer_name'  => $row->customer->customer_name ?? '',
-                                'reference_type' => $row->reference_type,
-                                'new_ic'         => $row->new_ic,
-                                'name'           => $row->name,
-                                'designation'    => $row->designation,
-                                'mobile'         => $row->mobile,
-                                'city'           => $row->city,
-                                'state'          => $row->state,
-                                'email'          => $row->email,
-                                'created_at'     => $row->created_at,
-                            ];
-                        });
+        // Total records
+        $recordsTotal = Reference::count();
 
-            return response()->json([
-                'draw'            => intval($draw),
-                'recordsTotal'    => $recordsTotal,
-                'recordsFiltered' => $recordsTotal,
-                'data'            => $data,
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => $e->getMessage()
-            ]);
+        // Search (NO EMAIL)
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('references.name', 'like', "%{$search}%")
+                  ->orWhere('references.new_ic', 'like', "%{$search}%")
+                  ->orWhere('references.mobile', 'like', "%{$search}%")
+                  ->orWhere('references.city', 'like', "%{$search}%")
+                  ->orWhere('references.state', 'like', "%{$search}%")
+                  ->orWhere('references.designation', 'like', "%{$search}%")
+                  ->orWhere('references.reference_type', 'like', "%{$search}%")
+                  ->orWhere('customers.customer_name', 'like', "%{$search}%");
+            });
         }
+
+        $recordsFiltered = $query->count();
+
+        // Column mapping
+        $columnMap = [
+            'id'             => 'references.id',
+            'customer_name'  => 'customers.customer_name',
+            'reference_type' => 'references.reference_type',
+            'new_ic'         => 'references.new_ic',
+            'name'           => 'references.name',
+            'designation'    => 'references.designation',
+            'mobile'         => 'references.mobile',
+            'city'           => 'references.city',
+            'state'          => 'references.state',
+            'created_at'     => 'references.created_at',
+        ];
+
+        $orderColumn = $columnMap[$orderColumnName] ?? 'references.id';
+
+        $data = $query->orderBy($orderColumn, $orderDirection)
+            ->skip($start)
+            ->take($length)
+            ->get()
+            ->map(function ($row) {
+                return [
+                    'id'             => $row->id,
+                    'customer_id'    => $row->customer_id,
+                    'customer_name'  => $row->customer_name,
+                    'reference_type' => $row->reference_type,
+                    'new_ic'         => $row->new_ic,
+                    'name'           => $row->name,
+                    'designation'    => $row->designation,
+                    'mobile'         => $row->mobile,
+                    'city'           => $row->city,
+                    'state'          => $row->state,
+                    'created_at'     => $row->created_at,
+                ];
+            });
+
+        return response()->json([
+            'draw'            => intval($draw),
+            'recordsTotal'    => $recordsTotal,
+            'recordsFiltered' => $recordsFiltered,
+            'data'            => $data,
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => $e->getMessage()
+        ]);
     }
+}
 
 }
