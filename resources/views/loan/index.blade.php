@@ -234,11 +234,32 @@
                     "render": function(data, type, row, meta) {
                         let url = `
                             <div class="cus-action-wrapper">
-                                <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}" class="cus-action-icon info" title="View Detail"><i class="fas fa-eye"></i></a>
-                                <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}" class="cus-action-icon info" title="Create Schedule"><i class="fas fa-calendar-alt"></i></a>
-                                <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}" class="cus-action-icon info" title="Create Payment"><i class="fas fa-money-check-alt"></i></a>
+                                <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}" 
+                                class="cus-action-icon info" 
+                                title="View Detail">
+                                <i class="fas fa-eye"></i>
+                                </a>
+
+                                <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}" 
+                                class="cus-action-icon" 
+                                style="background:#6c757d; color:white;"
+                                title="Create Schedule">
+                                <i class="fas fa-calendar-alt"></i>
+                                </a>
+                                
+                                <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}" 
+                                class="cus-action-icon" 
+                                style="background:#28a745; color:white;"
+                                title="Create Payment">
+                                <i class="fas fa-money-check-alt"></i>
+                                </a>
+
                                 @if(Auth::user()->role_id == 1)
-                                <a class="cus-action-icon danger" title="Delete Loan" onclick="deleteLoan(${meta.row})"><i class="fas fa-trash-alt"></i></a>
+                                <a class="cus-action-icon danger" 
+                                title="Delete Loan" 
+                                onclick="deleteLoan(${meta.row})">
+                                <i class="fas fa-trash-alt"></i>
+                                </a>
                                 @endif
                             </div>`;
                         url = url.replaceAll(':loan_code', row.loan_code);
