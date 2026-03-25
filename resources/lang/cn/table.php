@@ -282,6 +282,8 @@ return [
 'expenses_description' => '支出说明',
 'amount_in' => '收入金额',
 'amount_out' => '支出金额',
+'first_payment_amount' => '首期付款金额',
+'last_payment_amount' => '末期付款金额',
 
 ];
 

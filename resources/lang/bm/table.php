@@ -282,6 +282,8 @@ return [
 'expenses_description' => 'Penerangan Perbelanjaan',
 'amount_in' => 'Jumlah Masuk',
 'amount_out' => 'Jumlah Keluar',
+'first_payment_amount' => 'Jumlah Bayaran Pertama',
+'last_payment_amount' => 'Jumlah Bayaran Terakhir',
 
 ];
 
