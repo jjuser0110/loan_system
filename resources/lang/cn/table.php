@@ -292,6 +292,7 @@ return [
 'upload' => '上传',
 'file' => '文件',
 'allowed' => '允许',
+'download' => '下载',
 
 ];
 

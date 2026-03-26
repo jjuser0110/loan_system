@@ -292,7 +292,7 @@ return [
 'upload' => 'Upload',
 'file' => 'File',
 'allowed' => 'Allowed',
-'' => '',
+'download' => 'Download',
 '' => '',
 '' => '',
 '' => '',

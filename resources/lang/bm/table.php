@@ -292,6 +292,7 @@ return [
 'upload' => 'Muat Naik',
 'file' => 'Fail',
 'allowed' => 'Dibenarkan',
+'download' => 'Muat Turun',
 
 ];
 
