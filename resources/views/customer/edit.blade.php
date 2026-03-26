@@ -51,6 +51,9 @@
                     <a class="nav-link" data-bs-target="#work" href="#work" data-bs-toggle="tab">{{ __('table.work') }}</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" data-bs-target="#document" href="#document" data-bs-toggle="tab">{{ __('table.document') }}</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" data-bs-target="#reference" href="#reference" data-bs-toggle="tab">{{ __('table.reference') }}</a>
                 </li>
                 <li class="nav-item">
@@ -360,6 +363,101 @@
                         </div>
                     </form>
                 </div>
+
+                <!-- DOCUMENTS TAB -->
+<div id="document" class="tab-pane">
+    <div class="p-3">
+
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0 font-weight-semibold text-dark">
+                <i class="bx bx-file me-1"></i> Documents
+            </h4>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUploadDocument">
+                <i class="bx bx-upload me-1"></i> Upload File
+            </button>
+        </div>
+
+        <!-- Documents Grid -->
+        <div id="documents_grid" class="row g-3">
+            <div class="col-12 text-center text-muted py-5" id="doc_empty_state">
+                <i class="bx bx-loader-alt bx-spin fs-1 d-block mb-2"></i>
+                Loading documents...
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- ===== UPLOAD MODAL ===== -->
+<div class="modal fade" id="modalUploadDocument" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="bx bx-upload me-1"></i> Upload Document
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label">File <span class="text-danger">*</span></label>
+                    <input type="file" id="doc_file" class="form-control"
+                           accept=".jpg,.jpeg,.png,.gif,.webp,.pdf">
+                    <small class="text-muted">Allowed: PDF, JPG, PNG, GIF, WEBP — Max 10MB</small>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Remark</label>
+                    <input type="text" id="doc_remark" class="form-control"
+                           placeholder="Optional remark...">
+                </div>
+                <!-- Progress -->
+                <div id="upload_progress" style="display:none;">
+                    <div class="progress mb-1">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated w-100"></div>
+                    </div>
+                    <small class="text-muted">Uploading, please wait...</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btn_upload" onclick="uploadDocument()">
+                    <i class="bx bx-upload me-1"></i> Upload
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ===== IMAGE LIGHTBOX MODAL ===== -->
+<div class="modal fade" id="imageLightbox" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content bg-dark">
+            <div class="modal-header border-0">
+                <span class="text-white fw-semibold" id="lightbox_title"></span>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center position-relative px-5 py-3">
+                <button class="btn btn-outline-light position-absolute top-50 start-0 translate-middle-y ms-2"
+                        style="z-index:10" onclick="lightboxNav(-1)">
+                    <i class="bx bx-chevron-left fs-3"></i>
+                </button>
+                <img id="lightbox_img" src="" class="img-fluid rounded"
+                     style="max-height:75vh; object-fit:contain;">
+                <button class="btn btn-outline-light position-absolute top-50 end-0 translate-middle-y me-2"
+                        style="z-index:10" onclick="lightboxNav(1)">
+                    <i class="bx bx-chevron-right fs-3"></i>
+                </button>
+            </div>
+            <div class="modal-footer border-0 justify-content-center">
+                <span class="text-white-50 me-3" id="lightbox_counter"></span>
+                <a id="lightbox_download" href="#" class="btn btn-sm btn-outline-light">
+                    <i class="bx bx-download me-1"></i> Download
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
                 
                 <!-- REFERENCE TAB -->
                 <div id="reference" class="tab-pane">
@@ -1480,5 +1578,209 @@
         });
     </script>
 
-    <script src="js/examples/examples.modals.js"></script>
+    <script>
+// ============================================================
+// DOCUMENTS
+// ============================================================
+const DOCS_INDEX  = "{{ route('customer.documents.index', $customer->id) }}";
+const DOCS_UPLOAD = "{{ route('customer.documents.store', $customer->id) }}";
+const CSRF        = "{{ csrf_token() }}";
+
+let allDocuments   = [];
+let lightboxImages = [];
+let lightboxIndex  = 0;
+
+// ── Trigger: Bootstrap 4 & 5 tab shown event ─────────────
+$(document).on('shown.bs.tab', function (e) {
+    const target = $(e.target).attr('href') || $(e.target).attr('data-bs-target');
+    if (target === '#documents') loadDocuments();
+});
+
+// ── Load Documents ────────────────────────────────────────
+function loadDocuments() {
+    const grid = document.getElementById('documents_grid');
+    grid.innerHTML = `
+        <div class="col-12 text-center text-muted py-5">
+            <i class="bx bx-loader-alt bx-spin fs-1 d-block mb-2"></i>
+            Loading documents...
+        </div>`;
+
+    fetch(DOCS_INDEX, {
+        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+    })
+    .then(r => r.json())
+    .then(data => {
+        allDocuments   = data.documents;
+        lightboxImages = allDocuments.filter(d => d.is_image);
+        renderDocuments(allDocuments);
+    })
+    .catch(err => {
+        grid.innerHTML = `
+            <div class="col-12 text-center text-danger py-5">
+                <i class="bx bx-error-circle fs-1 d-block mb-2"></i>
+                Failed to load. 
+                <button class="btn btn-sm btn-outline-primary mt-2 d-block mx-auto" 
+                        onclick="loadDocuments()">Retry</button>
+            </div>`;
+    });
+}
+
+// ── Render Grid ───────────────────────────────────────────
+function renderDocuments(docs) {
+    const grid = document.getElementById('documents_grid');
+
+    if (docs.length === 0) {
+        grid.innerHTML = `
+            <div class="col-12 text-center text-muted py-5">
+                <i class="bx bx-folder-open fs-1 d-block mb-2"></i>
+                No documents uploaded yet.<br>
+                <small>Click "Upload File" to add documents.</small>
+            </div>`;
+        return;
+    }
+
+    grid.innerHTML = docs.map(doc => {
+        const thumb = doc.is_image
+            ? `<img src="${doc.url}"
+                    class="rounded mb-2"
+                    style="height:120px;width:100%;object-fit:cover;cursor:pointer;"
+                    onclick="openLightbox(${doc.id})">`
+            : `<div class="d-flex align-items-center justify-content-center rounded bg-light mb-2"
+                    style="height:120px; cursor:default;">
+                   <i class="bx bxs-file-pdf text-danger" style="font-size:4rem;"></i>
+               </div>`;
+
+        return `
+        <div class="col-sm-6 col-md-4 col-lg-3" id="doc_card_${doc.id}">
+            <div class="card h-100 border shadow-sm">
+                <div class="card-body p-2">
+                    ${thumb}
+                    <div class="fw-semibold text-truncate small" title="${doc.file_name}">
+                        ${doc.file_name}
+                    </div>
+                    ${doc.remark
+                        ? `<div class="text-muted small fst-italic mt-1">${doc.remark}</div>`
+                        : ''}
+                    <div class="text-muted mt-1" style="font-size:10px;">${doc.created_at}</div>
+                </div>
+                <div class="card-footer p-1 d-flex justify-content-end gap-1 bg-white border-top">
+                    ${doc.is_image
+                        ? `<button class="btn btn-xs btn-outline-secondary"
+                                   onclick="openLightbox(${doc.id})" title="View">
+                               <i class="bx bx-show"></i>
+                           </button>`
+                        : `<a href="${doc.url}" target="_blank"
+                              class="btn btn-xs btn-outline-secondary" title="View">
+                               <i class="bx bx-show"></i>
+                           </a>`
+                    }
+                    <a href="${doc.download_url}"
+                       class="btn btn-xs btn-outline-primary" title="Download">
+                        <i class="bx bx-download"></i>
+                    </a>
+                    <button class="btn btn-xs btn-outline-danger"
+                            onclick="deleteDocument(${doc.id}, '${doc.delete_url}')"
+                            title="Delete">
+                        <i class="bx bx-trash"></i>
+                    </button>
+                </div>
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// ── Upload ────────────────────────────────────────────────
+function uploadDocument() {
+    const fileInput = document.getElementById('doc_file');
+    const remark    = document.getElementById('doc_remark').value;
+    const btn       = document.getElementById('btn_upload');
+
+    if (!fileInput.files.length) {
+        alert('Please select a file to upload.');
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('_token', CSRF);
+    formData.append('file',   fileInput.files[0]);
+    formData.append('remark', remark);
+
+    // Loading state
+    btn.disabled    = true;
+    btn.innerHTML   = '<i class="bx bx-loader-alt bx-spin me-1"></i> Uploading...';
+    document.getElementById('upload_progress').style.display = 'block';
+
+    fetch(DOCS_UPLOAD, { method: 'POST', body: formData })
+    .then(r => r.json())
+    .then(data => {
+        // Reset button
+        btn.disabled  = false;
+        btn.innerHTML = '<i class="bx bx-upload me-1"></i> Upload';
+        document.getElementById('upload_progress').style.display = 'none';
+
+        if (data.success) {
+            // Close modal & reset form
+            bootstrap.Modal.getInstance(document.getElementById('modalUploadDocument')).hide();
+            fileInput.value = '';
+            document.getElementById('doc_remark').value = '';
+            // Reload documents
+            loadDocuments();
+        } else {
+            alert(data.message || 'Upload failed.');
+        }
+    })
+    .catch(() => {
+        btn.disabled  = false;
+        btn.innerHTML = '<i class="bx bx-upload me-1"></i> Upload';
+        document.getElementById('upload_progress').style.display = 'none';
+        alert('Upload error. Please try again.');
+    });
+}
+
+// ── Delete ────────────────────────────────────────────────
+function deleteDocument(id, url) {
+    if (!confirm('Are you sure you want to delete this document?')) return;
+
+    fetch(url, {
+        method: 'DELETE',
+        headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('doc_card_' + id)?.remove();
+            allDocuments   = allDocuments.filter(d => d.id !== id);
+            lightboxImages = lightboxImages.filter(d => d.id !== id);
+            if (allDocuments.length === 0) renderDocuments([]);
+        }
+    });
+}
+
+// ── Lightbox ──────────────────────────────────────────────
+function openLightbox(id) {
+    lightboxIndex = lightboxImages.findIndex(d => d.id === id);
+    if (lightboxIndex === -1) return;
+    showLightboxAt(lightboxIndex);
+    new bootstrap.Modal(document.getElementById('imageLightbox')).show();
+}
+
+function showLightboxAt(index) {
+    const doc = lightboxImages[index];
+    document.getElementById('lightbox_img').src             = doc.url;
+    document.getElementById('lightbox_title').textContent   = doc.file_name;
+    document.getElementById('lightbox_download').href       = doc.download_url;
+    document.getElementById('lightbox_counter').textContent = `${index + 1} / ${lightboxImages.length}`;
+}
+
+function lightboxNav(dir) {
+    lightboxIndex = (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
+    showLightboxAt(lightboxIndex);
+}
+
+$(document).ready(function () {
+    if ($('#document').hasClass('active') || $('#document').hasClass('show')) {
+        loadDocuments();
+    }
+});
+</script>
 @endsection

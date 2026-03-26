@@ -28,4 +28,10 @@ Route::prefix('/customer')->as('customer.')->middleware(['auth'])->group(functio
     Route::get('asset/{asset}', [CustomerController::class, 'destroyAsset'])->name('asset.destroy');
 
     Route::get('/single_customer', [CustomerController::class, 'single_customer'])->name('single_customer');
+
+    // Document routes
+    Route::get('{customer}/documents',                'DocumentController@index')->name('documents.index');
+    Route::post('{customer}/documents',               'DocumentController@store')->name('documents.store');
+    Route::get('{customer}/documents/{doc}/download', 'DocumentController@download')->name('documents.download');
+    Route::delete('{customer}/documents/{doc}',       'DocumentController@destroy')->name('documents.destroy');
 });
