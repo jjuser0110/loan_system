@@ -284,6 +284,14 @@ return [
 'amount_out' => '支出金额',
 'first_payment_amount' => '首期付款金额',
 'last_payment_amount' => '末期付款金额',
+'document' => '文件',
+'upload_file' => '上传文件',
+'uploading,_please_wait' => '正在上传，请稍候',
+'loading_document' => '正在加载文件',
+'upload_document' => '上传文件',
+'upload' => '上传',
+'file' => '文件',
+'allowed' => '允许',
 
 ];
 

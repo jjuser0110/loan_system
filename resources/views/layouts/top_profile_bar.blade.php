@@ -33,9 +33,9 @@
                 <i class="bx bx-globe" style="font-size: 30px;"></i>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{{route('change_language','en')}}">English</a></li>
-                <li><a class="dropdown-item" href="{{route('change_language','cn')}}">中文</a></li>
-                <li><a class="dropdown-item" href="{{route('change_language','bm')}}">Bahasa Melayu</a></li>
+                <a class="dropdown-item" href="{{route('change_language','en')}}" onclick="reloadAfterLang(event)">English</a>
+                <a class="dropdown-item" href="{{route('change_language','cn')}}" onclick="reloadAfterLang(event)">中文</a>
+                <a class="dropdown-item" href="{{route('change_language','bm')}}" onclick="reloadAfterLang(event)">Bahasa Melayu</a>
             </ul>
         </div>
 

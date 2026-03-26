@@ -251,4 +251,15 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 
 });
+
+function reloadAfterLang(e) {
+    e.preventDefault();
+
+    const url = e.currentTarget.href;
+
+    fetch(url)
+        .then(() => {
+            location.reload(); // 🔥 reload page after language set
+        });
+}
 </script>

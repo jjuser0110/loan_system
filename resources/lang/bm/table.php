@@ -284,6 +284,14 @@ return [
 'amount_out' => 'Jumlah Keluar',
 'first_payment_amount' => 'Jumlah Bayaran Pertama',
 'last_payment_amount' => 'Jumlah Bayaran Terakhir',
+'document' => 'Dokumen',
+'upload_file' => 'Muat Naik Fail',
+'uploading,_please_wait' => 'Sedang memuat naik, sila tunggu',
+'loading_document' => 'Memuatkan dokumen',
+'upload_document' => 'Muat Naik Dokumen',
+'upload' => 'Muat Naik',
+'file' => 'Fail',
+'allowed' => 'Dibenarkan',
 
 ];
 
