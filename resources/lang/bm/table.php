@@ -293,6 +293,8 @@ return [
 'file' => 'Fail',
 'allowed' => 'Dibenarkan',
 'download' => 'Muat Turun',
+'no_documents_uploaded' => 'Tiada dokumen dimuat naik lagi',
+'click_upload_file' => 'Klik "Muat Naik Fail" untuk tambah dokumen.',
 
 ];
 

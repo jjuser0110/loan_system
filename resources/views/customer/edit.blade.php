@@ -1579,252 +1579,231 @@
     </script>
 
     <script>
-const DOCS_INDEX  = "{{ route('customer.documents.index', $customer->id) }}";
-const DOCS_UPLOAD = "{{ route('customer.documents.store', $customer->id) }}";
-const CSRF        = "{{ csrf_token() }}";
+    const DOCS_INDEX  = "{{ route('customer.documents.index', $customer->id) }}";
+    const DOCS_UPLOAD = "{{ route('customer.documents.store', $customer->id) }}";
+    const CSRF        = "{{ csrf_token() }}";
 
-let allDocuments   = [];
-let lightboxImages = [];
-let lightboxIndex  = 0;
-let docsLoaded     = false; // 🔥 prevent duplicate calls
+    let allDocuments   = [];
+    let lightboxImages = [];
+    let lightboxIndex  = 0;
+    let docsLoaded     = false; // 🔥 prevent duplicate calls
 
-// ============================================================
-// INIT (page load)
-// ============================================================
-$(document).ready(function () {
+    $(document).ready(function () {
 
-    // If direct open with #document
-    if (window.location.hash === '#document') {
-        loadDocumentsOnce();
+        // If direct open with #document
+        if (window.location.hash === '#document') {
+            loadDocumentsOnce();
 
-        const tabTrigger = document.querySelector('[href="#document"]');
-        if (tabTrigger) {
-            new bootstrap.Tab(tabTrigger).show();
+            const tabTrigger = document.querySelector('[href="#document"]');
+            if (tabTrigger) {
+                new bootstrap.Tab(tabTrigger).show();
+            }
         }
-    }
 
-});
-
-// ============================================================
-// TAB CLICK
-// ============================================================
-$(document).on('shown.bs.tab', function (e) {
-    const target = $(e.target).attr('href') || $(e.target).attr('data-bs-target');
-
-    if (target === '#document') {
-        loadDocumentsOnce();
-    }
-});
-
-// 🔥 Prevent multiple calls
-function loadDocumentsOnce() {
-    if (docsLoaded) return;
-    docsLoaded = true;
-    loadDocuments();
-}
-
-// ============================================================
-// LOAD DOCUMENTS
-// ============================================================
-function loadDocuments() {
-    const grid = document.getElementById('documents_grid');
-
-    grid.innerHTML = `
-        <div class="col-12 text-center text-muted py-5">
-            <i class="bx bx-loader-alt bx-spin fs-1 d-block mb-2"></i>
-            Loading documents...
-        </div>`;
-
-    fetch(DOCS_INDEX, {
-        headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
-    })
-    .then(r => r.json())
-    .then(data => {
-        allDocuments   = data.documents;
-        lightboxImages = allDocuments.filter(d => d.is_image);
-        renderDocuments(allDocuments);
-    })
-    .catch(() => {
-        docsLoaded = false; // allow retry
-
-        grid.innerHTML = `
-            <div class="col-12 text-center text-danger py-5">
-                <i class="bx bx-error-circle fs-1 d-block mb-2"></i>
-                Failed to load. 
-                <button class="btn btn-sm btn-outline-primary mt-2 d-block mx-auto" 
-                        onclick="loadDocumentsOnce()">Retry</button>
-            </div>`;
     });
-}
 
-// ============================================================
-// RENDER
-// ============================================================
-function renderDocuments(docs) {
-    const grid = document.getElementById('documents_grid');
+    $(document).on('shown.bs.tab', function (e) {
+        const target = $(e.target).attr('href') || $(e.target).attr('data-bs-target');
 
-    if (docs.length === 0) {
+        if (target === '#document') {
+            loadDocumentsOnce();
+        }
+    });
+
+    // 🔥 Prevent multiple calls
+    function loadDocumentsOnce() {
+        if (docsLoaded) return;
+        docsLoaded = true;
+        loadDocuments();
+    }
+
+    function loadDocuments() {
+        const grid = document.getElementById('documents_grid');
+
         grid.innerHTML = `
             <div class="col-12 text-center text-muted py-5">
-                <i class="bx bx-folder-open fs-1 d-block mb-2"></i>
-                No documents uploaded yet.<br>
-                <small>Click "Upload File" to add documents.</small>
+                <i class="bx bx-loader-alt bx-spin fs-1 d-block mb-2"></i>
+                Loading documents...
             </div>`;
-        return;
+
+        fetch(DOCS_INDEX, {
+            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+        })
+        .then(r => r.json())
+        .then(data => {
+            allDocuments   = data.documents;
+            lightboxImages = allDocuments.filter(d => d.is_image);
+            renderDocuments(allDocuments);
+        })
+        .catch(() => {
+            docsLoaded = false; // allow retry
+
+            grid.innerHTML = `
+                <div class="col-12 text-center text-danger py-5">
+                    <i class="bx bx-error-circle fs-1 d-block mb-2"></i>
+                    Failed to load. 
+                    <button class="btn btn-sm btn-outline-primary mt-2 d-block mx-auto" 
+                            onclick="loadDocumentsOnce()">Retry</button>
+                </div>`;
+        });
     }
 
-    grid.innerHTML = docs.map(doc => {
+    function renderDocuments(docs) {
+        const grid = document.getElementById('documents_grid');
 
-        const thumb = doc.is_image
-            ? `<img src="${doc.url}"
-                    class="rounded mb-2"
-                    style="height:120px;width:100%;object-fit:cover;cursor:pointer;"
-                    onclick="openLightbox(${doc.id})">`
-            : `<div class="d-flex align-items-center justify-content-center rounded bg-light mb-2"
-                    style="height:120px;">
-                    <i class="bx bxs-file-pdf text-danger" style="font-size:4rem;"></i>
-               </div>`;
+        if (docs.length === 0) {
+            grid.innerHTML = `
+                <div class="col-12 text-center text-muted py-5">
+                    <i class="bx bx-folder-open fs-1 d-block mb-2"></i>
+                    {{ __('table.no_documents_uploaded') }}<br>
+                    <small>{{ __('table.click_upload_file') }}</small>
+                </div>`;
+            return;
+        }
 
-        return `
-        <div class="col-sm-6 col-md-4 col-lg-3" id="doc_card_${doc.id}">
-            <div class="card h-100 border shadow-sm">
-                <div class="card-body p-2">
-                    ${thumb}
-                    <div class="fw-semibold text-truncate small" title="${doc.file_name}">
-                        ${doc.file_name}
+        grid.innerHTML = docs.map(doc => {
+
+            const thumb = doc.is_image
+                ? `<img src="${doc.url}"
+                        class="rounded mb-2"
+                        style="height:120px;width:100%;object-fit:cover;cursor:pointer;"
+                        onclick="openLightbox(${doc.id})">`
+                : `<div class="d-flex align-items-center justify-content-center rounded bg-light mb-2"
+                        style="height:120px;">
+                        <i class="bx bxs-file-pdf text-danger" style="font-size:4rem;"></i>
+                </div>`;
+
+            return `
+            <div class="col-sm-6 col-md-4 col-lg-3" id="doc_card_${doc.id}">
+                <div class="card h-100 border shadow-sm">
+                    <div class="card-body p-2">
+                        ${thumb}
+                        <div class="fw-semibold text-truncate small" title="${doc.file_name}">
+                            ${doc.file_name}
+                        </div>
+                        ${doc.remark
+                            ? `<div class="text-muted small fst-italic mt-1">${doc.remark}</div>`
+                            : ''}
+                        <div class="text-muted mt-1" style="font-size:10px;">${doc.created_at}</div>
                     </div>
-                    ${doc.remark
-                        ? `<div class="text-muted small fst-italic mt-1">${doc.remark}</div>`
-                        : ''}
-                    <div class="text-muted mt-1" style="font-size:10px;">${doc.created_at}</div>
+
+                    <div class="card-footer p-1 d-flex justify-content-end gap-1 bg-white border-top">
+                        ${doc.is_image
+                            ? `<button class="btn btn-xs btn-outline-secondary"
+                                    onclick="openLightbox(${doc.id})">
+                                    <i class="bx bx-show"></i>
+                            </button>`
+                            : `<a href="${doc.url}" target="_blank"
+                                    class="btn btn-xs btn-outline-secondary">
+                                    <i class="bx bx-show"></i>
+                            </a>`
+                        }
+
+                        <a href="${doc.download_url}"
+                        class="btn btn-xs btn-outline-primary">
+                            <i class="bx bx-download"></i>
+                        </a>
+
+                        <button class="btn btn-xs btn-outline-danger"
+                                onclick="deleteDocument(${doc.id}, '${doc.delete_url}')">
+                            <i class="bx bx-trash"></i>
+                        </button>
+                    </div>
                 </div>
-
-                <div class="card-footer p-1 d-flex justify-content-end gap-1 bg-white border-top">
-                    ${doc.is_image
-                        ? `<button class="btn btn-xs btn-outline-secondary"
-                                onclick="openLightbox(${doc.id})">
-                                <i class="bx bx-show"></i>
-                           </button>`
-                        : `<a href="${doc.url}" target="_blank"
-                                class="btn btn-xs btn-outline-secondary">
-                                <i class="bx bx-show"></i>
-                           </a>`
-                    }
-
-                    <a href="${doc.download_url}"
-                       class="btn btn-xs btn-outline-primary">
-                        <i class="bx bx-download"></i>
-                    </a>
-
-                    <button class="btn btn-xs btn-outline-danger"
-                            onclick="deleteDocument(${doc.id}, '${doc.delete_url}')">
-                        <i class="bx bx-trash"></i>
-                    </button>
-                </div>
-            </div>
-        </div>`;
-    }).join('');
-}
-
-// ============================================================
-// UPLOAD
-// ============================================================
-function uploadDocument() {
-    const fileInput = document.getElementById('doc_file');
-    const remark    = document.getElementById('doc_remark').value;
-    const btn       = document.getElementById('btn_upload');
-
-    if (!fileInput.files.length) {
-        alert('Please select a file to upload.');
-        return;
+            </div>`;
+        }).join('');
     }
 
-    const formData = new FormData();
-    formData.append('_token', CSRF);
-    formData.append('file', fileInput.files[0]);
-    formData.append('remark', remark);
+    function uploadDocument() {
+        const fileInput = document.getElementById('doc_file');
+        const remark    = document.getElementById('doc_remark').value;
+        const btn       = document.getElementById('btn_upload');
 
-    btn.disabled = true;
-    btn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Uploading...';
-    document.getElementById('upload_progress').style.display = 'block';
-
-    fetch(DOCS_UPLOAD, { method: 'POST', body: formData })
-    .then(r => r.json())
-    .then(data => {
-
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bx bx-upload me-1"></i> Upload';
-        document.getElementById('upload_progress').style.display = 'none';
-
-        if (data.success) {
-            bootstrap.Modal.getInstance(document.getElementById('modalUploadDocument')).hide();
-            fileInput.value = '';
-            document.getElementById('doc_remark').value = '';
-
-            docsLoaded = false; // 🔥 allow reload
-            loadDocumentsOnce();
-        } else {
-            alert(data.message || 'Upload failed.');
+        if (!fileInput.files.length) {
+            alert('Please select a file to upload.');
+            return;
         }
 
-    })
-    .catch(() => {
-        btn.disabled = false;
-        btn.innerHTML = '<i class="bx bx-upload me-1"></i> Upload';
-        document.getElementById('upload_progress').style.display = 'none';
-        alert('Upload error. Please try again.');
-    });
-}
+        const formData = new FormData();
+        formData.append('_token', CSRF);
+        formData.append('file', fileInput.files[0]);
+        formData.append('remark', remark);
 
-// ============================================================
-// DELETE
-// ============================================================
-function deleteDocument(id, url) {
-    if (!confirm('Are you sure you want to delete this document?')) return;
+        btn.disabled = true;
+        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Uploading...';
+        document.getElementById('upload_progress').style.display = 'block';
 
-    fetch(url, {
-        method: 'DELETE',
-        headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
-    })
-    .then(r => r.json())
-    .then(data => {
-        if (data.success) {
-            document.getElementById('doc_card_' + id)?.remove();
+        fetch(DOCS_UPLOAD, { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
 
-            allDocuments   = allDocuments.filter(d => d.id !== id);
-            lightboxImages = lightboxImages.filter(d => d.id !== id);
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bx bx-upload me-1"></i> Upload';
+            document.getElementById('upload_progress').style.display = 'none';
 
-            if (allDocuments.length === 0) renderDocuments([]);
-        }
-    });
-}
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('modalUploadDocument')).hide();
+                fileInput.value = '';
+                document.getElementById('doc_remark').value = '';
 
-// ============================================================
-// LIGHTBOX
-// ============================================================
-function openLightbox(id) {
-    lightboxIndex = lightboxImages.findIndex(d => d.id === id);
-    if (lightboxIndex === -1) return;
+                docsLoaded = false; // 🔥 allow reload
+                loadDocumentsOnce();
+            } else {
+                alert(data.message || 'Upload failed.');
+            }
 
-    showLightboxAt(lightboxIndex);
-    new bootstrap.Modal(document.getElementById('imageLightbox')).show();
-}
+        })
+        .catch(() => {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bx bx-upload me-1"></i> Upload';
+            document.getElementById('upload_progress').style.display = 'none';
+            alert('Upload error. Please try again.');
+        });
+    }
 
-function showLightboxAt(index) {
-    const doc = lightboxImages[index];
+    function deleteDocument(id, url) {
+        if (!confirm('Are you sure you want to delete this document?')) return;
 
-    document.getElementById('lightbox_img').src = doc.url;
-    document.getElementById('lightbox_title').textContent = doc.file_name;
-    document.getElementById('lightbox_download').href = doc.download_url;
-    document.getElementById('lightbox_counter').textContent =
-        `${index + 1} / ${lightboxImages.length}`;
-}
+        fetch(url, {
+            method: 'DELETE',
+            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('doc_card_' + id)?.remove();
 
-function lightboxNav(dir) {
-    lightboxIndex =
-        (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
+                allDocuments   = allDocuments.filter(d => d.id !== id);
+                lightboxImages = lightboxImages.filter(d => d.id !== id);
 
-    showLightboxAt(lightboxIndex);
-}
+                if (allDocuments.length === 0) renderDocuments([]);
+            }
+        });
+    }
+
+    function openLightbox(id) {
+        lightboxIndex = lightboxImages.findIndex(d => d.id === id);
+        if (lightboxIndex === -1) return;
+
+        showLightboxAt(lightboxIndex);
+        new bootstrap.Modal(document.getElementById('imageLightbox')).show();
+    }
+
+    function showLightboxAt(index) {
+        const doc = lightboxImages[index];
+
+        document.getElementById('lightbox_img').src = doc.url;
+        document.getElementById('lightbox_title').textContent = doc.file_name;
+        document.getElementById('lightbox_download').href = doc.download_url;
+        document.getElementById('lightbox_counter').textContent =
+            `${index + 1} / ${lightboxImages.length}`;
+    }
+
+    function lightboxNav(dir) {
+        lightboxIndex =
+            (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
+
+        showLightboxAt(lightboxIndex);
+    }
 </script>
 @endsection

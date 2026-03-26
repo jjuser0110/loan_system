@@ -293,8 +293,8 @@ return [
 'file' => 'File',
 'allowed' => 'Allowed',
 'download' => 'Download',
-'' => '',
-'' => '',
+'no_documents_uploaded' => 'No documents uploaded yet',
+'click_upload_file' => 'Click "Upload File" to add documents',
 '' => '',
 '' => '',
     

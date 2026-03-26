@@ -293,6 +293,8 @@ return [
 'file' => '文件',
 'allowed' => '允许',
 'download' => '下载',
+'no_documents_uploaded' => '尚未上传任何文件',
+'click_upload_file' => '点击“上传文件”添加文档',
 
 ];
 
