@@ -296,6 +296,10 @@ class LoanController extends Controller
             $total_loan_amount = $totalQuery->sum('loans.loan_amount');
             $total_balance = $totalQuery->sum('loans.outstanding');
             $total_profit = $totalQuery->sum('loans.paid') - $totalQuery->sum('loans.capital');
+  
+            if ($request->hide_fully_paid == 1) {
+                $query->where('loans.status', '!=', 'Fully Paid');
+            }
 
             $loans = $query->orderBy($orderByColumn, $orderByDirection)
                         ->skip($start)

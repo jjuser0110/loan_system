@@ -116,6 +116,10 @@ class CustomerController extends Controller
 
             $recordsTotal = $query->count();
 
+            if ($request->hide_fully_paid == 1) {
+                $query->where('customers.status', '!=', 'fully_paid');
+            }
+
             $columnMap = [
                 'customer_code'    => 'customers.customer_code',
                 'nric_number'      => 'customers.nric_number',

@@ -295,6 +295,9 @@ return [
 'download' => '下载',
 'no_documents_uploaded' => '尚未上传任何文件',
 'click_upload_file' => '点击“上传文件”添加文档',
+'hide_fully_paid' => '隐藏 "Fully Paid"',
+'payment_due' => '还款日期',
+'int' => '利息',
 
 ];
 

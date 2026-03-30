@@ -295,6 +295,9 @@ return [
 'download' => 'Muat Turun',
 'no_documents_uploaded' => 'Tiada dokumen dimuat naik lagi',
 'click_upload_file' => 'Klik "Muat Naik Fail" untuk tambah dokumen.',
+'hide_fully_paid' => 'Sembunyikan "Fully Paid"',
+'payment_due' => 'Tarikh Bayaran',
+'int' => 'Faedah',
 
 ];
 

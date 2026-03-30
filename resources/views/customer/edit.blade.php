@@ -1,5 +1,77 @@
 @extends('layouts.app')
 <style>
+    #table-loan tbody tr.row-fully-paid td {
+        background-color: rgba(255, 0, 0, 0.1) !important;
+    }
+    #table-loan tbody tr.row-overdue td {
+        background-color: rgba(255, 253, 112, 0.35) !important;
+    }
+    #table-loan tbody tr.row-active td {
+        background-color: rgba(0, 200, 0, 0.1) !important;
+    }
+
+    #datatable-asset thead th {
+        position: relative;
+        min-width: 50px;
+        user-select: none;
+    }
+
+    #datatable-asset .col-resize-handle {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 8px;
+        cursor: col-resize;
+        z-index: 9999;
+        background: transparent;
+    }
+
+    #datatable-asset .col-resize-handle:hover {
+        background: rgba(0, 136, 204, 0.4);
+    }
+
+    #table-loan thead th {
+        position: relative;
+        min-width: 50px;
+        user-select: none;
+    }
+
+    #table-loan .col-resize-handle {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 8px;
+        cursor: col-resize;
+        z-index: 99999; 
+        background: transparent;
+        pointer-events: auto !important;
+    }
+
+    #table-loan .col-resize-handle:hover {
+        background: rgba(0, 136, 204, 0.4);
+    }
+
+    #datatable-reference thead th {
+        position: relative;
+        min-width: 50px;
+        user-select: none; /* Prevent text selection while dragging */
+    }
+    #datatable-reference .col-resize-handle {
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 8px;
+        cursor: col-resize;
+        z-index: 9999;
+        background: transparent;
+    }
+    #datatable-reference .col-resize-handle:hover {
+        background: rgba(0, 136, 204, 0.4);
+    }
+
     .modal-block {
         max-width: 2000px;
         margin: 20px auto;
@@ -257,12 +329,12 @@
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="status">Status</label>
                                         <select id="status" name="status" class="form-control" required onchange="updateStatusColor(this)"
-                                            style="color: {{ in_array($customer->status, ['active', 'fully_paid']) ? 'green' : 'red' }}">
+                                            style="color: {{ $customer->status === 'active' ? 'green' : ($customer->status === 'overdue' ? '#7a6800' : ($customer->status === 'fully_paid' ? 'red' : 'orange')) }}">
                                             <option value="active" style="color: green;" {{ $customer->status=='active'?'selected':'' }}>Active</option>
-                                            <option value="overdue" style="color: red;" {{ $customer->status=='overdue'?'selected':'' }}>Overdue</option>
-                                            <option value="bad_debt" style="color: red;" {{ $customer->status=='bad_debt'?'selected':'' }}>Bad Debt</option>
-                                            <option value="blacklist" style="color: red;" {{ $customer->status=='blacklist'?'selected':'' }}>Blacklist</option>
-                                            <option value="fully_paid" style="color: green;" {{ $customer->status=='fully_paid'?'selected':'' }}>Fully Paid</option>
+                                            <option value="overdue" style="color: #7a6800;" {{ $customer->status=='overdue'?'selected':'' }}>Overdue</option>
+                                            <option value="bad_debt" style="color: orange;" {{ $customer->status=='bad_debt'?'selected':'' }}>Bad Debt</option>
+                                            <option value="blacklist" style="color: orange;" {{ $customer->status=='blacklist'?'selected':'' }}>Blacklist</option>
+                                            <option value="fully_paid" style="color: red;" {{ $customer->status=='fully_paid'?'selected':'' }}>Fully Paid</option>
                                         </select>
                                     </div>
                                 </div>
@@ -564,34 +636,12 @@
                     <div class="col-lg-12 mb-3">
                         <section class="card" style="overflow:auto">
 
-                            <div class="row mb-4" style="padding-top:40px;">
-
-                                {{-- TOTAL PROFIT --}}
-                                <div class="col-xl-4">
-                                    <section class="card card-featured-left card-featured-primary mb-3">
-                                        <div class="card-body">
-                                            <div class="widget-summary">
-                                                <div class="widget-summary-col" style="vertical-align: middle">
-                                                    <div class="summary" style="min-height:1px">
-                                                        <h4 class="title" style="margin-bottom:5px">
-                                                            {{ __('table.total_profits') }}
-                                                        </h4>
-                                                        <div class="info">
-                                                            <strong class="amount">
-                                                                RM <span style="font-size:1.4rem" id="total-profit">0.00</span>
-                                                            </strong>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </section>
-                                </div>
+                            <div class="row" style="padding-top:10px; margin-bottom:10px;">
 
                                 {{-- TOTAL LOAN AMOUNT --}}
                                 <div class="col-xl-4">
-                                    <section class="card card-featured-left card-featured-secondary mb-3">
-                                        <div class="card-body">
+                                    <section class="card card-featured-left card-featured-primary mb-0" style="background-color:#cce8f4; border-radius:6px;">
+                                        <div class="card-body" style="background-color:transparent;">
                                             <div class="widget-summary">
                                                 <div class="widget-summary-col" style="vertical-align: middle">
                                                     <div class="summary" style="min-height:1px">
@@ -612,8 +662,8 @@
 
                                 {{-- TOTAL BALANCE --}}
                                 <div class="col-xl-4">
-                                    <section class="card card-featured-left card-featured-secondary mb-3">
-                                        <div class="card-body">
+                                    <section class="card card-featured-left card-featured-primary mb-0" style="background-color:#cce8f4; border-radius:6px;">
+                                        <div class="card-body" style="background-color:transparent;">
                                             <div class="widget-summary">
                                                 <div class="widget-summary-col" style="vertical-align: middle">
                                                     <div class="summary" style="min-height:1px">
@@ -631,11 +681,33 @@
                                         </div>
                                     </section>
                                 </div>
+                                
+                                {{-- TOTAL PROFIT --}}
+                                <div class="col-xl-4">
+                                    <section class="card card-featured-left card-featured-primary mb-0">
+                                        <div class="card-body">
+                                            <div class="widget-summary">
+                                                <div class="widget-summary-col" style="vertical-align: middle">
+                                                    <div class="summary" style="min-height:1px">
+                                                        <h4 class="title" style="margin-bottom:5px">
+                                                            {{ __('table.total_profits') }}
+                                                        </h4>
+                                                        <div class="info">
+                                                            <strong class="amount">
+                                                                RM <span style="font-size:1.4rem" id="total-profit">0.00</span>
+                                                            </strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
 
                             </div>
 
                             {{-- ADD LOAN BUTTON --}}
-                            <div class="card-header" style="text-align:right;">
+                            <div class="card-header" style="text-align:right;background-color:transparent;">
                                 <a class="btn btn-xs btn-square btn-primary"
                                 href="{{ route('loan.create',['customer_code'=>$customer->customer_code,'company_code'=>$customer->company_code]) }}">
                                     {{ __('table.add_loan') }}
@@ -644,15 +716,21 @@
 
                             {{-- LOAN TABLE --}}
                             <div class="card-body">
-                                <table class="table cus-table table-bordered table-striped mb-0" id="table-loan">
+                                <div style="margin-bottom: 10px;">
+                                    <label style="cursor:pointer; user-select:none;">
+                                        <input type="checkbox" id="hide-fully-paid" checked>
+                                        &nbsp;{{ __('table.hide_fully_paid') }}
+                                    </label>
+                                </div>
+                                <table class="table cus-table table-bordered mb-0" id="table-loan">
                                     <thead>
                                         <tr>
                                             <th>{{ __('table.loan_code') }}</th>
                                             <th>{{ __('table.company') }}</th>
                                             <th>{{ __('table.interest_group') }}</th>
-                                            <th>{{ __('table.loan_date') }}</th>
-                                            <th>{{ __('table.due_date') }}</th>
-                                            <th>{{ __('table.last_pay_date') }}</th>
+                                            <th>{{ __('table.created_date') }}</th>
+                                            <th>{{ __('table.payment_due') }}</th>
+                                            <th>{{ __('table.last_payment') }}</th>
                                             <th>{{ __('table.loan_amount') }}</th>
                                             <th>{{ __('table.capital') }}</th>
                                             <th>{{ __('table.paid') }}</th>
@@ -660,6 +738,8 @@
                                             <th>{{ __('table.loan_term') }}</th>
                                             <th>{{ __('table.installment') }}</th>
                                             <th>{{ __('table.interest_rate') }}</th>
+                                            <th>{{ __('table.int') }}</th>
+                                            <th>{{ __('table.late') }}</th>
                                             <th>{{ __('table.status') }}</th>
                                             <th>{{ __('table.actions') }}</th>
                                         </tr>
@@ -1148,12 +1228,16 @@
 @section('scripts')
     <script>
         function updateStatusColor(select) {
-            const green = ['active', 'fully_paid'];
-            select.style.color = green.includes(select.value) ? 'green' : 'red';
+            const colors = {
+                'active': 'green',
+                'overdue': '#7a6800',
+                'fully_paid': 'red',
+                'bad_debt': 'orange',
+                'blacklist': 'orange'
+            };
+            select.style.color = colors[select.value] || '#000000';
         }
-    </script>
-
-    <script>
+        
         document.getElementById('uploadIcBtn').addEventListener('click', function() {
             document.getElementById('nric_image').click();
         });
@@ -1289,19 +1373,20 @@
                 $.magnificPopup.close();
             });
 
-            $('#table-loan').DataTable({
+            let table_loan = $('#table-loan').DataTable({
                 "processing": true,
                 "serverSide": true,
                 "fixedHeader": false,
                 "ajax": {
                     "url": "{{ route('loan.load_loan',['customer_code'=>$customer->customer_code]) }}",
                     "type": "GET",
+                    "data": function(d) {
+                        d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
+                    },
                     "dataSrc": function(json){
-
                         $('#total-profit').text(parseFloat(json.total_profit).toFixed(2));
                         $('#total-loan-amount').text(parseFloat(json.total_loan_amount).toFixed(2));
                         $('#total-balance').text(parseFloat(json.total_balance).toFixed(2));
-
                         return json.data;
                     }
                 },
@@ -1309,18 +1394,14 @@
                     [2, "desc"]
                 ],
                 "columns": [
-                    {
-                        "data": "loan_code"
-                    },
+                    { "data": "loan_code" },
                     {
                         "data": "company_code",
                         "render": function(data, type, row, meta) {
                             return `<a style="text-decoration:none" onclick="e.preventDefault()">${row.company_code}<br>${row.company_name}</a>`;
                         }
                     },
-                    {
-                        "data": "interest_group"
-                    },
+                    { "data": "interest_group" },
                     {
                         "data": "created_at",
                         "render": function(data, type, row, meta) {
@@ -1336,7 +1417,6 @@
                             const parts = data.substring(0, 10).split('-');
                             return `${parts[2]}-${parts[1]}-${parts[0]}`;
                         }
-                        
                     },
                     {
                         "data": "updated_at",
@@ -1347,17 +1427,19 @@
                             return `${parts[2]}-${parts[1]}-${parts[0]}`;
                         }
                     },
+                    { "data": "loan_amount" },
+                    { "data": "capital" },
                     {
-                        "data": "loan_amount"
+                        "data": "paid",
+                        "render": function(data, type, row, meta) {
+                            return `<strong>${data}</strong>`;
+                        }
                     },
                     {
-                        "data": "capital"
-                    },
-                    {
-                        "data": "paid"
-                    },
-                    {
-                        "data": "outstanding"
+                        "data": "outstanding",
+                        "render": function(data, type, row, meta) {
+                            return `<strong>${data}</strong>`;
+                        }
                     },
                     {
                         "data": "loan_term",
@@ -1369,60 +1451,51 @@
                         "data": "installment",
                         "render": function(data, type, row, meta) {
                             let installment = `${row.installment}`;
-                            if(row.interest_group == "SKIM B"){
-                                installment = `${row.installment}<br><span style="color:#7c7c7c;font-size:12px">First: ${row.first_payment}</span><br> <span style="color:#7c7c7c;font-size:12px">Last: ${row.last_payment}</span> `;
-                            }
-                            return `<a style="text-decoration:none" onclick="e.preventDefault()">${installment}</a>`;
+                            return `<strong>${installment}</strong>`;
                         }
                     },
                     {
                         "data": "interest_rate",
                         "render": function(data, type, row, meta) {
-                            return data+"%";
+                            return parseFloat(data).toFixed(2);
                         }
                     },
+                    { "data": "interest_paid" },
+                    { "data": "late_paid" },
                     {
                         "data": "status",
                         "render": function(data, type, row, meta) {
-                            const green = ['Active', 'Fully Paid'];
-                            const red = ['Overdue', 'Bad Debt', 'Blacklist'];
-                            let clr = green.includes(data) ? 'green' : (red.includes(data) ? 'red' : '#000000');
+                            const green = ['Active'];
+                            const red = ['Fully Paid'];
+                            const yellow = ['Overdue', 'Bad Debt', 'Blacklist'];
+                            let clr = green.includes(data) ? 'green' : red.includes(data) ? 'red' : (yellow.includes(data) ? '#7a6800' : '#7a6800');
                             return `<span style="color:${clr}">${data}</span>`;
                         }
                     },
                     {
                         "data": null,
                         "render": function(data, type, row, meta) {
-
                             let url = `
                             <div class="cus-action-wrapper">
-
-                                <!-- View Detail (blue) -->
                                 <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}"
                                 class="cus-action-icon"
                                 style="background-color: #17a2b8; color: white;"
                                 title="View Detail">
                                 <i class="fas fa-eye"></i>
                                 </a>
-
-                                <!-- Create Schedule (grey) -->
                                 <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}"
                                 class="cus-action-icon"
                                 style="background-color: #6c757d; color: white;"
                                 title="Create Schedule">
                                 <i class="fas fa-calendar-alt"></i>
                                 </a>
-
-                                <!-- Create Payment (green) -->
                                 <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}"
                                 class="cus-action-icon"
                                 style="background-color: #28a745; color: white;"
                                 title="Create Payment">
                                 <i class="fas fa-money-check-alt"></i>
                                 </a>
-
                                 @if(Auth::user()->role_id == 1)
-                                <!-- Delete Loan (red) -->
                                 <a class="cus-action-icon"
                                 style="background-color: #dc3545; color: white;"
                                 title="Delete Loan"
@@ -1430,17 +1503,45 @@
                                 <i class="fas fa-trash-alt"></i>
                                 </a>
                                 @endif
-
                             </div>
                             `;
-
                             url = url.replaceAll(':loan_code', row.loan_code);
                             return url;
                         }
                     }
-                ]
+                ],
+                "drawCallback": function() {
+                    $('#table-loan tbody tr').each(function(index) {
+                        const statusCell = $(this).find('td:nth-child(16)').text().trim();
+
+                        if (statusCell === 'Fully Paid') {
+                            $(this).find('td').attr('style', 'background-color: rgba(255, 0, 0, 0.15) !important');
+                        } else if (statusCell === 'Overdue') {
+                            $(this).find('td').attr('style', 'background-color: rgba(255, 220, 50, 0.35) !important');
+                        } else if (statusCell === 'Active') {
+                            $(this).find('td').attr('style', 'background-color: rgba(0, 180, 0, 0.1) !important');
+                        } else {
+                            // Manual stripe for other statuses
+                            if (index % 2 !== 0) {
+                                $(this).find('td').attr('style', 'background-color: rgba(0,0,0,0.05) !important');
+                            } else {
+                                $(this).find('td').attr('style', 'background-color: white !important');
+                            }
+                        }
+                    });
+
+                    makeLoanTableResizable(table_loan);
+                }
             });
-    
+
+            // Redraw table when checkbox changes
+            $('#hide-fully-paid').on('change', function() {
+                table_loan.draw();
+            });
+
+            makeLoanTableResizable(table_loan);
+            makeReferenceTableResizable();
+            makeAssetTableResizable();
         });
         
         function previewPhoto(event) {
@@ -1579,231 +1680,365 @@
     </script>
 
     <script>
-    const DOCS_INDEX  = "{{ route('customer.documents.index', $customer->id) }}";
-    const DOCS_UPLOAD = "{{ route('customer.documents.store', $customer->id) }}";
-    const CSRF        = "{{ csrf_token() }}";
+        const DOCS_INDEX  = "{{ route('customer.documents.index', $customer->id) }}";
+        const DOCS_UPLOAD = "{{ route('customer.documents.store', $customer->id) }}";
+        const CSRF        = "{{ csrf_token() }}";
 
-    let allDocuments   = [];
-    let lightboxImages = [];
-    let lightboxIndex  = 0;
-    let docsLoaded     = false; // 🔥 prevent duplicate calls
+        let allDocuments   = [];
+        let lightboxImages = [];
+        let lightboxIndex  = 0;
+        let docsLoaded     = false;
 
-    $(document).ready(function () {
+        $(document).ready(function () {
 
-        // If direct open with #document
-        if (window.location.hash === '#document') {
-            loadDocumentsOnce();
+            // If direct open with #document
+            if (window.location.hash === '#document') {
+                loadDocumentsOnce();
 
-            const tabTrigger = document.querySelector('[href="#document"]');
-            if (tabTrigger) {
-                new bootstrap.Tab(tabTrigger).show();
+                const tabTrigger = document.querySelector('[href="#document"]');
+                if (tabTrigger) {
+                    new bootstrap.Tab(tabTrigger).show();
+                }
             }
-        }
 
-    });
-
-    $(document).on('shown.bs.tab', function (e) {
-        const target = $(e.target).attr('href') || $(e.target).attr('data-bs-target');
-
-        if (target === '#document') {
-            loadDocumentsOnce();
-        }
-    });
-
-    // 🔥 Prevent multiple calls
-    function loadDocumentsOnce() {
-        if (docsLoaded) return;
-        docsLoaded = true;
-        loadDocuments();
-    }
-
-    function loadDocuments() {
-        const grid = document.getElementById('documents_grid');
-
-        grid.innerHTML = `
-            <div class="col-12 text-center text-muted py-5">
-                <i class="bx bx-loader-alt bx-spin fs-1 d-block mb-2"></i>
-                Loading documents...
-            </div>`;
-
-        fetch(DOCS_INDEX, {
-            headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
-        })
-        .then(r => r.json())
-        .then(data => {
-            allDocuments   = data.documents;
-            lightboxImages = allDocuments.filter(d => d.is_image);
-            renderDocuments(allDocuments);
-        })
-        .catch(() => {
-            docsLoaded = false; // allow retry
-
-            grid.innerHTML = `
-                <div class="col-12 text-center text-danger py-5">
-                    <i class="bx bx-error-circle fs-1 d-block mb-2"></i>
-                    Failed to load. 
-                    <button class="btn btn-sm btn-outline-primary mt-2 d-block mx-auto" 
-                            onclick="loadDocumentsOnce()">Retry</button>
-                </div>`;
         });
-    }
 
-    function renderDocuments(docs) {
-        const grid = document.getElementById('documents_grid');
+        $(document).on('shown.bs.tab', function (e) {
+            const target = $(e.target).attr('href') || $(e.target).attr('data-bs-target');
 
-        if (docs.length === 0) {
+            if (target === '#document') {
+                loadDocumentsOnce();
+            }
+        });
+
+        // 🔥 Prevent multiple calls
+        function loadDocumentsOnce() {
+            if (docsLoaded) return;
+            docsLoaded = true;
+            loadDocuments();
+        }
+
+        function loadDocuments() {
+            const grid = document.getElementById('documents_grid');
+
             grid.innerHTML = `
                 <div class="col-12 text-center text-muted py-5">
-                    <i class="bx bx-folder-open fs-1 d-block mb-2"></i>
-                    {{ __('table.no_documents_uploaded') }}<br>
-                    <small>{{ __('table.click_upload_file') }}</small>
+                    <i class="bx bx-loader-alt bx-spin fs-1 d-block mb-2"></i>
+                    Loading documents...
                 </div>`;
-            return;
+
+            fetch(DOCS_INDEX, {
+                headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': CSRF }
+            })
+            .then(r => r.json())
+            .then(data => {
+                allDocuments   = data.documents;
+                lightboxImages = allDocuments.filter(d => d.is_image);
+                renderDocuments(allDocuments);
+            })
+            .catch(() => {
+                docsLoaded = false; // allow retry
+
+                grid.innerHTML = `
+                    <div class="col-12 text-center text-danger py-5">
+                        <i class="bx bx-error-circle fs-1 d-block mb-2"></i>
+                        Failed to load. 
+                        <button class="btn btn-sm btn-outline-primary mt-2 d-block mx-auto" 
+                                onclick="loadDocumentsOnce()">Retry</button>
+                    </div>`;
+            });
         }
 
-        grid.innerHTML = docs.map(doc => {
+        function renderDocuments(docs) {
+            const grid = document.getElementById('documents_grid');
 
-            const thumb = doc.is_image
-                ? `<img src="${doc.url}"
-                        class="rounded mb-2"
-                        style="height:120px;width:100%;object-fit:cover;cursor:pointer;"
-                        onclick="openLightbox(${doc.id})">`
-                : `<div class="d-flex align-items-center justify-content-center rounded bg-light mb-2"
-                        style="height:120px;">
-                        <i class="bx bxs-file-pdf text-danger" style="font-size:4rem;"></i>
-                </div>`;
+            if (docs.length === 0) {
+                grid.innerHTML = `
+                    <div class="col-12 text-center text-muted py-5">
+                        <i class="bx bx-folder-open fs-1 d-block mb-2"></i>
+                        {{ __('table.no_documents_uploaded') }}<br>
+                        <small>{{ __('table.click_upload_file') }}</small>
+                    </div>`;
+                return;
+            }
 
-            return `
-            <div class="col-sm-6 col-md-4 col-lg-3" id="doc_card_${doc.id}">
-                <div class="card h-100 border shadow-sm">
-                    <div class="card-body p-2">
-                        ${thumb}
-                        <div class="fw-semibold text-truncate small" title="${doc.file_name}">
-                            ${doc.file_name}
+            grid.innerHTML = docs.map(doc => {
+
+                const thumb = doc.is_image
+                    ? `<img src="${doc.url}"
+                            class="rounded mb-2"
+                            style="height:120px;width:100%;object-fit:cover;cursor:pointer;"
+                            onclick="openLightbox(${doc.id})">`
+                    : `<div class="d-flex align-items-center justify-content-center rounded bg-light mb-2"
+                            style="height:120px;">
+                            <i class="bx bxs-file-pdf text-danger" style="font-size:4rem;"></i>
+                    </div>`;
+
+                return `
+                <div class="col-sm-6 col-md-4 col-lg-3" id="doc_card_${doc.id}">
+                    <div class="card h-100 border shadow-sm">
+                        <div class="card-body p-2">
+                            ${thumb}
+                            <div class="fw-semibold text-truncate small" title="${doc.file_name}">
+                                ${doc.file_name}
+                            </div>
+                            ${doc.remark
+                                ? `<div class="text-muted small fst-italic mt-1">${doc.remark}</div>`
+                                : ''}
+                            <div class="text-muted mt-1" style="font-size:10px;">${doc.created_at}</div>
                         </div>
-                        ${doc.remark
-                            ? `<div class="text-muted small fst-italic mt-1">${doc.remark}</div>`
-                            : ''}
-                        <div class="text-muted mt-1" style="font-size:10px;">${doc.created_at}</div>
+
+                        <div class="card-footer p-1 d-flex justify-content-end gap-1 bg-white border-top">
+                            ${doc.is_image
+                                ? `<button class="btn btn-xs btn-outline-secondary"
+                                        onclick="openLightbox(${doc.id})">
+                                        <i class="bx bx-show"></i>
+                                </button>`
+                                : `<a href="${doc.url}" target="_blank"
+                                        class="btn btn-xs btn-outline-secondary">
+                                        <i class="bx bx-show"></i>
+                                </a>`
+                            }
+
+                            <a href="${doc.download_url}"
+                            class="btn btn-xs btn-outline-primary">
+                                <i class="bx bx-download"></i>
+                            </a>
+
+                            <button class="btn btn-xs btn-outline-danger"
+                                    onclick="deleteDocument(${doc.id}, '${doc.delete_url}')">
+                                <i class="bx bx-trash"></i>
+                            </button>
+                        </div>
                     </div>
-
-                    <div class="card-footer p-1 d-flex justify-content-end gap-1 bg-white border-top">
-                        ${doc.is_image
-                            ? `<button class="btn btn-xs btn-outline-secondary"
-                                    onclick="openLightbox(${doc.id})">
-                                    <i class="bx bx-show"></i>
-                            </button>`
-                            : `<a href="${doc.url}" target="_blank"
-                                    class="btn btn-xs btn-outline-secondary">
-                                    <i class="bx bx-show"></i>
-                            </a>`
-                        }
-
-                        <a href="${doc.download_url}"
-                        class="btn btn-xs btn-outline-primary">
-                            <i class="bx bx-download"></i>
-                        </a>
-
-                        <button class="btn btn-xs btn-outline-danger"
-                                onclick="deleteDocument(${doc.id}, '${doc.delete_url}')">
-                            <i class="bx bx-trash"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>`;
-        }).join('');
-    }
-
-    function uploadDocument() {
-        const fileInput = document.getElementById('doc_file');
-        const remark    = document.getElementById('doc_remark').value;
-        const btn       = document.getElementById('btn_upload');
-
-        if (!fileInput.files.length) {
-            alert('Please select a file to upload.');
-            return;
+                </div>`;
+            }).join('');
         }
 
-        const formData = new FormData();
-        formData.append('_token', CSRF);
-        formData.append('file', fileInput.files[0]);
-        formData.append('remark', remark);
+        function uploadDocument() {
+            const fileInput = document.getElementById('doc_file');
+            const remark    = document.getElementById('doc_remark').value;
+            const btn       = document.getElementById('btn_upload');
 
-        btn.disabled = true;
-        btn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Uploading...';
-        document.getElementById('upload_progress').style.display = 'block';
-
-        fetch(DOCS_UPLOAD, { method: 'POST', body: formData })
-        .then(r => r.json())
-        .then(data => {
-
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bx bx-upload me-1"></i> Upload';
-            document.getElementById('upload_progress').style.display = 'none';
-
-            if (data.success) {
-                bootstrap.Modal.getInstance(document.getElementById('modalUploadDocument')).hide();
-                fileInput.value = '';
-                document.getElementById('doc_remark').value = '';
-
-                docsLoaded = false; // 🔥 allow reload
-                loadDocumentsOnce();
-            } else {
-                alert(data.message || 'Upload failed.');
+            if (!fileInput.files.length) {
+                alert('Please select a file to upload.');
+                return;
             }
 
-        })
-        .catch(() => {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bx bx-upload me-1"></i> Upload';
-            document.getElementById('upload_progress').style.display = 'none';
-            alert('Upload error. Please try again.');
-        });
-    }
+            const formData = new FormData();
+            formData.append('_token', CSRF);
+            formData.append('file', fileInput.files[0]);
+            formData.append('remark', remark);
 
-    function deleteDocument(id, url) {
-        if (!confirm('Are you sure you want to delete this document?')) return;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bx bx-loader-alt bx-spin me-1"></i> Uploading...';
+            document.getElementById('upload_progress').style.display = 'block';
 
-        fetch(url, {
-            method: 'DELETE',
-            headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.success) {
-                document.getElementById('doc_card_' + id)?.remove();
+            fetch(DOCS_UPLOAD, { method: 'POST', body: formData })
+            .then(r => r.json())
+            .then(data => {
 
-                allDocuments   = allDocuments.filter(d => d.id !== id);
-                lightboxImages = lightboxImages.filter(d => d.id !== id);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bx bx-upload me-1"></i> Upload';
+                document.getElementById('upload_progress').style.display = 'none';
 
-                if (allDocuments.length === 0) renderDocuments([]);
-            }
-        });
-    }
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('modalUploadDocument')).hide();
+                    fileInput.value = '';
+                    document.getElementById('doc_remark').value = '';
 
-    function openLightbox(id) {
-        lightboxIndex = lightboxImages.findIndex(d => d.id === id);
-        if (lightboxIndex === -1) return;
+                    docsLoaded = false; // 🔥 allow reload
+                    loadDocumentsOnce();
+                } else {
+                    alert(data.message || 'Upload failed.');
+                }
 
-        showLightboxAt(lightboxIndex);
-        new bootstrap.Modal(document.getElementById('imageLightbox')).show();
-    }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bx bx-upload me-1"></i> Upload';
+                document.getElementById('upload_progress').style.display = 'none';
+                alert('Upload error. Please try again.');
+            });
+        }
 
-    function showLightboxAt(index) {
-        const doc = lightboxImages[index];
+        function deleteDocument(id, url) {
+            if (!confirm('Are you sure you want to delete this document?')) return;
 
-        document.getElementById('lightbox_img').src = doc.url;
-        document.getElementById('lightbox_title').textContent = doc.file_name;
-        document.getElementById('lightbox_download').href = doc.download_url;
-        document.getElementById('lightbox_counter').textContent =
-            `${index + 1} / ${lightboxImages.length}`;
-    }
+            fetch(url, {
+                method: 'DELETE',
+                headers: { 'X-CSRF-TOKEN': CSRF, 'Accept': 'application/json' }
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('doc_card_' + id)?.remove();
 
-    function lightboxNav(dir) {
-        lightboxIndex =
-            (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
+                    allDocuments   = allDocuments.filter(d => d.id !== id);
+                    lightboxImages = lightboxImages.filter(d => d.id !== id);
 
-        showLightboxAt(lightboxIndex);
-    }
-</script>
+                    if (allDocuments.length === 0) renderDocuments([]);
+                }
+            });
+        }
+
+        function openLightbox(id) {
+            lightboxIndex = lightboxImages.findIndex(d => d.id === id);
+            if (lightboxIndex === -1) return;
+
+            showLightboxAt(lightboxIndex);
+            new bootstrap.Modal(document.getElementById('imageLightbox')).show();
+        }
+
+        function showLightboxAt(index) {
+            const doc = lightboxImages[index];
+
+            document.getElementById('lightbox_img').src = doc.url;
+            document.getElementById('lightbox_title').textContent = doc.file_name;
+            document.getElementById('lightbox_download').href = doc.download_url;
+            document.getElementById('lightbox_counter').textContent =
+                `${index + 1} / ${lightboxImages.length}`;
+        }
+
+        function lightboxNav(dir) {
+            lightboxIndex =
+                (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
+
+            showLightboxAt(lightboxIndex);
+        }
+
+        function makeReferenceTableResizable() {
+            $('#datatable-reference thead th').each(function() {
+                $(this).css('position', 'relative');
+
+                if ($(this).find('.col-resize-handle').length > 0) return;
+
+                const handle = $('<div class="col-resize-handle">').appendTo(this);
+
+                handle.on('mousedown', function(e) {
+                    const th = $(this).parent();
+                    const startX = e.pageX;
+                    const startWidth = th.outerWidth();
+
+                    // Disable pointer events on ALL th during drag
+                    $('#datatable-reference thead th').css('pointer-events', 'none');
+                    // But keep pointer events on handles so mousemove still works
+                    $('#datatable-reference .col-resize-handle').css('pointer-events', 'auto');
+
+                    $(document).on('mousemove.colresize-ref', function(e) {
+                        const newWidth = startWidth + (e.pageX - startX);
+                        if (newWidth > 50) {
+                            th.css('width', newWidth + 'px');
+                            th.css('min-width', newWidth + 'px');
+                        }
+                    });
+
+                    $(document).on('mouseup.colresize-ref', function() {
+                        $(document).off('mousemove.colresize-ref mouseup.colresize-ref');
+
+                        // Re-enable pointer events after a short delay
+                        // so the mouseup click doesn't trigger sort
+                        setTimeout(function() {
+                            $('#datatable-reference thead th').css('pointer-events', '');
+                        }, 200);
+                    });
+
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
+
+                handle.on('click', function(e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
+            });
+        }
+
+        function makeLoanTableResizable(dtInstance) {
+            $('#table-loan thead th').each(function() {
+                $(this).css('position', 'relative');
+
+                if ($(this).find('.col-resize-handle').length > 0) return;
+
+                const handle = $('<div class="col-resize-handle">').appendTo(this);
+
+                handle.on('mousedown', function(e) {
+                    const th = $(this).parent();
+                    const startX = e.pageX;
+                    const startWidth = th.outerWidth();
+
+                    dtInstance.settings()[0].aoColumns.forEach(function(col) {
+                        col.bSortable = false;
+                    });
+
+                    $(window).on('mousemove.colresize-loan', function(e) {
+                        const newWidth = startWidth + (e.pageX - startX);
+                        if (newWidth > 50) {
+                            th.css('width', newWidth + 'px');
+                            th.css('min-width', newWidth + 'px');
+                        }
+                    });
+
+                    $(window).on('mouseup.colresize-loan', function() {
+                        $(window).off('mousemove.colresize-loan mouseup.colresize-loan');
+                        setTimeout(function() {
+                            dtInstance.settings()[0].aoColumns.forEach(function(col) {
+                                col.bSortable = true;
+                            });
+                        }, 200);
+                    });
+
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
+
+                handle.on('click', function(e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
+            });
+        }
+
+        function makeAssetTableResizable() {
+            $('#datatable-asset thead th').each(function() {
+                $(this).css('position', 'relative');
+
+                if ($(this).find('.col-resize-handle').length > 0) return;
+
+                const handle = $('<div class="col-resize-handle">').appendTo(this);
+
+                handle.on('mousedown', function(e) {
+                    const th = $(this).parent();
+                    const startX = e.pageX;
+                    const startWidth = th.outerWidth();
+
+                    $('#datatable-asset thead th').css('pointer-events', 'none');
+                    $('#datatable-asset .col-resize-handle').css('pointer-events', 'auto');
+
+                    $(window).on('mousemove.colresize-asset', function(e) {
+                        const newWidth = startWidth + (e.pageX - startX);
+                        if (newWidth > 50) {
+                            th.css('width', newWidth + 'px');
+                            th.css('min-width', newWidth + 'px');
+                        }
+                    });
+
+                    $(window).on('mouseup.colresize-asset', function() {
+                        $(window).off('mousemove.colresize-asset mouseup.colresize-asset');
+                        setTimeout(function() {
+                            $('#datatable-asset thead th').css('pointer-events', '');
+                        }, 200);
+                    });
+
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
+
+                handle.on('click', function(e) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                });
+            });
+        }
+    </script>
 @endsection

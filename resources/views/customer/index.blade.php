@@ -15,6 +15,12 @@
                 <a class="btn btn-xs btn-square btn-primary" href="{{route('customer.create')}}">{{ __('table.create') }}</a>
             </div>
             <div class="card-body">
+                <div style="margin-bottom: 10px;">
+                    <label style="cursor:pointer; user-select:none;">
+                        <input type="checkbox" id="hide-fully-paid" checked>
+                        &nbsp;{{ __('table.hide_fully_paid') }}
+                    </label>
+                </div>
                 <table class="table cus-table table-bordered table-striped mb-0" id="table-customer">
                     <thead>
                         <tr>
@@ -121,7 +127,10 @@
             "lengthMenu": [[10, 100, 500, 1000], [10, 100, 500, 1000]],
             "ajax": {
                 "url": "{{ route('customer.fetch') }}",
-                "type": "GET"
+                "type": "GET",
+                "data": function(d) {
+                    d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
+                }
             },
             "order": [
                 [0, "desc"]
@@ -168,12 +177,25 @@
                 {
                     "data": "status",
                     "render": function(data, type, row, meta) {
-                        const green = ['active', 'fully_paid'];
-                        const red = ['overdue', 'bad_debt', 'blacklist'];
+                        const green = ['active'];
+                        const red = ['fully_paid'];
+                        const yellow = ['overdue'];
+                        const orange = ['bad_debt', 'blacklist'];
 
-                        let clr = green.includes(data) ? 'green' : (red.includes(data) ? 'red' : '#000000');
+                        let clr;
+                        if (green.includes(data)) {
+                            clr = 'green';
+                        } else if (red.includes(data)) {
+                            clr = 'red';
+                        } else if (yellow.includes(data)) {
+                            clr = '#7a6800';
+                        } else if (orange.includes(data)) {
+                            clr = 'orange';
+                        } else {
+                            clr = '#000000';
+                        }
+
                         let label = data.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-
                         return `<span style="color:${clr}">${label}</span>`;
                     }
                 },
@@ -203,6 +225,10 @@
             ],
             "initComplete": function() {
                 makeResizable('table-customer', table_customer);
+
+                $('#hide-fully-paid').on('change', function() {
+                    table_customer.draw();
+                });
             }
         });
     });

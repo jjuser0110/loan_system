@@ -1,5 +1,17 @@
 @extends('layouts.app')
 @section('content')
+<style>
+    #table-loan tbody tr.row-fully-paid td {
+        background-color: rgba(255, 0, 0, 0.1) !important;
+    }
+    #table-loan tbody tr.row-overdue td {
+        background-color: rgba(255, 253, 112, 0.35) !important;
+    }
+    #table-loan tbody tr.row-active td {
+        background-color: rgba(0, 200, 0, 0.1) !important;
+    }
+</style>
+
 <header class="page-header">
     <h2>{{ __('table.loan') }}</h2>
 </header>
@@ -117,15 +129,21 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-body">
-                <table class="table cus-table table-bordered table-striped mb-0" id="table-loan">
+                <div style="margin-bottom: 10px;">
+                    <label style="cursor:pointer; user-select:none;">
+                        <input type="checkbox" id="hide-fully-paid" checked>
+                        &nbsp;{{ __('table.hide_fully_paid') }}
+                    </label>
+                </div>
+                <table class="table cus-table table-bordered mb-0" id="table-loan">
                     <thead>
                         <tr>
                             <th>{{ __('table.loan_code') }}</th>
                             <th>{{ __('table.company') }}</th>
                             <th>{{ __('table.interest_group') }}</th>
-                            <th>{{ __('table.loan_date') }}</th>
-                            <th>{{ __('table.due_date') }}</th>
-                            <th>{{ __('table.last_pay_date') }}</th>
+                            <th>{{ __('table.created_date') }}</th>
+                            <th>{{ __('table.payment_due') }}</th>
+                            <th>{{ __('table.last_payment') }}</th>
                             <th>{{ __('table.loan_amount') }}</th>
                             <th>{{ __('table.capital') }}</th>
                             <th>{{ __('table.paid') }}</th>
@@ -133,6 +151,8 @@
                             <th>{{ __('table.loan_term') }}</th>
                             <th>{{ __('table.installment') }}</th>
                             <th>{{ __('table.interest_rate') }}</th>
+                            <th>{{ __('table.int') }}</th>
+                            <th>{{ __('table.late') }}</th>
                             <th>{{ __('table.status') }}</th>
                             <th>{{ __('table.actions') }}</th>
                         </tr>
@@ -153,11 +173,14 @@
             "processing": true,
             "serverSide": true,
             "fixedHeader": false,
-            "autoWidth": false, // ✅ required for manual resizing
+            "autoWidth": false,
             "lengthMenu": [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
             "ajax": {
                 "url": "{{ route('loan.load_loan') }}",
-                "type": "GET"
+                "type": "GET",
+                "data": function(d) {
+                    d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
+                }
             },
             "order": [[0, "desc"]],
             "columns": [
@@ -196,8 +219,18 @@
                 },
                 { "data": "loan_amount" },
                 { "data": "capital" },
-                { "data": "paid" },
-                { "data": "outstanding" },
+                {
+                    "data": "paid",
+                    "render": function(data, type, row, meta) {
+                        return `<strong>${data}</strong>`;
+                    }
+                },
+                {
+                    "data": "outstanding",
+                    "render": function(data, type, row, meta) {
+                        return `<strong>${data}</strong>`;
+                    }
+                },
                 {
                     "data": "loan_term",
                     "render": function(data, type, row, meta) {
@@ -208,24 +241,31 @@
                     "data": "installment",
                     "render": function(data, type, row, meta) {
                         let installment = `${row.installment}`;
-                        if(row.interest_group == "SKIM B"){
-                            installment = `${row.installment}<br><span style="color:#7c7c7c;font-size:12px">First: ${row.first_payment}</span><br><span style="color:#7c7c7c;font-size:12px">Last: ${row.last_payment}</span>`;
-                        }
-                        return `<a style="text-decoration:none" onclick="e.preventDefault()">${installment}</a>`;
+                        // if(row.interest_group == "SKIM B"){
+                        //     installment = `${row.installment}<br><span style="color:#7c7c7c;font-size:12px">First: ${row.first_payment}</span><br> <span style="color:#7c7c7c;font-size:12px">Last: ${row.last_payment}</span>`;
+                        // }
+                        return `<strong>${installment}</strong>`;
                     }
                 },
                 {
                     "data": "interest_rate",
                     "render": function(data, type, row, meta) {
-                        return data + "%";
+                        return parseFloat(data).toFixed(2);
                     }
+                },
+                {
+                    "data": "interest_paid"
+                },
+                {
+                    "data": "late_paid"
                 },
                 {
                     "data": "status",
                     "render": function(data, type, row, meta) {
-                        const green = ['Active', 'Fully Paid'];
-                        const red = ['Overdue', 'Bad Debt', 'Blacklist'];
-                        let clr = green.includes(data) ? 'green' : (red.includes(data) ? 'red' : '#000000');
+                        const green = ['Active'];
+                        const red = ['Fully Paid'];
+                        const yellow = ['Overdue', 'Bad Debt', 'Blacklist'];
+                        let clr = green.includes(data) ? 'green' : red.includes(data) ? 'red' : (yellow.includes(data) ? '#7a6800' : '#7a6800');
                         return `<span style="color:${clr}">${data}</span>`;
                     }
                 },
@@ -269,8 +309,26 @@
             ],
             "drawCallback": function() {
                 initResizable();
+
+                $('#table-loan tbody tr').each(function() {
+                    const statusCell = $(this).find('td:nth-child(16)').text().trim();
+                    $(this).removeClass('row-fully-paid row-overdue row-active');
+
+                    if (statusCell === 'Fully Paid') {
+                        $(this).addClass('row-fully-paid');
+                    } else if (statusCell === 'Overdue') {
+                        $(this).addClass('row-overdue');
+                    } else if (statusCell === 'Active') {
+                        $(this).addClass('row-active');
+                    }
+                });
             }
         });
+
+        $('#hide-fully-paid').on('change', function() {
+            table_loan.draw();
+        });
+
     });
 
     function initResizable() {
