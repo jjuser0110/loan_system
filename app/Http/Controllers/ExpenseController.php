@@ -162,7 +162,7 @@ class ExpenseController extends Controller
             // Calculate final amount: amount_in is positive, amount_out is negative
             $amount_in  = floatval($request->amount_in  ?? 0);
             $amount_out = floatval($request->amount_out ?? 0);
-            $amount     = $amount_out - $amount_in;
+            $amount     = $amount_in - $amount_out;
 
             $query = Company::query();
             switch (Auth::user()->role_id) {
@@ -234,7 +234,7 @@ class ExpenseController extends Controller
             // Calculate final amount
             $amount_in  = floatval($request->amount_in  ?? 0);
             $amount_out = floatval($request->amount_out ?? 0);
-            $amount     = $amount_out - $amount_in;
+            $amount     = $amount_in - $amount_out;
 
             $query = Company::query();
             switch (Auth::user()->role_id) {

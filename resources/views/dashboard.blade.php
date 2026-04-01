@@ -70,8 +70,9 @@
 <div class="row">
     <div class="col-lg-12">
         <div class="row mb-3">
+            
             <div class="col-xxl-4 col-xl-6 col-lg-6">
-                <section class="card card-featured-left card-featured-primary mb-3">
+                <section class="card card-featured-left card-featured-primary mb-3" style="background-color:#eaf4ff;">
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
@@ -89,12 +90,13 @@
                     </div>
                 </section>
             </div>
+
             <div class="col-xxl-4 col-xl-6 col-lg-6">
-                <section class="card card-featured-left card-featured-secondary mb-3">
+                <section class="card card-featured-left card-featured-primary mb-3" style="background-color:#eaf4ff;">
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-secondary">
+                                <div class="summary-icon bg-primary">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -108,12 +110,13 @@
                     </div>
                 </section>
             </div>
+
             <div class="col-xxl-4 col-xl-6 col-lg-6">
-                <section class="card card-featured-left card-featured-tertiary mb-3">
+                <section class="card card-featured-left card-featured-primary mb-3" style="background-color:#eaf4ff;">
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-tertiary">
+                                <div class="summary-icon bg-primary">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -127,19 +130,20 @@
                     </div>
                 </section>
             </div>
+
             <div class="col-xxl-4 col-xl-6 col-lg-6">
-                <section class="card card-featured-left card-featured-quaternary mb-3">
+                <section class="card card-featured-left card-featured-success mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-secondary">
+                                <div class="summary-icon bg-success">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">{{ __('table.total_amount') }}</h4>
+                                <h4 class="title">{{ __('table.total_paid') }}</h4>
                                 <div class="info">
-                                    <strong class="amount">${{ $companies->amount ?? 0.00}}</strong>
+                                    <strong class="amount" id="total-paid">{{ __('table.loading') }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -148,11 +152,11 @@
             </div>
 
             <div class="col-xxl-4 col-xl-6 col-lg-6">
-                <section class="card card-featured-left card-featured-quaternary mb-3">
+                <section class="card card-featured-left card-featured-info mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-tertiary">
+                                <div class="summary-icon bg-info">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -168,11 +172,11 @@
             </div>
 
             <div class="col-xxl-4 col-xl-6 col-lg-6">
-                <section class="card card-featured-left card-featured-quaternary mb-3">
+                <section class="card card-featured-left card-featured-info mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-primary">
+                                <div class="summary-icon bg-info">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -188,11 +192,11 @@
             </div>
 
             <div class="col-xxl-4 col-xl-6 col-lg-6">
-                <section class="card card-featured-left card-featured-quaternary mb-3">
+                <section class="card card-featured-left card-featured-warning mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-tertiary">
+                                <div class="summary-icon bg-warning">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -208,11 +212,31 @@
             </div>
 
             <div class="col-xxl-4 col-xl-6 col-lg-6">
-                <section class="card card-featured-left card-featured-quaternary mb-3">
+                <section class="card card-featured-left card-featured-info mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-primary">
+                                <div class="summary-icon bg-info">
+                                    <i class="fas fa-dollar-sign"></i>
+                                </div>
+                            </div>
+                            <div class="cus-card">
+                                <h4 class="title">{{ __('table.total_balance') }}</h4>
+                                <div class="info">
+                                    <strong class="amount" id="total-balance">{{ __('table.loading') }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-xxl-4 col-xl-6 col-lg-6">
+                <section class="card card-featured-left card-featured-info mb-3">
+                    <div class="card-body">
+                        <div class="widget-summary">
+                            <div class="widget-summary-col widget-summary-col-icon">
+                                <div class="summary-icon bg-info">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
@@ -228,18 +252,18 @@
             </div>
 
             <div class="col-xxl-4 col-xl-6 col-lg-6">
-                <section class="card card-featured-left card-featured-quaternary mb-3">
+                <section class="card card-featured-left card-featured-success mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-secondary">
+                                <div class="summary-icon bg-success">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">{{ __('table.total_profit') }}</h4>
+                                <h4 class="title">{{ __('table.total_cash&bank') }}</h4>
                                 <div class="info">
-                                    <strong class="amount" id="total-profit-amount">{{ __('table.loading') }}</strong>
+                                    <strong class="amount" id="total-payment-method-amount">{{ __('table.loading') }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -248,18 +272,18 @@
             </div>
 
             <div class="col-xxl-4 col-xl-6 col-lg-6">
-                <section class="card card-featured-left card-featured-quaternary mb-3">
+                <section class="card card-featured-left card-featured-dark mb-3">
                     <div class="card-body">
                         <div class="widget-summary">
                             <div class="widget-summary-col widget-summary-col-icon">
-                                <div class="summary-icon bg-quaternary">
+                                <div class="summary-icon bg-dark">
                                     <i class="fas fa-dollar-sign"></i>
                                 </div>
                             </div>
                             <div class="cus-card">
-                                <h4 class="title">{{ __('table.total_account_amount') }}</h4>
+                                <h4 class="title">{{ __('table.total_profit') }}</h4>
                                 <div class="info">
-                                    <strong class="amount" id="total-payment-method-amount">{{ __('table.loading') }}</strong>
+                                    <strong class="amount" id="total-profit-amount">{{ __('table.loading') }}</strong>
                                 </div>
                             </div>
                         </div>
@@ -544,6 +568,34 @@
         .then(response => response.json())
         .then(data => {
             document.getElementById('total-capital-amount').innerHTML = '$'+data.total_capital ?? '0.00';
+        })
+        .catch(error => {
+            console.error('Search failed:', error);
+        });
+
+        // LOAD BALANCE
+        fetch(`{{ route('loan.fetch_balance') }}`, {
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('total-balance').innerHTML = '$'+data.total_balance ?? '0.00';
+        })
+        .catch(error => {
+            console.error('Search failed:', error);
+        });
+
+        // LOAD PAID
+        fetch(`{{ route('loan.fetch_paid') }}`, {
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('total-paid').innerHTML = '$'+data.total_paid ?? '0.00';
         })
         .catch(error => {
             console.error('Search failed:', error);

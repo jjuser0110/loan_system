@@ -24,23 +24,66 @@ class LoanController extends Controller
 {
     public function index(Request $request)
     {
-        switch(Auth::user()->role_id){
+        $companyQuery = Company::query();
+
+        switch (Auth::user()->role_id) {
             case 1:
-                $query = DB::table('loans');
                 break;
 
             case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies','companies.id','=','loans.company_id')->where('companies.branch_id',$userBranchId);
+                $companyQuery->where('branch_id', Auth::user()->branch_id);
                 break;
 
             default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('loans')->where('company_id',$companyId);
+                $companyQuery->where('id', Auth::user()->company_id);
                 break;
         }
-        $loans = $query->selectRaw('SUM(capital) as total_capital, SUM(interest_paid) as total_interest_paid, SUM(late_paid) as total_late_paid ,SUM(outstanding) as outstanding ,SUM(loan_amount) as total_loan_amount ,SUM(balance) as total_balance ,SUM(interest) as total_interest' )->first();
-        return view('loan.index')->with('total_capital',$loans->total_capital)->with('outstanding',$loans->outstanding)->with('total_interest_paid',$loans->total_interest_paid)->with('total_late_paid',$loans->total_late_paid)->with('total_loan_amount',$loans->total_loan_amount)->with('total_balance',$loans->total_balance)->with('total_interest',$loans->total_interest);
+
+        $companies = $companyQuery->selectRaw('
+            SUM(stocka) as total_stocka,
+            SUM(stockb) as total_stockb,
+            SUM(stockbb) as total_stockbb
+        ')->first();
+
+        $loanQuery = DB::table('loans');
+
+        switch (Auth::user()->role_id) {
+            case 1:
+                break;
+
+            case 2:
+                $loanQuery->join('companies', 'companies.id', '=', 'loans.company_id')
+                        ->where('companies.branch_id', Auth::user()->branch_id);
+                break;
+
+            default:
+                $loanQuery->where('company_id', Auth::user()->company_id);
+                break;
+        }
+
+        $loans = $loanQuery->selectRaw('
+            SUM(capital) as total_capital,
+            SUM(interest_paid) as total_interest_paid,
+            SUM(late_paid) as total_late_paid,
+            SUM(outstanding) as outstanding,
+            SUM(loan_amount) as total_loan_amount,
+            SUM(balance) as total_balance,
+            SUM(interest) as total_interest
+        ')->first();
+
+
+        /* =========================
+        RETURN VIEW
+        ========================= */
+        return view('loan.index')
+            ->with('companies', $companies)
+            ->with('total_capital', $loans->total_capital ?? 0)
+            ->with('outstanding', $loans->outstanding ?? 0)
+            ->with('total_interest_paid', $loans->total_interest_paid ?? 0)
+            ->with('total_late_paid', $loans->total_late_paid ?? 0)
+            ->with('total_loan_amount', $loans->total_loan_amount ?? 0)
+            ->with('total_balance', $loans->total_balance ?? 0)
+            ->with('total_interest', $loans->total_interest ?? 0);
     }
 
     public function fetch_profit(Request $request)
@@ -134,6 +177,30 @@ class LoanController extends Controller
         return response()->json(['success'=>true,'total_loan_amount'=>number_format($total,2,'.',',')]);
     }
 
+    public function fetch_balance(Request $request)
+    {
+        switch(Auth::user()->role_id){
+            case 1:
+                $query = DB::table('loans');
+                break;
+
+            case 2:
+                $userBranchId = Auth::user()->branch_id;
+                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
+                break;
+
+            default:
+                $companyId = Auth::user()->company_id;
+                $query = DB::table('loans')->where('company_id',$companyId);
+                break;
+        }
+        if(isset($request->loan_code)){
+            $query->where('loan_code', $request->loan_code);
+        }
+        $total = $query->sum('balance');
+        return response()->json(['success'=>true,'total_balance'=>number_format($total,2,'.',',')]);
+    }
+
     public function fetch_capital(Request $request)
     {
         switch(Auth::user()->role_id){
@@ -156,6 +223,30 @@ class LoanController extends Controller
         }
         $total = $query->sum('capital');
         return response()->json(['success'=>true,'total_capital'=>number_format($total,2,'.',',')]);
+    }
+
+    public function fetch_paid(Request $request)
+    {
+        switch(Auth::user()->role_id){
+            case 1:
+                $query = DB::table('loans');
+                break;
+
+            case 2:
+                $userBranchId = Auth::user()->branch_id;
+                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
+                break;
+
+            default:
+                $companyId = Auth::user()->company_id;
+                $query = DB::table('loans')->where('company_id',$companyId);
+                break;
+        }
+        if(isset($request->loan_code)){
+            $query->where('loan_code', $request->loan_code);
+        }
+        $total = $query->sum('paid');
+        return response()->json(['success'=>true,'total_paid'=>number_format($total,2,'.',',')]);
     }
 
     public function load_overdue_loan(Request $request)
@@ -270,6 +361,18 @@ class LoanController extends Controller
                     throw new Exception('Invalid role id.');
             }
 
+            if($request->customer_code){
+                $query->where('customers.customer_code', $request->customer_code);
+            }
+
+            // clone query for totals BEFORE search/filter applied
+            $totalQuery = clone $query;
+            $recordsTotal = $totalQuery->count();
+            $total_loan_amount = $totalQuery->sum('loans.loan_amount');
+            $total_balance = $totalQuery->sum('loans.outstanding');
+            $total_profit = $totalQuery->sum('loans.paid') - $totalQuery->sum('loans.capital');
+
+            // ✅ FIX 1: added loans.status and loans.interest_group to search
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('loans.loan_code', 'like', "%{$search}%")
@@ -279,27 +382,18 @@ class LoanController extends Controller
                     ->orWhere('companies.company_name', 'like', "%{$search}%")
                     ->orWhere('companies.company_code', 'like', "%{$search}%")
                     ->orWhere('branches.branch_code', 'like', "%{$search}%")
-                    ->orWhere('branches.branch_name', 'like', "%{$search}%");
+                    ->orWhere('branches.branch_name', 'like', "%{$search}%")
+                    ->orWhere('loans.status', 'like', "%{$search}%")          // ✅ FIX 1
+                    ->orWhere('loans.interest_group', 'like', "%{$search}%"); // ✅ FIX 1
                 });
             }
 
-            if($request->customer_code){
-                $query->where('customers.customer_code',$request->customer_code);
-            }
-
-            // clone query for totals
-            $totalQuery = clone $query;
-
-            $recordsTotal = $query->count();
-
-            // totals
-            $total_loan_amount = $totalQuery->sum('loans.loan_amount');
-            $total_balance = $totalQuery->sum('loans.outstanding');
-            $total_profit = $totalQuery->sum('loans.paid') - $totalQuery->sum('loans.capital');
-  
             if ($request->hide_fully_paid == 1) {
                 $query->where('loans.status', '!=', 'Fully Paid');
             }
+
+            // ✅ FIX 2: recordsFiltered must count AFTER search is applied, not reuse recordsTotal
+            $recordsFiltered = $query->count();
 
             $loans = $query->orderBy($orderByColumn, $orderByDirection)
                         ->skip($start)
@@ -309,7 +403,7 @@ class LoanController extends Controller
             return response()->json([
                 "draw" => intval($draw),
                 "recordsTotal" => $recordsTotal,
-                "recordsFiltered" => $recordsTotal,
+                "recordsFiltered" => $recordsFiltered, // ✅ FIX 2
                 "data" => $loans,
                 "total_profit" => $total_profit,
                 "total_loan_amount" => $total_loan_amount,
@@ -925,7 +1019,8 @@ class LoanController extends Controller
                 'first_payment' => 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
                 'last_payment'  => 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
                 'loan_term'     => 'nullable|integer|min:1|required_if:interest_group,SKIM B',
-                'loan_term'     => 'nullable|integer|min:1|required_if:interest_group,SKIM B',
+                'processing_fee'=> 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
+                'processing_fee'=> 'nullable|numeric|min:0|required_if:interest_group,SKIM A',
             ]);
 
             bcscale(10);
@@ -933,6 +1028,7 @@ class LoanController extends Controller
             $interest_rate = $v['interest_rate'];
             $installment   = $v['installment'];
             $capital = $v['capital'];
+            $processing_fee = $v['processing_fee'] ?? 0;
 
             if ($loan->interest_group == 'SKIM A') {
                 // Same logic as store() for SKIM A
@@ -948,12 +1044,14 @@ class LoanController extends Controller
                     'outstanding'   => bcadd($loan_amount, $interest, 2),
                     'balance'       => $loan_amount,
                     'payment'       => $loan_amount,
+                    'processing_fee'=> $processing_fee,
                 ]);
 
             } else if ($loan->interest_group == 'SKIM B') {
                 $loan_term     = $v['loan_term'];
                 $first_payment = $v['first_payment'];
                 $last_payment  = $v['last_payment'];
+                $processing_fee= $v['processing_fee'];
 
                 // Same logic as store() for SKIM B
                 $total_loan = $first_payment + $last_payment + ($installment * ($loan_term - 2));
@@ -969,6 +1067,7 @@ class LoanController extends Controller
                     'payment'       => $total_loan,
                     'balance'       => $total_loan,
                     'outstanding'   => $total_loan,
+                    'processing_fee'=> $processing_fee,
                     'next_due_amount' => $first_payment,
                 ]);
             }

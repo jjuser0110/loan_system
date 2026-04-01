@@ -134,6 +134,7 @@
                                                             {{ $loan->interest_group }} |
                                                             {{ $loan->interest_rate.'%'}}
                                                             {{ $loan->interest_group == "SKIM B" ? '| '.$loan->loan_term.' months' : '' }}
+                                                            {{ $loan->interest_group == "SKIM B" ? '| '.$loan->next_due_amount.'$' : '' }}
                                                         </a>
                                                     </div>
                                                 </div>
@@ -427,6 +428,30 @@
                         </div>
 
                         <div class="col-xl-3 mb-3">
+                            <label>{{ __('table.created_at') }}</label>
+                            <input type="text" id="interest-group" name="created_at"
+                                class="form-control {{ $hasPayment ? 'locked-editable' : 'readonly-field' }}"
+                                value="{{ $loan?->created_at ?? '' }}"
+                                readonly>
+                        </div>
+                        
+                        <div class="col-xl-3 mb-3">
+                            <label>{{ __('table.first_payment') }}</label>
+                            <input type="text" id="first-payment" name="first_payment"
+                                class="form-control {{ $hasPayment ? 'readonly-field' : 'editable-field' }}"
+                                value="{{ $loan?->first_payment ?? '' }}"
+                                {{ $hasPayment ? 'readonly' : '' }}>
+                        </div>
+                        
+                        <div class="col-xl-3 mb-3">
+                            <label>{{ __('table.start_date') }}</label>
+                            <input type="text"
+                                class="form-control readonly-field"
+                                value="{{ $loan?->year_month ?? '' }}"
+                                readonly>
+                        </div>
+
+                        <div class="col-xl-3 mb-3">
                             <label>{{ __('table.loan_amount') }}</label>
                             <input type="text" id="loan-amount" name="loan_amount"
                                 class="form-control {{ $hasPayment ? 'locked-editable' : 'editable-field' }}"
@@ -440,30 +465,6 @@
                                 class="form-control {{ $hasPayment ? 'locked-editable' : 'editable-field' }}"
                                 value="{{ $loan?->loan_term ?? '' }}"
                                 {{ $hasPayment ? 'readonly' : '' }}>
-                        </div>
-
-                        <div class="col-xl-3 mb-3">
-                            <label>{{ __('table.start_date') }}</label>
-                            <input type="text"
-                                class="form-control readonly-field"
-                                value="{{ $loan?->year_month ?? '' }}"
-                                readonly>
-                        </div>
-
-                        <div class="col-xl-3 mb-3">
-                            <label>{{ __('table.first_payment') }}</label>
-                            <input type="text" id="first-payment" name="first_payment"
-                                class="form-control {{ $hasPayment ? 'locked-editable' : 'editable-field' }}"
-                                value="{{ $loan?->first_payment ?? '' }}"
-                                {{ $hasPayment ? 'readonly' : '' }}>
-                        </div>
-
-                        <div class="col-xl-3 mb-3">
-                            <label>{{ __('table.last_payment') }}</label>
-                            <input type="text" id="last-payment" name="last_payment"
-                                class="form-control readonly-field"
-                                value="{{ $loan?->last_payment ?? '' }}"
-                                readonly>
                         </div>
 
                         <div class="col-xl-3 mb-3">
@@ -494,25 +495,25 @@
                         <div class="col-xl-3 mb-3">
                             <label>{{ __('table.capital') }}</label>
                             <input type="text" id="capital" name="capital"
-                                class="form-control {{ $hasPayment ? 'locked-editable' : 'editable-field' }}"
+                                class="form-control {{ $hasPayment ? 'locked-editable' : 'readonly-field' }}"
                                 value="{{ $loan?->capital ?? '' }}"
-                                {{ $hasPayment ? 'readonly' : '' }}>
+                                readonly>
                         </div>
 
                         <div class="col-xl-3 mb-3">
                             <label>{{ __('table.processing_fee') }}</label>
                             <input type="text" name="processing_fee"
-                                class="form-control readonly-field"
+                                class="form-control {{ $hasPayment ? 'locked-editable' : 'editable-field' }}"
                                 value="{{ $loan?->processing_fee ?? '' }}"
-                                readonly>
+                                {{ $hasPayment ? 'readonly' : '' }}>
                         </div>
 
                         <div class="col-xl-3 mb-3">
-                            <label>{{ __('table.created_at') }}</label>
-                            <input type="text"
-                                class="form-control readonly-field"
-                                value="{{ $loan?->created_at ?? '' }}"
-                                readonly>
+                            <label>{{ __('table.last_payment') }}</label>
+                            <input type="text" id="last-payment" name="last_payment"
+                                class="form-control {{ $hasPayment ? 'locked-editable' : 'editable-field' }}"
+                                value="{{ $loan?->last_payment ?? '' }}"
+                                {{ $hasPayment ? 'readonly' : '' }}>
                         </div>
 
                         @endif
@@ -528,11 +529,11 @@
                         </div>
 
                         <div class="col-xl-3 mb-3">
-                            <label>{{ __('table.loan_amount') }}</label>
-                            <input type="text" id="loan-amount" name="loan_amount"
-                                class="form-control {{ $hasPayment ? 'locked-editable' : 'editable-field' }}"
-                                value="{{ $loan?->loan_amount ?? '' }}"
-                                {{ $hasPayment ? 'readonly' : '' }}>
+                            <label>{{ __('table.created_at') }}</label>
+                            <input type="text"
+                                class="form-control readonly-field"
+                                value="{{ $loan?->created_at ?? '' }}"
+                                readonly>
                         </div>
                         
                         <div class="col-xl-3 mb-3">
@@ -552,27 +553,27 @@
                         </div>
 
                         <div class="col-xl-3 mb-3">
+                            <label>{{ __('table.loan_amount') }}</label>
+                            <input type="text" id="loan-amount" name="loan_amount"
+                                class="form-control {{ $hasPayment ? 'locked-editable' : 'editable-field' }}"
+                                value="{{ $loan?->loan_amount ?? '' }}"
+                                {{ $hasPayment ? 'readonly' : '' }}>
+                        </div>
+
+                        <div class="col-xl-3 mb-3">
                             <label>{{ __('table.capital') }}</label>
                             <input type="text" id="capital" name="capital"
-                                class="form-control {{ $hasPayment ? 'locked-editable' : 'editable-field' }}"
+                                class="form-control {{ $hasPayment ? 'locked-editable' : 'readonly-field' }}"
                                 value="{{ $loan?->capital ?? '' }}"
-                                {{ $hasPayment ? 'readonly' : '' }}>
+                                readonly>
                         </div>
 
                         <div class="col-xl-3 mb-3">
                             <label>{{ __('table.processing_fee') }}</label>
                             <input type="text" name="processing_fee"
-                                class="form-control readonly-field"
+                                class="form-control {{ $hasPayment ? 'locked-editable' : 'editable-field' }}"
                                 value="{{ $loan?->processing_fee ?? '' }}"
-                                readonly>
-                        </div>
-
-                        <div class="col-xl-3 mb-3">
-                            <label>{{ __('table.created_at') }}</label>
-                            <input type="text"
-                                class="form-control readonly-field"
-                                value="{{ $loan?->created_at ?? '' }}"
-                                readonly>
+                                {{ $hasPayment ? 'readonly' : '' }}>
                         </div>
 
                         <div class="col-xl-3 mb-3">
@@ -663,8 +664,8 @@
                                         <th>{{ __('table.payment') }}</th>
                                         <th>{{ __('table.paid') }}</th>
                                         <th>{{ __('table.discount') }}</th>
-                                        <th>{{ __('table.interest') }}</th>
-                                        <th>{{ __('table.interest_paid') }}</th>
+                                        <th>{{ __('table.int') }}</th>
+                                        <th>{{ __('table.int_paid') }}</th>
                                         <th>{{ __('table.late') }}</th>
                                         <th>{{ __('table.late_paid') }}</th>
                                         @if(Auth::user()->role_id <= 3)
@@ -970,29 +971,54 @@
                     }
                 },
                 {
-                    "data": "discount_amount"
+                    "data": "discount_amount",
+                    "render": function(data) {
+                        let value = parseFloat(data);
+
+                        if (!isNaN(value)) {
+                            return `<strong style="color:green">${value.toFixed(2)}</strong>`;
+                        }
+
+                        return `<strong style="color:green">0.00</strong>`;
+                    }
                 },
                 {
                     "data": "interest_amount"
                 },
                 {
-                    "data": "interest_paid_amount"
-                },
-                {
-                    "data": "late_amount"
-                },
-                {
-                    data: "late_paid_amount",
-                    render: function(data) {
+                    "data": "interest_paid_amount",
+                    "render": function(data) {
                         let value = parseFloat(data);
 
-                        // check if it is a valid number and > 0
-                        if (!isNaN(value) && value !== 0) {
+                        if (!isNaN(value)) {
+                            return `<strong>${value.toFixed(2)}</strong>`;
+                        }
+
+                        return '-';
+                    }
+                },
+                {
+                    "data": "late_amount",
+                    "render": function(data) {
+                        let value = parseFloat(data);
+
+                        if (!isNaN(value)) {
                             return `<span style="color:orange">${value.toFixed(2)}</span>`;
                         }
 
-                        // no number → normal display
-                        return data ? parseFloat(data).toFixed(2) : '-';
+                        return '-';
+                    }
+                },
+                {
+                    "data": "late_paid_amount",
+                    "render": function(data) {
+                        let value = parseFloat(data);
+
+                        if (!isNaN(value)) {
+                            return `<strong>${value.toFixed(2)}</strong>`;
+                        }
+
+                        return '-';
                     }
                 },
                 @if(Auth::user()->role_id <= 3)
@@ -1509,4 +1535,25 @@
         });
     }
 </script>
+
+<script>
+function calculateCapital() {
+    let loanAmount = parseFloat(document.getElementById('loan-amount').value) || 0;
+    let processingFee = parseFloat(document.querySelector('input[name="processing_fee"]').value) || 0;
+
+    let capital = loanAmount - processingFee;
+
+    document.getElementById('capital').value = capital.toFixed(2);
+}
+
+// trigger on input change
+document.addEventListener('DOMContentLoaded', function () {
+    const loanAmount = document.getElementById('loan-amount');
+    const processingFee = document.querySelector('input[name="processing_fee"]');
+
+    loanAmount.addEventListener('input', calculateCapital);
+    processingFee.addEventListener('input', calculateCapital);
+});
+</script>
+
 @endsection

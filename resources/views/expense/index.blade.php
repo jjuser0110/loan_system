@@ -103,11 +103,11 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">{{ __('table.amount_in') }} (-)</label>
+                            <label class="col-form-label">{{ __('table.amount_in') }} (+)</label>
                             <input type="number" step="0.01" class="form-control" name="amount_in" value="0" min="0" id="create-amount-in">
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">{{ __('table.amount_out') }} (+)</label>
+                            <label class="col-form-label">{{ __('table.amount_out') }} (-)</label>
                             <input type="number" step="0.01" class="form-control" name="amount_out" value="0" min="0" id="create-amount-out">
                         </div>
                     </div>
@@ -482,20 +482,23 @@
 
     function updateExpense(rowIndex) {
         const data = table_expense.row(rowIndex).data();
+
         document.getElementById('update-expense-id').value          = data.id;
         document.getElementById('update-expense-title').value       = data.expense_title;
         document.getElementById('update-expense-description').value = data.expense_description;
         document.getElementById('update-expense-date').value        = data.date;
         document.getElementById('update-expense-company').value     = data.company_code;
 
-        // Populate amount_in and amount_out from saved amount
         let amount = parseFloat(data.amount || 0);
+
         if (amount >= 0) {
-            document.getElementById('update-amount-out').value  = amount;
-            document.getElementById('update-amount-in').value = 0;
+            // IN (positive)
+            document.getElementById('update-amount-in').value = amount;
+            document.getElementById('update-amount-out').value = 0;
         } else {
-            document.getElementById('update-amount-out').value  = 0;
-            document.getElementById('update-amount-in').value = Math.abs(amount);
+            // OUT (negative)
+            document.getElementById('update-amount-in').value = 0;
+            document.getElementById('update-amount-out').value = Math.abs(amount);
         }
 
         setupUpdatePaymentMethod(data.company_code, data.payment_method_id);

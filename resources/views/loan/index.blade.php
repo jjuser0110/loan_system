@@ -19,15 +19,16 @@
 <div class="row mb-4" style="padding-top:40px;">
     
     @if(Auth::user()->role_id != 4)
+
     <div class="col-xl-4">
-        <section class="card card-featured-left card-featured-primary mb-3">
-            <div class="card-body">
+        <section class="card card-featured-left card-featured-secondary mb-3" style="background-color:#d6eaff;">
+            <div class="card-body" style="background: transparent;">
                 <div class="widget-summary">
                     <div class="widget-summary-col" style="vertical-align: middle">
                         <div class="summary" style="min-height:1px">
-                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_profits') }}</h4>
+                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_stock_a') }}</h4>
                             <div class="info">
-                                <strong class="amount">RM <span style="font-size:1.4rem;vertical-align:unset" id="total-profit">{{ __('table.loading') }}...</span></strong>
+                                <strong class="amount">${{ $companies->total_stocka ?? 0.00 }}</strong>
                             </div>
                         </div>
                     </div>
@@ -35,15 +36,16 @@
             </div>
         </section>
     </div>
+
     <div class="col-xl-4">
-        <section class="card card-featured-left card-featured-secondary mb-3">
-            <div class="card-body">
+        <section class="card card-featured-left card-featured-secondary mb-3" style="background-color:#d6eaff;">
+            <div class="card-body" style="background: transparent;">
                 <div class="widget-summary">
                     <div class="widget-summary-col" style="vertical-align: middle">
                         <div class="summary" style="min-height:1px">
-                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_capital') }}</h4>
+                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_stock_b') }}</h4>
                             <div class="info">
-                                <strong class="amount">RM {{ number_format($total_capital,2,'.',',') }}</strong>
+                                <strong class="amount">${{ $companies->total_stockb ?? 0.00 }}</strong>
                             </div>
                         </div>
                     </div>
@@ -51,15 +53,16 @@
             </div>
         </section>
     </div>
+
     <div class="col-xl-4">
-        <section class="card card-featured-left card-featured-secondary mb-3">
-            <div class="card-body">
+        <section class="card card-featured-left card-featured-secondary mb-3" style="background-color:#d6eaff;">
+            <div class="card-body" style="background: transparent;">
                 <div class="widget-summary">
                     <div class="widget-summary-col" style="vertical-align: middle">
                         <div class="summary" style="min-height:1px">
-                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_outstanding') }}</h4>
+                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_stock_bb') }}</h4>
                             <div class="info">
-                                <strong class="amount">RM {{ number_format($outstanding,2,'.',',') }}</strong>
+                                <strong class="amount">${{ $companies->total_stockbb ?? 0.00 }}</strong>
                             </div>
                         </div>
                     </div>
@@ -67,6 +70,7 @@
             </div>
         </section>
     </div>
+
     <div class="col-xl-4">
         <section class="card card-featured-left card-featured-secondary mb-3">
             <div class="card-body">
@@ -83,15 +87,16 @@
             </div>
         </section>
     </div>
+    
     <div class="col-xl-4">
         <section class="card card-featured-left card-featured-secondary mb-3">
             <div class="card-body">
                 <div class="widget-summary">
                     <div class="widget-summary-col" style="vertical-align: middle">
                         <div class="summary" style="min-height:1px">
-                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_balance') }}</h4>
+                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_capital') }}</h4>
                             <div class="info">
-                                <strong class="amount">RM {{ number_format($total_balance,2,'.',',') }}</strong>
+                                <strong class="amount">RM {{ number_format($total_capital,2,'.',',') }}</strong>
                             </div>
                         </div>
                     </div>
@@ -99,6 +104,24 @@
             </div>
         </section>
     </div>
+
+    <div class="col-xl-4">
+        <section class="card card-featured-left card-featured-secondary mb-3">
+            <div class="card-body">
+                <div class="widget-summary">
+                    <div class="widget-summary-col" style="vertical-align: middle">
+                        <div class="summary" style="min-height:1px">
+                            <h4 class="title" style="margin-bottom: 5px">{{ __('table.total_outstanding') }}</h4>
+                            <div class="info">
+                                <strong class="amount">RM {{ number_format($outstanding,2,'.',',') }}</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+    
     @endif
 </div>
 
@@ -138,6 +161,7 @@
                 <table class="table cus-table table-bordered mb-0" id="table-loan">
                     <thead>
                         <tr>
+                            <th>{{ __('table.customer') }}</th>
                             <th>{{ __('table.loan_code') }}</th>
                             <th>{{ __('table.company') }}</th>
                             <th>{{ __('table.interest_group') }}</th>
@@ -184,16 +208,31 @@
             },
             "order": [[0, "desc"]],
             "columns": [
-                { "data": "loan_code" },
+                {
+                    "data": "customer_code",
+                    "name": "customer_code",
+                    "render": function(data, type, row, meta) {
+                        return '<a href="{{ url('customer') }}/' + row.id + '/edit#loan">' + row.customer_code + "<br>" + row.customer_name + '</a>';
+                    }
+                },
+                {
+                    "data": "loan_code",
+                    "name": "loan_code"
+                },
                 {
                     "data": "company_code",
+                    "name": "company_code",
                     "render": function(data, type, row, meta) {
                         return `<a style="text-decoration:none" onclick="e.preventDefault()">${row.company_code}<br>${row.company_name}</a>`;
                     }
                 },
-                { "data": "interest_group" },
+                {
+                    "data": "interest_group",
+                    "name": "interest_group"
+                },
                 {
                     "data": "created_at",
+                    "name": "created_at",
                     "render": function(data, type, row, meta) {
                         if (!data) return '-';
                         const parts = data.substring(0, 10).split('-');
@@ -202,6 +241,7 @@
                 },
                 {
                     "data": "next_due_date",
+                    "name": "next_due_date",
                     "render": function(data, type, row, meta) {
                         if (!data) return '-';
                         const parts = data.substring(0, 10).split('-');
@@ -210,6 +250,7 @@
                 },
                 {
                     "data": "updated_at",
+                    "name": "updated_at",
                     "defaultContent": "-",
                     "render": function(data, type, row, meta) {
                         if (!data) return '-';
@@ -217,28 +258,38 @@
                         return `${parts[2]}-${parts[1]}-${parts[0]}`;
                     }
                 },
-                { "data": "loan_amount" },
-                { "data": "capital" },
+                {
+                    "data": "loan_amount",
+                    "name": "loan_amount"
+                },
+                {
+                    "data": "capital",
+                    "name": "capital"
+                },
                 {
                     "data": "paid",
+                    "name": "paid",
                     "render": function(data, type, row, meta) {
                         return `<strong>${data}</strong>`;
                     }
                 },
                 {
                     "data": "outstanding",
+                    "name": "outstanding",
                     "render": function(data, type, row, meta) {
                         return `<strong>${data}</strong>`;
                     }
                 },
                 {
                     "data": "loan_term",
+                    "name": "loan_term",
                     "render": function(data, type, row, meta) {
                         return row.interest_group == 'SKIM B' ? row.loan_term : '-';
                     }
                 },
                 {
                     "data": "installment",
+                    "name": "installment",
                     "render": function(data, type, row, meta) {
                         let installment = `${row.installment}`;
                         // if(row.interest_group == "SKIM B"){
@@ -249,18 +300,22 @@
                 },
                 {
                     "data": "interest_rate",
+                    "name": "interest_rate",
                     "render": function(data, type, row, meta) {
                         return parseFloat(data).toFixed(2);
                     }
                 },
                 {
-                    "data": "interest_paid"
+                    "data": "interest_paid",
+                    "name": "interest_paid"
                 },
                 {
-                    "data": "late_paid"
+                    "data": "late_paid",
+                    "name": "late_paid"
                 },
                 {
                     "data": "status",
+                    "name": "status",
                     "render": function(data, type, row, meta) {
                         const green = ['Active'];
                         const red = ['Fully Paid'];
@@ -271,6 +326,9 @@
                 },
                 {
                     "data": null,
+                    "name": "actions",
+                    "searchable": false,
+                    "orderable": false,
                     "render": function(data, type, row, meta) {
                         let url = `
                             <div class="cus-action-wrapper">
@@ -311,7 +369,8 @@
                 initResizable();
 
                 $('#table-loan tbody tr').each(function() {
-                    const statusCell = $(this).find('td:nth-child(16)').text().trim();
+                    // ✅ FIX: was nth-child(16), status is the 17th column
+                    const statusCell = $(this).find('td:nth-child(17)').text().trim();
                     $(this).removeClass('row-fully-paid row-overdue row-active');
 
                     if (statusCell === 'Fully Paid') {

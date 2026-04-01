@@ -60,7 +60,10 @@ class PaymentController extends Controller
                     'loans.loan_code as loan_code',
                     'payment_methods.account_no as bank_account_no',
                     'payment_methods.owner_name as bank_owner_name',
-                    'banks.bank_name as bank_name'
+                    'banks.bank_name as bank_name',
+                    'loans.balance as balance',
+                    'loans.loan_amount as loan_amount',
+                    'loans.capital as capital',
                 ])
                 ->join('customers', 'customers.id', '=', 'payments.customer_id')
                 ->join('users', 'users.id', '=', 'payments.created_by')
@@ -103,12 +106,21 @@ class PaymentController extends Controller
                 $query->where('loans.loan_code', $request->loan_code);
             }
 
-            $recordsTotal = $query->count();
-            $data = $query->orderBy($orderByColumn, $orderByDirection)->skip($start)->take($length)->get();
+            $totalQuery = clone $query;
+            $recordsTotal = $totalQuery->count();
+
+            $recordsFiltered = $recordsTotal;
+
+            $data = $query
+                ->orderBy($orderByColumn, $orderByDirection)
+                ->skip($start)
+                ->take($length)
+                ->get();
+
             return response()->json([
                 "draw" => intval($draw),
                 "recordsTotal" => $recordsTotal,
-                "recordsFiltered" => $recordsTotal,
+                "recordsFiltered" => $recordsFiltered,
                 "data" => $data,
             ]);
         }

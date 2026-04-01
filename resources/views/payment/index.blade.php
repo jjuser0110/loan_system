@@ -15,13 +15,17 @@
                     <thead>
                         <tr>
                             <th>{{ __('table.payment_code') }}</th>
+                            <th>{{ __('table.payment_date') }}</th>
+                            <th>{{ __('table.sched') }}</th>
                             <th>{{ __('table.paid') }}</th>
-                            <th>{{ __('table.pay_date') }}</th>
                             <th>{{ __('table.discount') }}</th>
-                            <th>{{ __('table.interest_paid') }}</th>
+                            <th>{{ __('table.int_paid') }}</th>
                             <th>{{ __('table.late_paid') }}</th>
-                            <th>{{ __('table.bank') }}</th>
-                            <th>{{ __('table.collection_type') }}</th>
+                            <th>{{ __('table.top_up_cap') }}</th>
+                            <th>{{ __('table.top_up_amt') }}</th>
+                            <th>{{ __('table.balance') }}</th>
+                            <th>{{ __('table.remark') }}</th>
+                            <th>{{ __('table.type') }}</th>
                             <th>{{ __('table.loan_code') }}</th>
                             @if(Auth::user()->role_id <= 3)
                             <th>{{ __('table.actions') }}</th>
@@ -121,9 +125,6 @@
                     "data": "payment_code"
                 },
                 {
-                    "data": "payment_amount"
-                },
-                {
                     "data": "created_at",
                     "render": function(data, type, row, meta) {
                         if (!data) return '-';
@@ -132,19 +133,60 @@
                     }
                 },
                 {
-                    "data": "discount_amount"
+                    "data": "payment_code",
+                    "render": function(data) {
+                        if (!data) return '-';
+
+                        // get last part after "P"
+                        let match = data.match(/P(\d+)$/);
+
+                        if (!match) return '-';
+
+                        return parseInt(match[1], 10); // remove leading zeros
+                    }
                 },
                 {
-                    "data": "interest_paid_amount"
+                    "data": "payment_amount"
                 },
                 {
-                    "data": "late_paid_amount"
+                    "data": "discount_amount",
+                    "render": function(data) {
+                        let value = parseFloat(data);
+                        if (isNaN(value) || value == 0) return '-';
+
+                        return `<strong style="color:green">${value}</strong>`;
+                    }
+                },
+                {
+                    "data": "interest_paid_amount",
+                    "render": function(data) {
+                        let value = parseFloat(data);
+                        if (isNaN(value) || value == 0) return '-';
+
+                        return `<strong>${value}</strong>`;
+                    }
+                },
+                {
+                    "data": "late_paid_amount",
+                    "render": function(data) {
+                        let value = parseFloat(data);
+                        if (isNaN(value) || value == 0) return '-';
+
+                        return `<strong>${value}</strong>`;
+                    }
+                },
+                {
+                    "data": "capital"
+                },
+                {
+                    "data": "loan_amount"
+                },
+                {
+                    "data": "balance"
                 },
                 {
                     "data": null,
-                    "render": function(data, type, row, meta) {
-                        return `${row.bank_name}<br>${row.bank_account_no}<br>${row.bank_owner_name}`;
-                    }
+                    "defaultContent": "-"
                 },
                 {
                     "data": "collection_type"

@@ -19,6 +19,8 @@ Route::prefix('/loan')->as('loan.')->middleware(['auth'])->group(function() {
     Route::get('/load_incoming_loan', 'LoanController@load_incoming_loan')->name('load_incoming_loan');
     Route::get('/load_overdue_loan', 'LoanController@load_overdue_loan')->name('load_overdue_loan');
     Route::get('/fetch_capital/{loan_code?}', 'LoanController@fetch_capital')->name('fetch_capital');
+    Route::get('/fetch_paid/{loan_code?}', 'LoanController@fetch_paid')->name('fetch_paid');
+    Route::get('/fetch_balance/{loan_code?}', 'LoanController@fetch_balance')->name('fetch_balance');
     Route::post('/delete', 'LoanController@delete')->name('delete');
     Route::post('update_status/{loan_code}', 'LoanController@updateStatus')->name('update_status');
     Route::post('/update/{loan_code}', 'LoanController@update')->name('update');
