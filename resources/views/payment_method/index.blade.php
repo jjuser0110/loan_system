@@ -16,7 +16,6 @@
                     <thead>
                         <tr>
                             <th>{{ __('table.bank') }}</th>
-                            <th>{{ __('table.account_no') }}</th>
                             <th>{{ __('table.name') }}</th>
                             <th>{{ __('table.branch') }}</th>
                             <th>{{ __('table.company') }}</th>
@@ -200,9 +199,6 @@
                 "columns": [
                 {
                     "data": "bank_name"
-                },
-                {
-                    "data": "account_no"
                 },
                 {
                     "data": "owner_name"
