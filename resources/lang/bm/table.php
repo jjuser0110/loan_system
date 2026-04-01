@@ -298,6 +298,14 @@ return [
 'hide_fully_paid' => 'Sembunyikan "Fully Paid"',
 'payment_due' => 'Tarikh Bayaran',
 'int' => 'Faedah',
+'total_paid' => 'Jumlah Bayaran',
+'total_cash&bank' => 'Tunai & Bank',
+'int_paid' => 'Bayaran Faedah',
+'sched' => 'Jadual',
+'top_up_amt' => 'Tambahan Amaun',
+'top_up_cap' => 'Tambahan Modal',
+'type' => 'Jenis',
+'payment_date' => 'Tarikh Bayaran',
 
 ];
 

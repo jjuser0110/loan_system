@@ -298,6 +298,14 @@ return [
 'hide_fully_paid' => '隐藏 "Fully Paid"',
 'payment_due' => '还款日期',
 'int' => '利息',
+'total_paid' => '总支付',
+'total_cash&bank' => '现金与银行',
+'int_paid' => '利息支付',
+'sched' => '期数',
+'top_up_amt' => '追加金额',
+'top_up_cap' => '追加本金',
+'type' => '类型',
+'payment_date' => '付款日期',
 
 ];
 
