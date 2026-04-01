@@ -176,11 +176,11 @@
                     </div>
                     <div class="row mb-3">
                         <div class="col-md-6">
-                            <label class="col-form-label">{{ __('table.amount_in') }} (-)</label>
+                            <label class="col-form-label">{{ __('table.amount_in') }} (+)</label>
                             <input type="number" step="0.01" class="form-control" name="amount_in" value="0" min="0" id="update-amount-in">
                         </div>
                         <div class="col-md-6">
-                            <label class="col-form-label">{{ __('table.amount_out') }} (+)</label>
+                            <label class="col-form-label">{{ __('table.amount_out') }} (-)</label>
                             <input type="number" step="0.01" class="form-control" name="amount_out" value="0" min="0" id="update-amount-out">
                         </div>
                     </div>
@@ -491,12 +491,18 @@
 
         let amount = parseFloat(data.amount || 0);
 
-        if (amount >= 0) {
-            // IN (positive)
-            document.getElementById('update-amount-in').value = amount;
+        // detect IN or OUT automatically
+        let type = (amount >= 0) ? 'IN' : 'OUT';
+
+        // set switch / radio (if you have one)
+        if (document.getElementById('expense-type-switch')) {
+            document.getElementById('expense-type-switch').checked = (type === 'IN');
+        }
+
+        if (type === 'IN') {
+            document.getElementById('update-amount-in').value = Math.abs(amount);
             document.getElementById('update-amount-out').value = 0;
         } else {
-            // OUT (negative)
             document.getElementById('update-amount-in').value = 0;
             document.getElementById('update-amount-out').value = Math.abs(amount);
         }

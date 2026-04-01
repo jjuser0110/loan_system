@@ -21,7 +21,8 @@ class Expense extends Model
         'payment_method_id',
         'company_id',
         'date',
-        'updated_by'
+        'updated_by',
+        'expense_type',
     ];
 
     public function company()
