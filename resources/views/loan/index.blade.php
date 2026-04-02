@@ -212,7 +212,7 @@
                     "data": "customer_code",
                     "name": "customer_code",
                     "render": function(data, type, row, meta) {
-                        return '<a href="{{ url('customer') }}/' + row.id + '/edit#loan">' + row.customer_code + "<br>" + row.customer_name + '</a>';
+                        return '<a href="{{ url('customer') }}/' + row.customer_id + '/edit#loan">' + row.customer_code + "<br>" + row.customer_name + '</a>';
                     }
                 },
                 {

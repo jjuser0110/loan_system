@@ -306,6 +306,10 @@ return [
 'top_up_cap' => 'Tambahan Modal',
 'type' => 'Jenis',
 'payment_date' => 'Tarikh Bayaran',
+'expense' => 'Perbelanjaan',
+'non_expense' => 'Bukan Perbelanjaan',
+'non_expenses_type' => 'Jenis Bukan Perbelanjaan',
+'expense_type' => 'Jenis Perbelanjaan',
 
 ];
 

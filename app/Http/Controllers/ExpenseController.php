@@ -11,6 +11,7 @@ use App\Models\Customer;
 use App\Models\PaymentMethod;
 use App\Models\Expense;
 use App\Models\ExpensesType;
+use App\Models\NonExpensesType;
 use App\Models\PaymentMethodLog;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
@@ -35,11 +36,13 @@ class ExpenseController extends Controller
                 default: throw new Exception('Invalid role id.');
             }
             $companies = $query->get();
-            $expenseTypes = ExpensesType::orderBy('title')->get(); // <-- add
+            $expenseTypes = ExpensesType::orderBy('title')->get();
+            $nonexpenseTypes = NonExpensesType::orderBy('title')->get();
 
             return view('expense.index')
                 ->with('companies', $companies)
-                ->with('expenseTypes', $expenseTypes); // <-- add
+                ->with('expenseTypes', $expenseTypes)
+                ->with('nonexpenseTypes', $nonexpenseTypes);
         } catch (Exception $e) {
             dd($e->getMessage());
         }
@@ -189,7 +192,8 @@ class ExpenseController extends Controller
                     'expense_code' => $expense_code,
                     'amount'       => $amount,
                     'updated_by'   => Auth()->id(),
-                    'company_id'   => $company->id
+                    'company_id'   => $company->id,
+                    'expense_type' => $request->expense_type ?? 'expense',
                 ]
             ));
 
@@ -291,7 +295,8 @@ class ExpenseController extends Controller
                 'date'                => $request->date,
                 'updated_by'          => Auth::user()->id,
                 'company_id'          => $company->id,
-                'payment_method_id'   => $pm->id
+                'payment_method_id'   => $pm->id,
+                'expense_type'        => $request->expense_type ?? 'expense',
             ]);
 
             DB::commit();
@@ -371,6 +376,7 @@ class ExpenseController extends Controller
     {
         $total_expenses = DB::table('expenses')
             ->whereNull('deleted_at')
+            ->where('expense_type', 'expense')
             ->sum('amount');
 
         return response()->json([

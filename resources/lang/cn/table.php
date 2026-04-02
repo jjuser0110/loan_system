@@ -306,6 +306,10 @@ return [
 'top_up_cap' => '追加本金',
 'type' => '类型',
 'payment_date' => '付款日期',
+'expense' => '费用',
+'non_expense' => '非费用',
+'non_expenses_type' => '非费用类型',
+'expense_type' => '费用类型',
 
 ];
 

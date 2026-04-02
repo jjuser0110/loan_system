@@ -53,6 +53,7 @@
                             <th>{{ __('table.date') }}</th>
                             <th>{{ __('table.company') }}</th>
                             <th>{{ __('table.bank') }}</th>
+                            <th>{{ __('table.expense_type') }}</th>
                             <th>{{ __('table.created_at') }}</th>
                             <th>{{ __('table.actions') }}</th>
                         </tr>
@@ -75,12 +76,24 @@
             <div class="modal-body">
                 <form id="form-create-expense">
                     @csrf
+                    {{-- hidden fields that get submitted --}}
+                    <input type="hidden" name="expense_title" id="create-final-expense-title">
+                    <input type="hidden" name="expense_type"  id="create-expense-type-value">
                     <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="col-form-label">{{ __('table.title') }}</label>
-                            <select class="form-control" id="create-expense-title" name="expense_title" required>
+                        <div class="col-md-6">
+                            <label class="col-form-label fw-bold text-primary">{{ __('table.expense') }}</label>
+                            <select class="form-control" id="create-expense-title" onchange="onCreateTitleChange('expense')">
                                 <option value="">-- {{ __('table.option') }} --</option>
                                 @foreach($expenseTypes as $type)
+                                    <option value="{{ $type->title }}">{{ $type->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="col-form-label fw-bold text-secondary">{{ __('table.non_expense') }}</label>
+                            <select class="form-control" id="create-nonexpense-title" onchange="onCreateTitleChange('nonexpense')" style="background-color: #fff79a ;">
+                                <option value="">-- {{ __('table.option') }} --</option>
+                                @foreach($nonexpenseTypes as $type)
                                     <option value="{{ $type->title }}">{{ $type->title }}</option>
                                 @endforeach
                             </select>
@@ -147,13 +160,25 @@
             <div class="modal-body">
                 <form id="form-update-expense">
                     @csrf
-                    <input type="hidden" name="id" id="update-expense-id">
+                    <input type="hidden" name="id"            id="update-expense-id">
+                    {{-- hidden fields that get submitted --}}
+                    <input type="hidden" name="expense_title" id="update-final-expense-title">
+                    <input type="hidden" name="expense_type"  id="update-expense-type-value">
                     <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="col-form-label">{{ __('table.title') }}</label>
-                            <select class="form-control" id="update-expense-title" name="expense_title" required>
+                        <div class="col-md-6">
+                            <label class="col-form-label fw-bold text-primary">{{ __('table.expense') }}</label>
+                            <select class="form-control" id="update-expense-title" onchange="onUpdateTitleChange('expense')">
                                 <option value="">-- {{ __('table.option') }} --</option>
                                 @foreach($expenseTypes as $type)
+                                    <option value="{{ $type->title }}">{{ $type->title }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="col-form-label fw-bold text-secondary">{{ __('table.non_expense') }}</label>
+                            <select class="form-control" id="update-nonexpense-title" onchange="onUpdateTitleChange('nonexpense')" style="background-color: #fff79a ;">
+                                <option value="">-- {{ __('table.option') }} --</option>
+                                @foreach($nonexpenseTypes as $type)
                                     <option value="{{ $type->title }}">{{ $type->title }}</option>
                                 @endforeach
                             </select>
@@ -261,8 +286,12 @@
                 {
                     "data": "bank",
                     "render": function(data, type, row) {
-                        return `${row.bank_name}<br>${row.bank_account_no}<br>${row.bank_owner_name}`;
+                        return `${row.bank_name}<br>${row.bank_owner_name}`;
                     }
+                },
+                
+                {
+                    "data": "expense_type",
                 },
                 {
                     "data": "created_at",
@@ -351,7 +380,6 @@
                 const { jsPDF } = window.jspdf;
                 const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-                // Title
                 doc.setFontSize(14);
                 doc.setFont('helvetica', 'bold');
                 doc.text('Expenses Report', 148, 15, { align: 'center' });
@@ -387,76 +415,44 @@
                         dateFormatted,
                         (row.company_name || '-') + ' / ' + (row.company_code || '-'),
                         (row.bank_name || '-') + '\n' + (row.bank_account_no || '-') + '\n' + (row.bank_owner_name || '-'),
-                        amount.toFixed(2),   // <-- moved to last
+                        amount.toFixed(2),
                     ];
                 });
 
                 doc.autoTable({
                     startY: 30,
-                    head: [[
-                        'No', 'Code', 'Title', 'Description',
-                        'Date', 'Company', 'Bank', 'Amount'
-                    ]],
+                    head: [[ 'No', 'Code', 'Title', 'Description', 'Date', 'Company', 'Bank', 'Amount' ]],
                     body: tableRows,
-                    foot: [[
-                        '', '', '', '',
-                        '', '', 'Total',
-                        totalAmount.toFixed(2)
-                    ]],
+                    foot: [[ '', '', '', '', '', '', 'Total', totalAmount.toFixed(2) ]],
                     theme: 'grid',
                     didParseCell: function(data) {
                         if (data.section === 'body' && data.column.index === 7) {
                             let value = parseFloat(data.cell.raw || 0);
-
-                            if (value < 0) {
-                                data.cell.styles.textColor = [255, 0, 0]; // red
-                            } else if (value > 0) {
-                                data.cell.styles.textColor = [0, 128, 0]; // green
-                            }
+                            if (value < 0) data.cell.styles.textColor = [255, 0, 0];
+                            else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
                         }
-
                         if (data.section === 'foot' && data.column.index === 7) {
-                            let value = totalAmount;
-
-                            if (value < 0) {
-                                data.cell.styles.textColor = [255, 0, 0];
-                            } else if (value > 0) {
-                                data.cell.styles.textColor = [0, 128, 0];
-                            }
+                            if (totalAmount < 0) data.cell.styles.textColor = [255, 0, 0];
+                            else if (totalAmount > 0) data.cell.styles.textColor = [0, 128, 0];
                         }
                     },
-                    headStyles: {
-                        fillColor: [41, 128, 185],
-                        textColor: 255,
-                        fontStyle: 'bold',
-                        fontSize: 7.5,
-                        halign: 'center'
-                    },
-                    footStyles: {
-                        fillColor: [236, 240, 241],
-                        textColor: [0, 0, 0],
-                        fontStyle: 'bold',
-                        fontSize: 8
-                    },
+                    headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold', fontSize: 7.5, halign: 'center' },
+                    footStyles: { fillColor: [236, 240, 241], textColor: [0, 0, 0], fontStyle: 'bold', fontSize: 8 },
                     bodyStyles: { fontSize: 7.5 },
                     columnStyles: {
-                        0: { halign: 'center', cellWidth: 8  },   // No
-                        1: { cellWidth: 22 },                      // Code
-                        2: { cellWidth: 28 },                      // Title
-                        3: { cellWidth: 50 },                      // Description
-                        4: { halign: 'center', cellWidth: 22 },   // Date
-                        5: { cellWidth: 38 },                      // Company
-                        6: { cellWidth: 38 },                      // Bank
-                        7: { halign: 'right', cellWidth: 22 },    // Amount
+                        0: { halign: 'center', cellWidth: 8  },
+                        1: { cellWidth: 22 },
+                        2: { cellWidth: 28 },
+                        3: { cellWidth: 50 },
+                        4: { halign: 'center', cellWidth: 22 },
+                        5: { cellWidth: 38 },
+                        6: { cellWidth: 38 },
+                        7: { halign: 'right', cellWidth: 22 },
                     },
                     didDrawPage: function(data) {
                         doc.setFontSize(8);
                         doc.setFont('helvetica', 'normal');
-                        doc.text(
-                            'Page ' + doc.internal.getCurrentPageInfo().pageNumber,
-                            data.settings.margin.left,
-                            doc.internal.pageSize.height - 8
-                        );
+                        doc.text('Page ' + doc.internal.getCurrentPageInfo().pageNumber, data.settings.margin.left, doc.internal.pageSize.height - 8);
                     }
                 });
 
@@ -464,7 +460,6 @@
                 if (from) filename += '_' + from;
                 if (to)   filename += '_to_' + to;
                 filename += '.pdf';
-
                 doc.save(filename);
             },
             error: function(xhr) {
@@ -477,33 +472,70 @@
     });
 
     function createExpense() {
+        $('#form-create-expense')[0].reset();
+        $('#create-expense-title').val('');
+        $('#create-nonexpense-title').val('');
+        $('#create-final-expense-title').val('');
+        $('#create-expense-type-value').val('');
+        $('#create-payment-method-id').prop('disabled', true)
+            .html('<option>{{ __("table.please_insert_loan_code_first") }}</option>');
         $('#modal-create-expenses').modal('show');
+    }
+
+    function onCreateTitleChange(type) {
+        if (type === 'expense') {
+            let val = $('#create-expense-title').val();
+            $('#create-nonexpense-title').val('');
+            $('#create-final-expense-title').val(val);
+            $('#create-expense-type-value').val(val ? 'expense' : '');
+        } else {
+            let val = $('#create-nonexpense-title').val();
+            $('#create-expense-title').val('');
+            $('#create-final-expense-title').val(val);
+            $('#create-expense-type-value').val(val ? 'non-expense' : '');
+        }
+    }
+
+    function onUpdateTitleChange(type) {
+        if (type === 'expense') {
+            let val = $('#update-expense-title').val();
+            $('#update-nonexpense-title').val('');
+            $('#update-final-expense-title').val(val);
+            $('#update-expense-type-value').val(val ? 'expense' : '');
+        } else {
+            let val = $('#update-nonexpense-title').val();
+            $('#update-expense-title').val('');
+            $('#update-final-expense-title').val(val);
+            $('#update-expense-type-value').val(val ? 'non-expense' : '');
+        }
     }
 
     function updateExpense(rowIndex) {
         const data = table_expense.row(rowIndex).data();
 
         document.getElementById('update-expense-id').value          = data.id;
-        document.getElementById('update-expense-title').value       = data.expense_title;
         document.getElementById('update-expense-description').value = data.expense_description;
         document.getElementById('update-expense-date').value        = data.date;
         document.getElementById('update-expense-company').value     = data.company_code;
 
-        let amount = parseFloat(data.amount || 0);
+        let expType = data.expense_type || 'expense';
+        $('#update-expense-type-value').val(expType);
+        $('#update-final-expense-title').val(data.expense_title);
 
-        // detect IN or OUT automatically
-        let type = (amount >= 0) ? 'IN' : 'OUT';
-
-        // set switch / radio (if you have one)
-        if (document.getElementById('expense-type-switch')) {
-            document.getElementById('expense-type-switch').checked = (type === 'IN');
+        if (expType === 'expense') {
+            $('#update-expense-title').val(data.expense_title);
+            $('#update-nonexpense-title').val('');
+        } else {
+            $('#update-nonexpense-title').val(data.expense_title);
+            $('#update-expense-title').val('');
         }
 
-        if (type === 'IN') {
-            document.getElementById('update-amount-in').value = Math.abs(amount);
+        let amount = parseFloat(data.amount || 0);
+        if (amount >= 0) {
+            document.getElementById('update-amount-in').value  = Math.abs(amount);
             document.getElementById('update-amount-out').value = 0;
         } else {
-            document.getElementById('update-amount-in').value = 0;
+            document.getElementById('update-amount-in').value  = 0;
             document.getElementById('update-amount-out').value = Math.abs(amount);
         }
 
@@ -563,6 +595,10 @@
 
     $('#form-create-expense').on('submit', function(e) {
         e.preventDefault();
+        if (!$('#create-final-expense-title').val() || !$('#create-expense-type-value').val()) {
+            setDefaultSwal('error', '', 'Please select a title from either Expense or Non-Expense.');
+            return;
+        }
         let formData = new FormData(this);
         $.ajax({
             url: "{{ route('expense.store') }}",
@@ -586,6 +622,10 @@
 
     $('#form-update-expense').on('submit', function(e) {
         e.preventDefault();
+        if (!$('#update-final-expense-title').val() || !$('#update-expense-type-value').val()) {
+            setDefaultSwal('error', '', 'Please select a title from either Expense or Non-Expense.');
+            return;
+        }
         let formData = new FormData(this);
         $.ajax({
             url: "{{ route('expense.update') }}",

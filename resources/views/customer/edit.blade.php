@@ -515,7 +515,8 @@
                                     <i class="bx bx-chevron-left fs-3"></i>
                                 </button>
                                 <img id="lightbox_img" src="" class="img-fluid rounded"
-                                    style="max-height:75vh; object-fit:contain;">
+                                    style="max-height:75vh; object-fit:contain; cursor:zoom-in; transition: transform 0.2s ease;"
+                                    ondblclick="lightboxToggleZoom(this)">
                                 <button class="btn btn-outline-light position-absolute top-50 end-0 translate-middle-y me-2"
                                         style="z-index:10" onclick="lightboxNav(1)">
                                     <i class="bx bx-chevron-right fs-3"></i>
@@ -1882,10 +1883,13 @@
             });
         }
 
+        let lightboxScale = 1;
+
         function openLightbox(id) {
             lightboxIndex = lightboxImages.findIndex(d => d.id === id);
             if (lightboxIndex === -1) return;
 
+            resetLightboxZoom();
             showLightboxAt(lightboxIndex);
             new bootstrap.Modal(document.getElementById('imageLightbox')).show();
         }
@@ -1904,8 +1908,30 @@
             lightboxIndex =
                 (lightboxIndex + dir + lightboxImages.length) % lightboxImages.length;
 
+            resetLightboxZoom();
             showLightboxAt(lightboxIndex);
         }
+
+        function resetLightboxZoom() {
+            lightboxScale = 1;
+            const img = document.getElementById('lightbox_img');
+            img.style.transform = 'scale(1)';
+            img.style.cursor = 'zoom-in';
+        }
+
+        function lightboxToggleZoom(img) {
+            lightboxScale = lightboxScale > 1 ? 1 : 2;
+            img.style.transform = `scale(${lightboxScale})`;
+            img.style.cursor = lightboxScale > 1 ? 'grab' : 'zoom-in';
+        }
+
+        document.getElementById('lightbox_img').addEventListener('wheel', function(e) {
+            e.preventDefault();
+            lightboxScale += e.deltaY < 0 ? 0.1 : -0.1;
+            lightboxScale = Math.min(Math.max(lightboxScale, 0.5), 5);
+            this.style.transform = `scale(${lightboxScale})`;
+            this.style.cursor = lightboxScale > 1 ? 'grab' : 'zoom-in';
+        }, { passive: false });
 
         function makeReferenceTableResizable() {
             $('#datatable-reference thead th').each(function() {

@@ -65,8 +65,8 @@
                                 style="
                                     color: 
                                     {{ $loan->status == 'Active' ? 'green' : 
-                                    ($loan->status == 'Overdue' ? 'red' : 
-                                    ($loan->status == 'Fully Paid' ? 'blue' : 'black')) }};
+                                    ($loan->status == 'Overdue' ? '#7a6800' : 
+                                    ($loan->status == 'Fully Paid' ? 'red' : 'black')) }};
                                     font-weight:700; 
                                     font-size: 1.5rem; 
                                     height: auto; 
@@ -75,8 +75,8 @@
                                 ">
                                 
                                 <option value="Active" style="color:green" {{ $loan->status == 'Active' ? 'selected' : '' }}>Active</option>
-                                <option value="Overdue" style="color:red" {{ $loan->status == 'Overdue' ? 'selected' : '' }}>Overdue</option>
-                                <option value="Fully Paid" style="color:blue" {{ $loan->status == 'Fully Paid' ? 'selected' : '' }}>Fully Paid</option>
+                                <option value="Overdue" style="color:#7a6800" {{ $loan->status == 'Overdue' ? 'selected' : '' }}>Overdue</option>
+                                <option value="Fully Paid" style="color:red" {{ $loan->status == 'Fully Paid' ? 'selected' : '' }}>Fully Paid</option>
 
                             </select>
                         </div>
