@@ -74,6 +74,13 @@
                                     <option>{{ __('table.please_insert_loan_code_first') }}</option>
                                 </select>
                             </div>
+
+                            <div class="col-12">
+                                <label class="col-form-label">{{ __('table.remark') }}</label>
+                                <textarea class="form-control" id="remark" name="remark"
+                                    rows="3" placeholder="Enter remarks..."></textarea>
+                            </div>
+
                         </div>
                     </div>
                 </div>

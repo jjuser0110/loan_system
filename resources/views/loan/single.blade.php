@@ -629,13 +629,18 @@
                                 <thead>
                                     <tr>
                                         <th>{{ __('table.payment_code') }}</th>
+                                        <th>{{ __('table.payment_date') }}</th>
+                                        <th>{{ __('table.sched') }}</th>
                                         <th>{{ __('table.paid') }}</th>
-                                        <th>{{ __('table.pay_date') }}</th>
                                         <th>{{ __('table.discount') }}</th>
-                                        <th>{{ __('table.interest_paid') }}</th>
+                                        <th>{{ __('table.int_paid') }}</th>
                                         <th>{{ __('table.late_paid') }}</th>
-                                        <th>{{ __('table.bank') }}</th>
-                                        <th>{{ __('table.collection_type') }}</th>
+                                        <th>{{ __('table.top_up_cap') }}</th>
+                                        <th>{{ __('table.top_up_amt') }}</th>
+                                        <th>{{ __('table.balance') }}</th>
+                                        <th>{{ __('table.remark') }}</th>
+                                        <th>{{ __('table.type') }}</th>
+                                        <th>{{ __('table.loan_code') }}</th>
                                         @if(Auth::user()->role_id <= 3)
                                         <th>{{ __('table.actions') }}</th>
                                         @endif
@@ -837,20 +842,17 @@
                             <option value="SKIM B">{{ __('table.skim_B') }}</option>
                         </select>
                     </div>
-                    <!-- <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Cheque</label>
-                        <input type="text" class="form-control" name="cheque" autocomplete="off">
-                    </div>
-                    <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Bank</label>
-                        <input type="text" class="form-control" name="bank" autocomplete="off">
-                    </div> -->
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_method') }}</label>
                         <select class="form-control" id="payment_method_id" name="payment_method_id" disabled required>
                             <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
                     </div>
+                    <div class="col-12">
+                                <label class="col-form-label">{{ __('table.remark') }}</label>
+                                <textarea class="form-control" id="remark" name="remark"
+                                    rows="3" placeholder="Enter remarks..."></textarea>
+                            </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
                         <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
@@ -907,14 +909,12 @@
                             <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
                     </div>
-                    <!-- <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Cheque</label>
-                        <input type="text" class="form-control" name="cheque" id="update-payment-cheque" autocomplete="off">
+                    <div class="col-12">
+                        <label class="col-form-label">{{ __('table.remark') }}</label>
+                        <textarea class="form-control" id="update-payment-remark" name="remark" rows="3" placeholder="Enter remarks...">
+                            {{ old('remark', $remark ?? '') }}
+                        </textarea>
                     </div>
-                    <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Bank</label>
-                        <input type="text" class="form-control" name="bank" id="update-payment-bank" autocomplete="off">
-                    </div> -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
                         <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
@@ -1053,53 +1053,77 @@
                     "data": "payment_code"
                 },
                 {
-                    data: "payment_amount",
-                    render: function(data) {
-                        let value = parseFloat(data);
-
-                        if (!isNaN(value) && value !== 0) {
-                            return `<span style="font-weight:bold">${value.toFixed(2)}</span>`;
-                        }
-
-                        return data ? parseFloat(data).toFixed(2) : '-';
-                    }
-                },
-                {
                     "data": "created_at",
                     "render": function(data, type, row, meta) {
-                            if (!data) return '-';
-                            const parts = data.substring(0, 10).split('-');
-                            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                        }
+                        if (!data) return '-';
+                        const parts = data.substring(0, 10).split('-');
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
                 },
                 {
-                    "data": "discount_amount"
+                    "data": "payment_code",
+                    "render": function(data) {
+                        if (!data) return '-';
+
+                        // get last part after "P"
+                        let match = data.match(/P(\d+)$/);
+
+                        if (!match) return '-';
+
+                        return parseInt(match[1], 10); // remove leading zeros
+                    }
                 },
                 {
-                    "data": "interest_paid_amount"
+                    "data": "payment_amount"
                 },
                 {
-                    data: "late_paid_amount",
-                    render: function(data) {
+                    "data": "discount_amount",
+                    "render": function(data) {
                         let value = parseFloat(data);
+                        if (isNaN(value) || value == 0) return '-';
 
-                        // check if it is a valid number and > 0
-                        if (!isNaN(value) && value !== 0) {
-                            return `<span style="color:orange">${value.toFixed(2)}</span>`;
-                        }
-
-                        // no number → normal display
-                        return data ? parseFloat(data).toFixed(2) : '-';
+                        return `<strong style="color:green">${value}</strong>`;
                     }
                 },
                 {
-                    "data": "bank",
-                    "render": function(data, type, row, meta) {
-                        return `${row.bank_name}<br>${row.bank_account_no}<br>${row.bank_owner_name}`;
+                    "data": "interest_paid_amount",
+                    "render": function(data) {
+                        let value = parseFloat(data);
+                        if (isNaN(value) || value == 0) return '-';
+
+                        return `<strong>${value}</strong>`;
                     }
+                },
+                {
+                    "data": "late_paid_amount",
+                    "render": function(data) {
+                        let value = parseFloat(data);
+                        if (isNaN(value) || value == 0) return '-';
+
+                        return `<strong style="color:orange">${value}</strong>`;
+                    }
+                },
+                {
+                    "data": "capital"
+                },
+                {
+                    "data": "loan_amount"
+                },
+                {
+                    "data": "balance"
+                },
+                {
+                    "data": "remark",
+                    "defaultContent": "-"
                 },
                 {
                     "data": "collection_type"
+                },
+                {
+                    "data": null,
+                    "render": function(data, type, row, meta) {
+                        return `<a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}" class="info" title="View Detail">${row.loan_code}</a>`.replace(':loan_code',row.loan_code);
+                    }
                 },
                 @if(Auth::user()->role_id <= 3)
                 {
@@ -1232,6 +1256,7 @@
         // document.getElementById('update-payment-cheque').value = data.cheque;
         document.getElementById('update-payment-collection').value = data.collection_type;
         setupUpdatePaymentMethod(data.company_code,data.payment_method_id);
+        document.getElementById('update-payment-remark').value = data.remark;
         $('#modal-update-payment').modal('show');
     }
 

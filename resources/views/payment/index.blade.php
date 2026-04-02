@@ -79,19 +79,17 @@
                             <option value="SKIM B">{{ __('table.skim_B') }}</option>
                         </select>
                     </div>
-                    <!-- <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Cheque</label>
-                        <input type="text" class="form-control" name="cheque" id="update-payment-cheque" autocomplete="off">
-                    </div>
-                    <div class="col-md-12 mb-3">
-                        <label class="col-form-label">Bank</label>
-                        <input type="text" class="form-control" name="bank" id="update-payment-bank" autocomplete="off">
-                    </div> -->
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_method') }}</label>
                         <select class="form-control" id="update_payment_method_id" name="payment_method_id" disabled required readonly>
                             <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
+                    </div>
+                    <div class="col-12">
+                        <label class="col-form-label">{{ __('table.remark') }}</label>
+                        <textarea class="form-control" id="update-payment-remark" name="remark" rows="3" placeholder="Enter remarks...">
+                            {{ old('remark', $remark ?? '') }}
+                        </textarea>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
@@ -172,7 +170,7 @@
                         let value = parseFloat(data);
                         if (isNaN(value) || value == 0) return '-';
 
-                        return `<strong>${value}</strong>`;
+                        return `<strong style="color:orange">${value}</strong>`;
                     }
                 },
                 {
@@ -185,7 +183,7 @@
                     "data": "balance"
                 },
                 {
-                    "data": null,
+                    "data": "remark",
                     "defaultContent": "-"
                 },
                 {
@@ -226,6 +224,7 @@
             // document.getElementById('update-payment-cheque').value = data.cheque;
             document.getElementById('update-payment-collection').value = data.collection_type;
               setupUpdatePaymentMethod(data.company_code,data.payment_method_id);
+            document.getElementById('update-payment-remark').value = data.remark;
             $('#modal-update-payment').modal('show');
         }
 
@@ -287,10 +286,10 @@
             });
         });
 
-        function setupUpdatePaymentMethod(x,y){
+        function setupUpdatePaymentMethod(x, y) {
             let d = document.getElementById('update_payment_method_id');
-            d.disabled = true; // Keep it disabled
-            if(x != false){
+            d.disabled = true;
+            if (x != false) {
                 fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(x)}`, {
                     headers: {
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
@@ -305,14 +304,13 @@
                         methods.forEach(method => {
                             d.innerHTML += `<option value="${method.id}" ${y == method.id ? 'selected' : ''}>${method.bank_name} / ${method.account_no} (RM ${formatCredit(method.amount)})</option>`;
                         });
-                        // d.disabled = false; // REMOVE THIS LINE - keep it disabled
+                        d.disabled = false; // enable so it gets submitted
                     }
                 })
                 .catch(error => {
                     d.innerHTML = '<option>-- Failed to get methods. --</option>';
                 });
-            }
-            else{ 
+            } else {
                 d.innerHTML = "<option>Please select loan first.</option>";
             }
         }

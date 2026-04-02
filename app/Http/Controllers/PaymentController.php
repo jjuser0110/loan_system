@@ -286,6 +286,7 @@ class PaymentController extends Controller
                 'collection_type' => 'nullable|string',
                 'cheque' => 'nullable|string',
                 'bank'=> 'nullable|string',
+                'remark' => 'nullable|string',
             ]);
             bcscale(10);
             $loan = Loan::lockForUpdate()->where('loan_code',$v['loan_code'])->first();
@@ -347,7 +348,8 @@ class PaymentController extends Controller
                 'discount_amount'=>$discount_amount,
                 'collection_type'=>$v['collection_type'],
                 'payment_method_id'=>$pymt->id,
-                'created_by'=>Auth::user()->id
+                'created_by'=>Auth::user()->id,
+                'remark' => $v['remark'] ?? null,
             ]);
 
             $pymt_before = $pymt->amount;
@@ -385,37 +387,6 @@ class PaymentController extends Controller
                         break;
                     }
                 }
-
-                // if($remainPayment > 0){
-                //     $lastSchedule = PaymentSchedule::where('loan_code',$loan->loan_code)
-                //         ->orderBy('due_date','desc')
-                //         ->first();
-                    
-                //     $currentBalance = $loan->balance - $total_payment;
-                //     $monthlyInterest = ($currentBalance / 100) * $loan->interest_rate;
-                //     while($remainPayment > 0 && $monthlyInterest > 0){
-                //         $newInterestAmount = ($currentBalance / 100) * $loan->interest_rate;
-                //         $payForThisSchedule = min($remainPayment, $newInterestAmount);
-                //         $nextDueDate = $lastSchedule 
-                //             ? Carbon::parse($lastSchedule->due_date)->addMonths(1)->format('Y-m-d')
-                //             : Carbon::now()->addMonths(1)->format('Y-m-d');
-                //         $newSchedule = PaymentSchedule::create([
-                //             'loan_code' => $loan->loan_code,
-                //             'company_id' => $loan->company_id,
-                //             'customer_id' => $loan->customer_id,
-                //             'due_date' => $nextDueDate,
-                //             'interest_amount' => $newInterestAmount,
-                //             'interest_paid_amount' => $payForThisSchedule,
-                //             'late_amount' => 0,
-                //             'late_paid_amount' => 0,
-                //         ]);
-                        
-                //         $remainPayment -= $payForThisSchedule;
-                //         $lastSchedule = $newSchedule;
-                //         if($currentBalance < 100) break;
-                //     }
-                // }
-
 
                 $remain_late_paid = $late_paid_amount;
                 $lateSchedules = PaymentSchedule::lockForUpdate()
@@ -662,6 +633,7 @@ class PaymentController extends Controller
                 'collection_type' => 'nullable|string',
                 'cheque' => 'nullable|string',
                 'bank'=> 'nullable|string',
+                'remark'=> 'nullable|string',
             ]);
             bcscale(10);
             $payment = Payment::lockForUpdate()->where('id',$request->payment_id)->first();
@@ -1199,6 +1171,7 @@ class PaymentController extends Controller
                 'collection_type' => $v['collection_type'] ?? $payment->collection_type,
                 'payment_method_id' => $pymt->id,
                 'updated_by' => Auth::user()->id,
+                'remark' => $v['remark'] ?? $payment->remark,
             ]);
             DB::commit();
             return response()->json(['success' => true, 'message' => 'Payment updated successfully.']);

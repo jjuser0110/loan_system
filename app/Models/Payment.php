@@ -29,7 +29,8 @@ class Payment extends Model
         'cheque',
         'collection_type',
         'created_by',
-        'updated_by'
+        'updated_by',
+        'remark',
     ];
 
     public function company()
