@@ -193,7 +193,7 @@ $currentRoute = request()->route()->getName();
                             </li>
                             <li class="{{ request()->routeIs('non_expenses_type.*') ? 'nav-active' : ''}}">
                                 <a class="nav-link" href="{{route('non_expenses_type.index')}}">
-                                    {{ __('sidebar.non_expenses_type') }}
+                                    {{ __('table.non_expenses_type') }}
                                 </a>
                             </li>
                         </ul>
