@@ -57,7 +57,7 @@ class LoginController extends Controller
         }
 
         if ($user->role_id == 4) {
-            return redirect()->route('customer.index');
+            return redirect()->route('staff.home');
         }
 
         return redirect()->route('home')->withSuccess('Successfully Login');
