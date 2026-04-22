@@ -16,7 +16,7 @@ $currentRoute = request()->route()->getName();
             <nav id="menu" class="nav-main" role="navigation">
                 <ul class="nav nav-main">
                     @if(Auth::user()->role_id != 4)
-                    <li>
+                    <li class="{{ request()->routeIs('home') ? 'nav-active' : ''}}">
                         <a class="nav-link" href="{{route('home')}}">
                             <i class="bx bx-home-alt" aria-hidden="true"></i>
                             <span>{{ __('sidebar.dashboard') }}</span>
@@ -24,7 +24,7 @@ $currentRoute = request()->route()->getName();
                     </li>
                     @endif
                     @if(Auth::user()->role_id == 4)
-                    <li>
+                    <li class="{{ request()->routeIs('staff.*') ? 'nav-active' : ''}}">
                         <a class="nav-link" href="{{route('staff.home')}}">
                             <i class="bx bx-home-alt" aria-hidden="true"></i>
                             <span>{{ __('sidebar.dashboard') }}</span>
@@ -140,7 +140,7 @@ $currentRoute = request()->route()->getName();
                     @if(Auth::user()->role_id != 4)
                     <li class="nav-parent {{ request()->routeIs('badmin.*') || request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('employer_type.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*')|| request()->routeIs('reference_type.*')|| request()->routeIs('expenses_type.*')|| request()->routeIs('non_expenses_type.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
-                            <i class="bx bx-layout" aria-hidden="true"></i>
+                            <i class="bx bx-wrench" aria-hidden="true"></i>
                             <span>{{ __('sidebar.main_setting') }}</span>
                         </a>
                         <ul class="nav nav-children">
