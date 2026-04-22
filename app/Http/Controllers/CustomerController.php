@@ -397,24 +397,29 @@ class CustomerController extends Controller
     {
         try{
             DB::beginTransaction();
-            $validator = Validator::make($request->all(), [
+            $rules = [
                 'customer_name' => 'required|string|max:255',
                 'nric_number' => 'required|string|min:10',
                 'gender' => 'required|string',
                 'race' => 'required|string',
-                'address1' => 'required|string',
-                'postcode' => 'required|string',
-                'city' => 'required|string',
-                'mobile'=> 'required|string',
-                'status' => 'required|string',
-                // 'email'=> 'required|string',
-                'marital_status' => 'required',
-                'house_ownership' => 'required',
-                'warganegara' => 'required',
-                'state' => 'required',
+
+                'address1' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
+                'address2' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
+                'postcode' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
+                'city' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
+                'mobile' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
+                'status' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
+
+                'marital_status' => auth()->user()->role_id == 4 ? 'nullable' : 'required',
+                'house_ownership' => auth()->user()->role_id == 4 ? 'nullable' : 'required',
+                'warganegara' => auth()->user()->role_id == 4 ? 'nullable' : 'required',
+                'state' => auth()->user()->role_id == 4 ? 'nullable' : 'required',
+
                 'new_nric_image' => 'nullable|mimes:jpg,jpeg,png,webp,pdf|max:2048',
                 'new_profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
-            ]);
+            ];
+
+            $validator = Validator::make($request->all(), $rules);
 
             if ($request->remove_existing_image == '1' && !$request->hasFile('new_nric_image')) {
                 $validator->errors()->add('new_nric_image', 'NRIC image is required');
@@ -425,6 +430,23 @@ class CustomerController extends Controller
             }
 
             $customer = Customer::findOrFail($id);
+
+            if (auth()->user()->role_id == 4) {
+                $request->merge([
+                    'mobile' => $customer->mobile,
+                    'address1' => $customer->address1,
+                    'address2' => $customer->address2,
+                    'postcode' => $customer->postcode,
+                    'city' => $customer->city,
+                    'state' => $customer->state,
+                    'house_ownership' => $customer->house_ownership,
+                    'warganegara' => $customer->warganegara,
+                    'marital_status' => $customer->marital_status,
+                    'remark' => $customer->remark,
+                    'status' => $customer->status,
+                ]);
+            }
+
             $company = null;
             if ($request->company_code) {
                 $company = Company::where('company_code', $request->company_code)->first();
@@ -463,6 +485,7 @@ class CustomerController extends Controller
                 'gender' => $request->gender,
                 'race' => $request->race,
                 'address1' => $request->address1,
+                'address2' => $request->address2,
                 'postcode' => $request->postcode,
                 'city' => $request->city,
                 'mobile' => $request->mobile,

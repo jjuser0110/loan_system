@@ -31,6 +31,9 @@
                     <a class="nav-link" href="#work" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">{{ __('table.work') }}</a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link" href="#document" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">{{ __('table.document') }}</a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="#reference" data-bs-toggle="tab" onclick="warnAndStayOnPersonal(event)">{{ __('table.reference') }}</a>
                 </li>
                 <li class="nav-item">

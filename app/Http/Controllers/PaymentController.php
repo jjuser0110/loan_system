@@ -63,7 +63,9 @@ class PaymentController extends Controller
                     'banks.bank_name as bank_name',
                     'loans.balance as balance',
                     'loans.loan_amount as loan_amount',
+                    'loans.payment as payment',
                     'loans.capital as capital',
+                    'loans.first_payment as first_payment',
                 ])
                 ->join('customers', 'customers.id', '=', 'payments.customer_id')
                 ->join('users', 'users.id', '=', 'payments.created_by')
@@ -112,10 +114,34 @@ class PaymentController extends Controller
             $recordsFiltered = $recordsTotal;
 
             $data = $query
-                ->orderBy($orderByColumn, $orderByDirection)
+                ->orderBy('payments.loan_id')
+                ->orderBy('payments.payment_code')
                 ->skip($start)
                 ->take($length)
                 ->get();
+
+            $running = [];
+
+            foreach ($data as $row) {
+
+                $loanId = $row->loan_id;
+
+                if (!isset($running[$loanId])) {
+                    $running[$loanId] = 0;
+                }
+
+                $running[$loanId] += $row->payment_amount;
+
+                $row->running_payment = $running[$loanId];
+
+                $row->installment_calc =
+                    ($row->first_payment && $row->first_payment > 0)
+                    ? floor($row->running_payment / $row->first_payment)
+                    : null;
+
+                 $row->deducted_balance =
+                    ($row->payment ?? 0) - $running[$loanId];
+            }
 
             return response()->json([
                 "draw" => intval($draw),

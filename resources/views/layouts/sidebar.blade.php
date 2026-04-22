@@ -23,6 +23,14 @@ $currentRoute = request()->route()->getName();
                         </a>
                     </li>
                     @endif
+                    @if(Auth::user()->role_id == 4)
+                    <li>
+                        <a class="nav-link" href="{{route('staff.home')}}">
+                            <i class="bx bx-home-alt" aria-hidden="true"></i>
+                            <span>{{ __('sidebar.dashboard') }}</span>
+                        </a>
+                    </li>
+                    @endif
                     <li class="{{ request()->routeIs('customer.*') ? 'nav-active' : ''}}">
                         <a class="nav-link" href="{{route('customer.index')}}">
                             <i class="bx bx-user" aria-hidden="true"></i>

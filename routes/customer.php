@@ -34,4 +34,5 @@ Route::prefix('/customer')->as('customer.')->middleware(['auth'])->group(functio
     Route::post('{customer}/documents',               'DocumentController@store')->name('documents.store');
     Route::get('{customer}/documents/{doc}/download', 'DocumentController@download')->name('documents.download');
     Route::delete('{customer}/documents/{doc}',       'DocumentController@destroy')->name('documents.destroy');
+    Route::put('{customer}/documents/{doc}/remark', 'DocumentController@updateRemark')->name('documents.remark');
 });

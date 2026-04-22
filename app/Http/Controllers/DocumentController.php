@@ -73,4 +73,18 @@ class DocumentController extends Controller
         $doc->delete();
         return response()->json(['success' => true, 'message' => 'Document deleted.']);
     }
+
+    public function updateRemark(Request $request, Customer $customer, Document $doc)
+    {
+        abort_if($doc->customer_id !== $customer->id, 403);
+
+        $request->validate([
+            'remark' => 'nullable|string|max:500'
+        ]);
+
+        $doc->remark = $request->remark;
+        $doc->save();
+
+        return response()->json(['success' => true]);
+    }
 }

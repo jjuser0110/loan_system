@@ -140,6 +140,9 @@
             </ul>
             <div class="tab-content">
                 <div id="personal" class="tab-pane active">
+                    @php
+                        $isLocked = auth()->user()->role_id == 4;
+                    @endphp
                     <form class="p-3" method="POST" action="{{ route('customer.update', $customer->id) }}" enctype="multipart/form-data" onsubmit="return showLoading();">
                         @csrf
                         @method('PUT')
@@ -258,33 +261,33 @@
                                         <input type="email" class="form-control" id="email" name="email" autocomplete="off" value="{{ $customer->email }}" readonly onfocus="this.removeAttribute('readonly');">
                                     </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
-                                        <label for="mobile">{{ __('table.mobile') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="mobile" name="mobile" value="{{ $customer->mobile }}" required>
+                                        <label for="mobile">{{ __('table.mobile') }}</label>
+                                        <input type="text" class="form-control" id="mobile" name="mobile" value="{{ $customer->mobile }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col">
                                         <label for="address">{{ __('table.address') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="address1" name="address1" placeholder="Address 1" value="{{ $customer->address1 }}" required>
+                                        <input type="text" class="form-control" id="address1" name="address1" value="{{ $customer->address1 }}" {{ $isLocked ? 'readonly disabled' : '' }}>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col">
-                                        <input type="text" class="form-control" id="address2" name="address2" placeholder="Address 2" value="{{ $customer->address2 }}">
+                                        <input type="text" class="form-control" id="address2" name="address2" value="{{ $customer->address2 }}" {{ $isLocked ? 'readonly disabled' : '' }}>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="postcode">{{ __('table.postcode') }} <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" id="postcode" name="postcode" value="{{ $customer->postcode }}" required>
+                                        <input type="number" class="form-control" id="postcode" name="postcode" value="{{ $customer->postcode }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="city">{{ __('table.city') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="city" name="city" value="{{ $customer->city }}" required>
+                                        <input type="text" class="form-control" id="city" name="city" value="{{ $customer->city }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="state">{{ __('table.state') }} <span class="text-danger">*</span></label>
-                                        <select id="state" name="state" class="form-control" required>
+                                        <select id="state" name="state" class="form-control" required {{ $isLocked ? 'disabled' : '' }}>
                                             <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($states as $state)
                                             <option value="{{ $state->state_name }}" {{ $customer->state == $state->state_name ? 'selected' : '' }}>{{ $state->state_name }} </option>
@@ -295,7 +298,7 @@
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="house_ownership">{{ __('table.house_ownership') }} <span class="text-danger">*</span></label>
-                                        <select id="house_ownership" name="house_ownership" class="form-control" required>
+                                        <select id="house_ownership" name="house_ownership" class="form-control" required {{ $isLocked ? 'disabled' : '' }}>
                                             <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($house_ownership as $houseOwnership)
                                                 <option value="{{ $houseOwnership->house_ownership }}"
@@ -307,11 +310,11 @@
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="warga_negara">{{ __('table.warganegara') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="warganegara" name="warganegara" value="{{ $customer->warganegara }}" required>
+                                        <input type="text" class="form-control" id="warganegara" name="warganegara" value="{{ $customer->warganegara }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="marital_status">{{ __('table.marital_status') }} <span class="text-danger">*</span></label>
-                                        <select id="marital_status" name="marital_status" class="form-control" required>
+                                        <select id="marital_status" name="marital_status" class="form-control" required {{ $isLocked ? 'disabled' : '' }}>
                                             <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($marital_statues as $marital_status)
                                                 <option value="{{ $marital_status->marital_status }}" {{ $customer->marital_status == $marital_status->marital_status ? 'selected' : '' }}>{{ $marital_status->marital_status }}</option>
@@ -322,13 +325,13 @@
                                 <div class="row mb-2">
                                     <div class="form-group col">
                                         <label for="remark">{{ __('table.remark') }}</label>
-                                        <textarea class="form-control" id="remark" name="remark" rows="6" placeholder="Enter remarks here..." >{{ $customer->remark ?? ''}}</textarea>
+                                        <textarea class="form-control" id="remark" name="remark" rows="6" {{ $isLocked ? 'readonly disabled' : '' }}>{{ $customer->remark ?? '' }}</textarea>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="status">Status</label>
-                                        <select id="status" name="status" class="form-control" required onchange="updateStatusColor(this)"
+                                        <select id="status" name="status" class="form-control" required onchange="updateStatusColor(this)" {{ $isLocked ? 'disabled' : '' }}
                                             style="color: {{ $customer->status === 'active' ? 'green' : ($customer->status === 'overdue' ? '#7a6800' : ($customer->status === 'fully_paid' ? 'red' : 'orange')) }}">
                                             <option value="active" style="color: green;" {{ $customer->status=='active'?'selected':'' }}>Active</option>
                                             <option value="overdue" style="color: #7a6800;" {{ $customer->status=='overdue'?'selected':'' }}>Overdue</option>
@@ -514,8 +517,14 @@
                                         style="z-index:10" onclick="lightboxNav(-1)">
                                     <i class="bx bx-chevron-left fs-3"></i>
                                 </button>
-                                <img id="lightbox_img" src="" class="img-fluid rounded"
-                                    style="max-height:75vh; object-fit:contain; cursor:zoom-in; transition: transform 0.2s ease;"
+                                <img id="lightbox_img"
+                                    src=""
+                                    class="img-fluid rounded"
+                                    style="max-height:75vh; object-fit:contain; cursor:zoom-in; transition: transform 0.15s ease;"
+                                    draggable="false"
+                                    ondragstart="return false"
+                                    onselectstart="return false"
+                                    oncontextmenu="return false"
                                     ondblclick="lightboxToggleZoom(this)">
                                 <button class="btn btn-outline-light position-absolute top-50 end-0 translate-middle-y me-2"
                                         style="z-index:10" onclick="lightboxNav(1)">
@@ -1689,6 +1698,10 @@
         let lightboxImages = [];
         let lightboxIndex  = 0;
         let docsLoaded     = false;
+        let isDragging = false;
+        let startX, startY;
+        let translateX = 0;
+        let translateY = 0;
 
         $(document).ready(function () {
 
@@ -1783,9 +1796,20 @@
                             <div class="fw-semibold text-truncate small" title="${doc.file_name}">
                                 ${doc.file_name}
                             </div>
-                            ${doc.remark
-                                ? `<div class="text-muted small fst-italic mt-1">${doc.remark}</div>`
-                                : ''}
+                            <div class="mt-1 position-relative">
+                                <input type="text"
+                                    class="form-control form-control-sm pe-4"
+                                    value="${doc.remark ?? ''}"
+                                    placeholder="Add remark..."
+                                    onchange="updateRemark(${doc.id}, this)">
+
+                                <!-- tick icon -->
+                                <span id="remark_tick_${doc.id}"
+                                    style="position:absolute; right:8px; top:50%; transform:translateY(-50%);
+                                        font-size:24px; color:green; display:none;">
+                                    ✔
+                                </span>
+                            </div>
                             <div class="text-muted mt-1" style="font-size:10px;">${doc.created_at}</div>
                         </div>
 
@@ -1914,9 +1938,41 @@
 
         function resetLightboxZoom() {
             lightboxScale = 1;
+            translateX = 0;
+            translateY = 0;
+
             const img = document.getElementById('lightbox_img');
-            img.style.transform = 'scale(1)';
-            img.style.cursor = 'zoom-in';
+
+            let isDragging = false;
+            let startX = 0;
+            let startY = 0;
+
+            img.addEventListener('mousedown', function(e) {
+                if (lightboxScale <= 1) return;
+
+                isDragging = true;
+                startX = e.clientX - translateX;
+                startY = e.clientY - translateY;
+
+                img.style.cursor = 'grabbing';
+
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', function(e) {
+                if (!isDragging) return;
+
+                translateX = e.clientX - startX;
+                translateY = e.clientY - startY;
+
+                img.style.transform =
+                    `scale(${lightboxScale}) translate(${translateX}px, ${translateY}px)`;
+            });
+
+            document.addEventListener('mouseup', function() {
+                isDragging = false;
+                img.style.cursor = lightboxScale > 1 ? 'grab' : 'zoom-in';
+            });
         }
 
         function lightboxToggleZoom(img) {
@@ -1929,9 +1985,41 @@
             e.preventDefault();
             lightboxScale += e.deltaY < 0 ? 0.1 : -0.1;
             lightboxScale = Math.min(Math.max(lightboxScale, 0.5), 5);
-            this.style.transform = `scale(${lightboxScale})`;
+            this.style.transform = `scale(${lightboxScale}) translate(${translateX}px, ${translateY}px)`;
             this.style.cursor = lightboxScale > 1 ? 'grab' : 'zoom-in';
         }, { passive: false });
+
+        function updateRemark(id, inputEl) {
+            const remark = inputEl.value;
+            const tick   = document.getElementById('remark_tick_' + id);
+
+            fetch(`/customer/{{ $customer->id }}/documents/${id}/remark`, {
+                method: 'PUT',
+                headers: {
+                    'X-CSRF-TOKEN': CSRF,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ remark })
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.success) {
+                    // ✅ show tick
+                    tick.style.display = 'inline';
+
+                    // hide after 1.5s
+                    setTimeout(() => {
+                        tick.style.display = 'none';
+                    }, 1500);
+                } else {
+                    alert('Failed to update remark');
+                }
+            })
+            .catch(() => {
+                alert('Error updating remark');
+            });
+        }
 
         function makeReferenceTableResizable() {
             $('#datatable-reference thead th').each(function() {

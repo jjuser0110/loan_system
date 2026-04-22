@@ -20,6 +20,7 @@ Route::get('/', function () {
 Auth::routes();
 
 Route::get('/home', [App\Http\Controllers\DashboardController::class, 'index'])->name('home');
+Route::get('/staff/home', [App\Http\Controllers\StaffDashboardController::class, 'index'])->name('staff.home');
 Route::post('/change_password', [App\Http\Controllers\HomeController::class, 'change_password'])->name('change_password');
 
 Route::get('/change_language/{language}', [App\Http\Controllers\HomeController::class, 'change_language'])->name('change_language');

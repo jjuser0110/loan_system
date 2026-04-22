@@ -836,12 +836,19 @@
                         </div>
                     </div>
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">{{ __('table.collection') }}</label>
-                        <select class="form-control" name="collection_type" required>
-                            <option value="SKIM A">{{ __('table.skim_A') }}</option>
-                            <option value="SKIM B">{{ __('table.skim_B') }}</option>
-                        </select>
-                    </div>
+    <label class="col-form-label">{{ __('table.collection') }}</label>
+
+    <select class="form-control" name="collection_type" required>
+        <option value="SKIM A" {{ $loan->interest_group == 'SKIM A' ? 'selected' : '' }}>
+            {{ __('table.skim_A') }}
+        </option>
+        <option value="SKIM B" {{ $loan->interest_group == 'SKIM B' ? 'selected' : '' }}>
+            {{ __('table.skim_B') }}
+        </option>
+    </select>
+
+    <input type="hidden" name="collection_type" value="{{ $loan->interest_group }}">
+</div>
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_method') }}</label>
                         <select class="form-control" id="payment_method_id" name="payment_method_id" disabled required>
@@ -1061,16 +1068,14 @@
                     }
                 },
                 {
-                    "data": "payment_code",
-                    "render": function(data) {
-                        if (!data) return '-';
+                    "data": "installment_calc",
+                    "render": function(data, type, row) {
 
-                        // get last part after "P"
-                        let match = data.match(/P(\d+)$/);
+                        if ((row.collection_type ?? '').trim().toUpperCase() === 'SKIM A') {
+                            return 1;
+                        }
 
-                        if (!match) return '-';
-
-                        return parseInt(match[1], 10); // remove leading zeros
+                        return data ?? '-';
                     }
                 },
                 {
@@ -1110,7 +1115,12 @@
                     "data": "loan_amount"
                 },
                 {
-                    "data": "balance"
+                    "data": "deducted_balance",
+                    "render": function(data) {
+                        if (data == null) return '-';
+
+                        return parseFloat(data).toFixed(2);
+                    }
                 },
                 {
                     "data": "remark",
