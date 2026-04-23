@@ -52,12 +52,12 @@
                         <label class="col-form-label">{{ __('table.allowed_login_hours') }}</label>
                         <div class="d-flex align-items-center gap-2">
                             <input class="form-control" type="time" name="login_time_start" id="login_time_start"
-                                   style="max-width:150px;"
-                                   value="{{ isset($staff) && $staff->login_time_start ? \Carbon\Carbon::parse($staff->login_time_start)->format('H:i') : '06:00' }}"
+                                   style="max-width:150px;" min="06:00"
+                                   value="{{ isset($staff) && $staff->login_time_start ? \Carbon\Carbon::parse($staff->login_time_start)->format('H:i') : '' }}">
                             <span class="px-2">to</span>
                             <input class="form-control" type="time" name="login_time_end" id="login_time_end"
-                                   style="max-width:150px;"
-                                   value="{{ isset($staff) && $staff->login_time_end ? \Carbon\Carbon::parse($staff->login_time_end)->format('H:i') : '18:00' }}"
+                                   style="max-width:150px;" min="06:00"
+                                   value="{{ isset($staff) && $staff->login_time_end ? \Carbon\Carbon::parse($staff->login_time_end)->format('H:i') : '' }}">
                         </div>
                         <span style="color:grey;font-size:0.8em">**{{ __('table.leave_blank_for_no_restriction') }}</span>
                         @error('login_time_end')
@@ -110,5 +110,13 @@
                 ? '✅ {{ __('table.can_login_anytime') }}'
                 : '🔒 {{ __('table.restricted_to_set_hours_only') }}';
         });
+
+        document.getElementById('login_time_start').addEventListener('focus', function () {
+    if (this.value === '') this.value = '06:00';
+});
+
+document.getElementById('login_time_end').addEventListener('focus', function () {
+    if (this.value === '') this.value = '06:00';
+});
     </script>
 @endsection
