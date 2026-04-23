@@ -69,6 +69,29 @@
 
 				<p class="text-center text-muted mt-3 mb-3">&copy; Copyright {{ now()->year }}. All Rights Reserved.</p>
 			</div>
+
+            @if(session('login_time_error'))
+            <div class="modal fade" id="timeRestrictModal" tabindex="-1">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header border-0">
+                            <h5 class="modal-title text-danger">
+                                <i class="bx bx-lock-alt"></i> Access Restricted
+                            </h5>
+                        </div>
+                        <div class="modal-body text-center py-4">
+                            <i class="bx bx-time-five" style="font-size:3rem;color:#e74c3c;"></i>
+                            <p class="mt-3 mb-1"><strong>You are outside your allowed login hours.</strong></p>
+                            <p class="text-muted">{{ session('login_time_error') }}</p>
+                        </div>
+                        <div class="modal-footer border-0 justify-content-center">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal">OK</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @endif
+
 		</section>
 		<!-- end: page -->
 
@@ -94,6 +117,13 @@
 
         <!-- Theme Initialization Files -->
         <script src="{{ asset('porto-assets/js/theme.init.js') }}"></script>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                var modal = new bootstrap.Modal(document.getElementById('timeRestrictModal'));
+                modal.show();
+            });
+        </script>
 
 	</body>
 </html>

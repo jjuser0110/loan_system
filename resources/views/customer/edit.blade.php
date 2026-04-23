@@ -1765,6 +1765,8 @@
 
         function renderDocuments(docs) {
             const grid = document.getElementById('documents_grid');
+            const USER_ROLE_ID = {{ auth()->user()->role_id ?? 0 }};
+            let role_id = USER_ROLE_ID;
 
             if (docs.length === 0) {
                 grid.innerHTML = `
@@ -1796,6 +1798,7 @@
                             <div class="fw-semibold text-truncate small" title="${doc.file_name}">
                                 ${doc.file_name}
                             </div>
+
                             <div class="mt-1 position-relative">
                                 <input type="text"
                                     class="form-control form-control-sm pe-4"
@@ -1803,14 +1806,16 @@
                                     placeholder="Add remark..."
                                     onchange="updateRemark(${doc.id}, this)">
 
-                                <!-- tick icon -->
                                 <span id="remark_tick_${doc.id}"
                                     style="position:absolute; right:8px; top:50%; transform:translateY(-50%);
-                                        font-size:24px; color:green; display:none;">
+                                    font-size:24px; color:green; display:none;">
                                     ✔
                                 </span>
                             </div>
-                            <div class="text-muted mt-1" style="font-size:10px;">${doc.created_at}</div>
+
+                            <div class="text-muted mt-1" style="font-size:10px;">
+                                ${doc.created_at}
+                            </div>
                         </div>
 
                         <div class="card-footer p-1 d-flex justify-content-end gap-1 bg-white border-top">
@@ -1830,10 +1835,12 @@
                                 <i class="bx bx-download"></i>
                             </a>
 
+                            ${role_id != 4 ? `
                             <button class="btn btn-xs btn-outline-danger"
                                     onclick="deleteDocument(${doc.id}, '${doc.delete_url}')">
                                 <i class="bx bx-trash"></i>
                             </button>
+                            ` : ''}
                         </div>
                     </div>
                 </div>`;

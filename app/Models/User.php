@@ -30,6 +30,9 @@ class User extends Authenticatable
         'is_active',
         'branch_id',
         'company_id',
+        'login_time_start',
+        'login_time_end',
+        'allow_outside_hours',
     ];
 
     /**

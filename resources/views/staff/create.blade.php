@@ -46,11 +46,45 @@
                             <option value="0" <?php echo isset($staff)&&$staff->is_active == 0?'selected':''?>>{{ __('table.inactive') }}</option>
                         </select>
                     </div>
+
+                    <h6>{{ __('table.restriction') }}</h6>
+                    <div class="mb-3">
+                        <label class="col-form-label">{{ __('table.allowed_login_hours') }}</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <input class="form-control" type="time" name="login_time_start" id="login_time_start"
+                                   style="max-width:150px;"
+                                   value="{{ isset($staff) && $staff->login_time_start ? \Carbon\Carbon::parse($staff->login_time_start)->format('H:i') : '06:00' }}"
+                            <span class="px-2">to</span>
+                            <input class="form-control" type="time" name="login_time_end" id="login_time_end"
+                                   style="max-width:150px;"
+                                   value="{{ isset($staff) && $staff->login_time_end ? \Carbon\Carbon::parse($staff->login_time_end)->format('H:i') : '18:00' }}"
+                        </div>
+                        <span style="color:grey;font-size:0.8em">**{{ __('table.leave_blank_for_no_restriction') }}</span>
+                        @error('login_time_end')
+                            <div style="color:red;font-size:0.8em">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    <div class="mb-3">
+                        <label class="col-form-label">{{ __('table.allowed_login_outside_hours') }}</label>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" name="allow_outside_hours" id="allow_outside_hours"
+                                       value="1" {{ isset($staff) && $staff->allow_outside_hours ? 'checked' : '' }}>
+                            </div>
+                            <span id="toggle-label" style="font-size:0.85em;color:grey;">
+                            @if(isset($staff) && $staff->allow_outside_hours)
+                                ✅ {{ __('table.can_login_anytime') }}
+                            @else
+                                🔒 {{ __('table.restricted_to_set_hours_only') }}
+                            @endif
+                        </span>
+                        </div>
+                    </div>
+
                 </div>
                 <div class="card-footer text-end">
                     <a href="{{route('staff.index')}}" class="btn btn-secondary">{{ __('table.back') }}</a>
                     <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
-                    <!-- <button class="btn btn-secondary">Cancel</button> -->
                 </div>
             </form>
         </section>
@@ -69,5 +103,12 @@
                 return false;
             }
         }
+
+        // Toggle label update
+        document.getElementById('allow_outside_hours').addEventListener('change', function () {
+            document.getElementById('toggle-label').textContent = this.checked
+                ? '✅ {{ __('table.can_login_anytime') }}'
+                : '🔒 {{ __('table.restricted_to_set_hours_only') }}';
+        });
     </script>
 @endsection

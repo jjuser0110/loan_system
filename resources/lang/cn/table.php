@@ -310,6 +310,15 @@ return [
 'non_expense' => '非费用',
 'non_expenses_type' => '非费用类型',
 'expense_type' => '费用类型',
+'allowed_login_time' => '允许登录时间',
+'time_restricted' => '时间限制',
+'outside_hours_allowed' => '允许非工作时间登录',
+'restriction' => '限制',
+'allowed_login_hours' => '允许登录时间段',
+'leave_blank_for_no_restriction' => '留空表示无限制',
+'allowed_login_outside_hours' => '允许在非工作时间登录',
+'can_login_anytime' => '可以随时登录',
+'restricted_to_set_hours_only' => '仅限设定时间登录',
 
 ];
 

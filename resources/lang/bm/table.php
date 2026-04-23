@@ -310,6 +310,15 @@ return [
 'non_expense' => 'Bukan Perbelanjaan',
 'non_expenses_type' => 'Jenis Bukan Perbelanjaan',
 'expense_type' => 'Jenis Perbelanjaan',
+'allowed_login_time' => 'Masa log masuk dibenarkan',
+'time_restricted' => 'Masa terhad',
+'outside_hours_allowed' => 'Dibenarkan log masuk di luar waktu kerja',
+'restriction' => 'Sekatan',
+'allowed_login_hours' => 'Waktu log masuk dibenarkan',
+'leave_blank_for_no_restriction' => 'Biarkan kosong untuk tiada sekatan',
+'allowed_login_outside_hours' => 'Dibenarkan log masuk di luar waktu kerja',
+'can_login_anytime' => 'Boleh log masuk pada bila-bila masa',
+'restricted_to_set_hours_only' => 'Terhad kepada waktu yang ditetapkan sahaja',
 
 ];
 
