@@ -189,7 +189,7 @@
                                     </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
                                         <label for="company_code">{{ __('table.company_code') }} <span class="text-danger">*</span></label>
-                                        <select id="company_code" name="company_code" class="form-control" required>
+                                        <select id="company_code" name="company_code" class="form-control" required {{ $isLocked ? 'disabled' : '' }}>
                                             <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($company as $row)
                                                 <option value="{{ $row->company_code }}"
@@ -203,12 +203,12 @@
                                 <div class="row mb-2">
                                     <div class="form-group col-md-6">
                                         <label for="customer_name">{{ __('table.customer_name') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="Customer Name" value="{{ $customer->customer_name }}" required>
+                                        <input type="text" class="form-control" id="customer_name" name="customer_name" placeholder="Customer Name" value="{{ $customer->customer_name }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
                                     </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
                                         <label for="nric_number">NRIC {{ __('table.number') }} <span class="text-danger">*</span></label>
                                         <div class="input-group">
-                                            <input type="text" class="form-control" id="nric_number" name="nric_number" value="{{ $customer->nric_number }}" required>
+                                            <input type="text" class="form-control" id="nric_number" name="nric_number" value="{{ $customer->nric_number }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
                                             <button class="btn btn-outline-secondary" type="button" id="uploadIcBtn">{{ __('table.upload_ic') }}</button>
                                         </div>
                                         
@@ -230,7 +230,7 @@
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="gender">{{ __('table.gender') }} <span class="text-danger">*</span></label>
-                                        <select id="gender" name="gender" class="form-control" required>
+                                        <select id="gender" name="gender" class="form-control" required {{ $isLocked ? 'disabled' : '' }}>
                                             <option value="">{{ __('table.choose') }}...</option>
                                             <option value="Male" {{ $customer->gender == 'Male' ? 'selected' : '' }}>Male</option>
                                             <option value="Female" {{ $customer->gender == 'Female' ? 'selected' : '' }}>Female</option>
@@ -238,7 +238,7 @@
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="race">{{ __('table.race') }} <span class="text-danger">*</span></label>
-                                        <select id="race" name="race" class="form-control" required>
+                                        <select id="race" name="race" class="form-control" required {{ $isLocked ? 'disabled' : '' }}>
                                             <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($races as $raceItem)
                                                 <option value="{{ $raceItem->race_name }}" {{ $customer->race == $raceItem->race_name ? 'selected' : '' }}>{{ $raceItem->race_name }}</option>
@@ -251,7 +251,7 @@
                                             <span class="input-group-text">
                                                 <i class="fas fa-calendar-alt"></i>
                                             </span>
-                                            <input type="date" name="date_of_birth" class="form-control" value="{{ $customer->date_of_birth }}" required>
+                                            <input type="date" name="date_of_birth" class="form-control" value="{{ $customer->date_of_birth }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
                                         </div>
                                     </div>
                                 </div>
@@ -262,32 +262,32 @@
                                     </div>
                                     <div class="form-group col-md-6 border-top-0 pt-0">
                                         <label for="mobile">{{ __('table.mobile') }}</label>
-                                        <input type="text" class="form-control" id="mobile" name="mobile" value="{{ $customer->mobile }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
+                                        <input type="text" class="form-control" id="mobile" name="mobile" value="{{ $customer->mobile }}" required>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col">
                                         <label for="address">{{ __('table.address') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="address1" name="address1" value="{{ $customer->address1 }}" {{ $isLocked ? 'readonly disabled' : '' }}>
+                                        <input type="text" class="form-control" id="address1" name="address1" value="{{ $customer->address1 }}">
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col">
-                                        <input type="text" class="form-control" id="address2" name="address2" value="{{ $customer->address2 }}" {{ $isLocked ? 'readonly disabled' : '' }}>
+                                        <input type="text" class="form-control" id="address2" name="address2" value="{{ $customer->address2 }}">
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="postcode">{{ __('table.postcode') }} <span class="text-danger">*</span></label>
-                                        <input type="number" class="form-control" id="postcode" name="postcode" value="{{ $customer->postcode }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
+                                        <input type="number" class="form-control" id="postcode" name="postcode" value="{{ $customer->postcode }}" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="city">{{ __('table.city') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="city" name="city" value="{{ $customer->city }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
+                                        <input type="text" class="form-control" id="city" name="city" value="{{ $customer->city }}" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="state">{{ __('table.state') }} <span class="text-danger">*</span></label>
-                                        <select id="state" name="state" class="form-control" required {{ $isLocked ? 'disabled' : '' }}>
+                                        <select id="state" name="state" class="form-control" required>
                                             <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($states as $state)
                                             <option value="{{ $state->state_name }}" {{ $customer->state == $state->state_name ? 'selected' : '' }}>{{ $state->state_name }} </option>
@@ -298,7 +298,7 @@
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="house_ownership">{{ __('table.house_ownership') }} <span class="text-danger">*</span></label>
-                                        <select id="house_ownership" name="house_ownership" class="form-control" required {{ $isLocked ? 'disabled' : '' }}>
+                                        <select id="house_ownership" name="house_ownership" class="form-control" required>
                                             <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($house_ownership as $houseOwnership)
                                                 <option value="{{ $houseOwnership->house_ownership }}"
@@ -310,11 +310,11 @@
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="warga_negara">{{ __('table.warganegara') }} <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="warganegara" name="warganegara" value="{{ $customer->warganegara }}" required {{ $isLocked ? 'readonly disabled' : '' }}>
+                                        <input type="text" class="form-control" id="warganegara" name="warganegara" value="{{ $customer->warganegara }}" required>
                                     </div>
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="marital_status">{{ __('table.marital_status') }} <span class="text-danger">*</span></label>
-                                        <select id="marital_status" name="marital_status" class="form-control" required {{ $isLocked ? 'disabled' : '' }}>
+                                        <select id="marital_status" name="marital_status" class="form-control" required>
                                             <option value="">{{ __('table.choose') }}...</option>
                                             @foreach($marital_statues as $marital_status)
                                                 <option value="{{ $marital_status->marital_status }}" {{ $customer->marital_status == $marital_status->marital_status ? 'selected' : '' }}>{{ $marital_status->marital_status }}</option>
@@ -325,13 +325,13 @@
                                 <div class="row mb-2">
                                     <div class="form-group col">
                                         <label for="remark">{{ __('table.remark') }}</label>
-                                        <textarea class="form-control" id="remark" name="remark" rows="6" {{ $isLocked ? 'readonly disabled' : '' }}>{{ $customer->remark ?? '' }}</textarea>
+                                        <textarea class="form-control" id="remark" name="remark" rows="6">{{ $customer->remark ?? '' }}</textarea>
                                     </div>
                                 </div>
                                 <div class="row mb-2">
                                     <div class="form-group col-md-4 border-top-0 pt-0">
                                         <label for="status">Status</label>
-                                        <select id="status" name="status" class="form-control" required onchange="updateStatusColor(this)" {{ $isLocked ? 'disabled' : '' }}
+                                        <select id="status" name="status" class="form-control" required onchange="updateStatusColor(this)"
                                             style="color: {{ $customer->status === 'active' ? 'green' : ($customer->status === 'overdue' ? '#7a6800' : ($customer->status === 'fully_paid' ? 'red' : 'orange')) }}">
                                             <option value="active" style="color: green;" {{ $customer->status=='active'?'selected':'' }}>Active</option>
                                             <option value="overdue" style="color: #7a6800;" {{ $customer->status=='overdue'?'selected':'' }}>Overdue</option>

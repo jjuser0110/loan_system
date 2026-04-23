@@ -398,22 +398,22 @@ class CustomerController extends Controller
         try{
             DB::beginTransaction();
             $rules = [
-                'customer_name' => 'required|string|max:255',
-                'nric_number' => 'required|string|min:10',
-                'gender' => 'required|string',
-                'race' => 'required|string',
+                'customer_name' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string|max:255',
+                'nric_number' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string|min:10',
+                'gender' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
+                'race' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
 
-                'address1' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
-                'address2' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
-                'postcode' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
-                'city' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
-                'mobile' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
-                'status' => auth()->user()->role_id == 4 ? 'nullable' : 'required|string',
+                'address1' => 'required|string',
+                'address2' => 'nullable|string',
+                'postcode' => 'required|string',
+                'city' => 'required|string',
+                'mobile' => 'required|string',
+                'status' => 'required|string',
 
-                'marital_status' => auth()->user()->role_id == 4 ? 'nullable' : 'required',
-                'house_ownership' => auth()->user()->role_id == 4 ? 'nullable' : 'required',
-                'warganegara' => auth()->user()->role_id == 4 ? 'nullable' : 'required',
-                'state' => auth()->user()->role_id == 4 ? 'nullable' : 'required',
+                'marital_status' => 'required',
+                'house_ownership' => 'required',
+                'warganegara' => 'required',
+                'state' => 'required',
 
                 'new_nric_image' => 'nullable|mimes:jpg,jpeg,png,webp,pdf|max:2048',
                 'new_profile_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048'
@@ -433,17 +433,10 @@ class CustomerController extends Controller
 
             if (auth()->user()->role_id == 4) {
                 $request->merge([
-                    'mobile' => $customer->mobile,
-                    'address1' => $customer->address1,
-                    'address2' => $customer->address2,
-                    'postcode' => $customer->postcode,
-                    'city' => $customer->city,
-                    'state' => $customer->state,
-                    'house_ownership' => $customer->house_ownership,
-                    'warganegara' => $customer->warganegara,
-                    'marital_status' => $customer->marital_status,
-                    'remark' => $customer->remark,
-                    'status' => $customer->status,
+                    'customer_name' => $customer->customer_name,
+                    'nric_number' => $customer->nric_number,
+                    'gender' => $customer->gender,
+                    'race' => $customer->race,
                 ]);
             }
 
