@@ -328,6 +328,7 @@ return [
 'total_pay' => 'Jumlah Bayaran',
 'payment_type' => 'Jenis Bayaran',
 'top_up_amount' => 'Jumlah Tambah Nilai',
+'enter_top_up_balance' => 'Masukkan Baki Tambah Nilai',
 
 ];
 
