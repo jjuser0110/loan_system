@@ -328,7 +328,7 @@ return [
 'total_pay' => '总付款',
 'payment_type' => '付款类型',
 'top_up_amount' => '充值金额',
-'enter_top_up_balance' => '输入充值余额',
+'enter_top_up_amount' => '输入充值金额',
 
 ];
 
