@@ -635,7 +635,6 @@
                                         <th>{{ __('table.discount') }}</th>
                                         <th>{{ __('table.int_paid') }}</th>
                                         <th>{{ __('table.late_paid') }}</th>
-                                        <th>{{ __('table.top_up_cap') }}</th>
                                         <th>{{ __('table.top_up_amt') }}</th>
                                         <th>{{ __('table.balance') }}</th>
                                         <th>{{ __('table.remark') }}</th>
@@ -810,56 +809,70 @@
                 <form id="form-add-payment">
                     @csrf
                     <input type="hidden" name="loan_code" value="{{ $loan->loan_code }}">
-                    <div class="row mb-3">
+
+                    {{-- Payment type selector --}}
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">{{ __('table.payment_type') }}</label>
+                        <select class="form-control" id="add-payment-type" onchange="applyAddPaymentType(this.value)">
+                            <option value="CCM">CCM</option>
+                            <option value="INTEREST">{{ __('table.interest') }}</option>
+                            <option value="TOPUP">{{ __('table.top_up') }}</option>
+                        </select>
+                    </div>
+
+                    {{-- Top-up --}}
+                    <div class="col-md-12 mb-3" id="add-wrap-topup">
+                        <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
+                        <input type="number" class="form-control" id="add-input-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
+                    </div>
+
+                    {{-- Payment / capital --}}
+                    <div class="row mb-3" id="add-wrap-payment">
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
-                            <input type="number" class="form-control" id="input-payment-amount" name="payment_amount" value="0">
-                            <p class="p-note" id="loan-payment-balance">{{ __('table.outstanding') }}: {{ $loan->balance ?? '0.00' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->next_due_amount ?? '' }} <br> {{ __('table.due_date') }}: {{ $loan?->next_due_date ?? '' }}</p>
+                            <input type="number" class="form-control" id="add-input-payment-amount" name="payment_amount" value="0">
+                            <p class="p-note">{{ __('table.outstanding') }}: {{ $loan->balance ?? '0.00' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->next_due_amount ?? '' }} <br> {{ __('table.due_date') }}: {{ $loan?->next_due_date ?? '' }}</p>
                         </div>
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.discount') }}</label>
                             <input type="number" class="form-control" name="discount_amount" value="0">
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="col-form-label">{{ __('table.interest_amount') }}</label>
-                            <input type="number" class="form-control" id="input-payment-interest" name="interest_paid_amount" value="0">
-                            <p class="p-note" id="loan-interest-balance">{{ $loan->interest_balance ?? '0.00' }}</p>
-                        </div>
+
+                    {{-- Late --}}
+                    <div class="col-md-12 mb-3" id="add-wrap-late">
+                        <label class="col-form-label">{{ __('table.late_amount') }}</label>
+                        <input type="number" class="form-control" id="add-input-payment-late" name="late_paid_amount" value="0">
+                        <p class="p-note">{{ $loan->late_balance ?? '0.00' }}</p>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="col-form-label">{{ __('table.late_amount') }}</label>
-                            <input type="number" class="form-control" id="input-payment-late" name="late_paid_amount" value="0">
-                            <p class="p-note" id="loan-late-balance">{{ $loan->late_balance ?? '0.00' }}</p>
-                        </div>
+
+                    {{-- Interest --}}
+                    <div class="col-md-12 mb-3" id="add-wrap-interest">
+                        <label class="col-form-label">{{ __('table.interest_amount') }}</label>
+                        <input type="number" class="form-control" id="add-input-payment-interest" name="interest_paid_amount" value="0">
+                        <p class="p-note">{{ $loan->interest_balance ?? '0.00' }}</p>
                     </div>
+
                     <div class="col-md-12 mb-3">
-    <label class="col-form-label">{{ __('table.collection') }}</label>
+                        <label class="col-form-label">{{ __('table.collection') }}</label>
+                        <select class="form-control" name="collection_type" required>
+                            <option value="SKIM A" {{ $loan->interest_group == 'SKIM A' ? 'selected' : '' }}>{{ __('table.skim_A') }}</option>
+                            <option value="SKIM B" {{ $loan->interest_group == 'SKIM B' ? 'selected' : '' }}>{{ __('table.skim_B') }}</option>
+                        </select>
+                    </div>
 
-    <select class="form-control" name="collection_type" required>
-        <option value="SKIM A" {{ $loan->interest_group == 'SKIM A' ? 'selected' : '' }}>
-            {{ __('table.skim_A') }}
-        </option>
-        <option value="SKIM B" {{ $loan->interest_group == 'SKIM B' ? 'selected' : '' }}>
-            {{ __('table.skim_B') }}
-        </option>
-    </select>
-
-    <input type="hidden" name="collection_type" value="{{ $loan->interest_group }}">
-</div>
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_method') }}</label>
                         <select class="form-control" id="payment_method_id" name="payment_method_id" disabled required>
                             <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
                     </div>
+
                     <div class="col-12">
-                                <label class="col-form-label">{{ __('table.remark') }}</label>
-                                <textarea class="form-control" id="remark" name="remark"
-                                    rows="3" placeholder="Enter remarks..."></textarea>
-                            </div>
+                        <label class="col-form-label">{{ __('table.remark') }}</label>
+                        <textarea class="form-control" name="remark" rows="3" placeholder="Enter remarks..."></textarea>
+                    </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
                         <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
@@ -881,7 +894,25 @@
                 <form id="form-update-payment">
                     @csrf
                     <input type="hidden" name="payment_id" id="update-payment-id">
-                    <div class="row mb-3">
+
+                    {{-- Payment type selector --}}
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">{{ __('table.payment_type') }}</label>
+                        <select class="form-control" id="update-payment-type" onchange="applyUpdatePaymentType(this.value)">
+                            <option value="CCM">CCM</option>
+                            <option value="INTEREST">{{ __('table.interest') }}</option>
+                            <option value="TOPUP">{{ __('table.top_up') }}</option>
+                        </select>
+                    </div>
+
+                    {{-- TOP-UP only --}}
+                    <div class="col-md-12 mb-3" id="update-wrap-topup" style="display:none;">
+                        <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
+                        <input type="number" class="form-control" id="update-payment-topup" name="top_up" placeholder="5000.00" step="0.01">
+                    </div>
+
+                    {{-- CCM only --}}
+                    <div class="row mb-3" id="update-wrap-payment">
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" id="update-payment-paid" name="payment_amount">
@@ -891,37 +922,39 @@
                             <input type="number" class="form-control" id="update-payment-discount" name="discount_amount">
                         </div>
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="col-form-label">{{ __('table.interest_amount') }}</label>
-                            <input type="number" class="form-control" id="update-payment-interest" name="interest_paid_amount">
-                        </div>
+
+                    {{-- greyed for non-CCM --}}
+                    <div class="col-md-12 mb-3" id="update-wrap-late">
+                        <label class="col-form-label">{{ __('table.late_amount') }}</label>
+                        <input type="number" class="form-control" id="update-payment-late" name="late_paid_amount" value="0">
                     </div>
-                    <div class="row mb-3">
-                        <div class="col-md-12">
-                            <label class="col-form-label">{{ __('table.late_amount') }}</label>
-                            <input type="number" class="form-control" id="update-payment-late" name="late_paid_amount" value="0">
-                        </div>
+
+                    {{-- active for INTEREST, greyed for CCM --}}
+                    <div class="col-md-12 mb-3" id="update-wrap-interest">
+                        <label class="col-form-label">{{ __('table.interest_amount') }}</label>
+                        <input type="number" class="form-control" id="update-payment-interest" name="interest_paid_amount">
                     </div>
+
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.collection') }}</label>
-                        <select class="form-control" name="collection_type" id="update-payment-collection"required>
+                        <select class="form-control" name="collection_type" id="update-payment-collection">
                             <option value="SKIM A">{{ __('table.skim_A') }}</option>
                             <option value="SKIM B">{{ __('table.skim_B') }}</option>
                         </select>
                     </div>
+
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_method') }}</label>
-                        <select class="form-control" id="update_payment_method_id" name="payment_method_id" disabled required>
+                        <select class="form-control" id="update_payment_method_id" name="payment_method_id" required>
                             <option>{{ __('table.please_insert_loan_code_first') }}</option>
                         </select>
                     </div>
+
                     <div class="col-12">
                         <label class="col-form-label">{{ __('table.remark') }}</label>
-                        <textarea class="form-control" id="update-payment-remark" name="remark" rows="3" placeholder="Enter remarks...">
-                            {{ old('remark', $remark ?? '') }}
-                        </textarea>
+                        <textarea class="form-control" id="update-payment-remark" name="remark" rows="3" placeholder="Enter remarks..."></textarea>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
                         <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
@@ -1109,10 +1142,7 @@
                     }
                 },
                 {
-                    "data": "capital"
-                },
-                {
-                    "data": "loan_amount"
+                    "data": "top_up"
                 },
                 {
                     "data": "deducted_balance",
@@ -1257,18 +1287,142 @@
 
     function updatePayment(rowIndex) {
         const data = table_payment.row(rowIndex).data();
-        document.getElementById('update-payment-id').value = data.id;
-        document.getElementById('update-payment-paid').value = data.payment_amount;
+
+        document.getElementById('update-payment-id').value       = data.id;
+        document.getElementById('update-payment-paid').value     = data.payment_amount;
         document.getElementById('update-payment-interest').value = data.interest_paid_amount;
-        document.getElementById('update-payment-late').value = data.late_paid_amount;
+        document.getElementById('update-payment-late').value     = data.late_paid_amount;
         document.getElementById('update-payment-discount').value = data.discount_amount;
-        // document.getElementById('update-payment-bank').value = data.bank;
-        // document.getElementById('update-payment-cheque').value = data.cheque;
+        document.getElementById('update-payment-topup').value    = data.top_up ?? 0;
         document.getElementById('update-payment-collection').value = data.collection_type;
-        setupUpdatePaymentMethod(data.company_code,data.payment_method_id);
-        document.getElementById('update-payment-remark').value = data.remark;
+        document.getElementById('update-payment-remark').value   = data.remark;
+
+        // detect type from existing record
+        let type = 'CCM';
+        if (data.top_up > 0)               type = 'TOPUP';
+        else if (data.interest_paid_amount > 0 && data.payment_amount == 0) type = 'INTEREST';
+        document.getElementById('update-payment-type').value = type;
+        applyUpdatePaymentType(type);
+
+        setupUpdatePaymentMethod(data.company_code, data.payment_method_id);
         $('#modal-update-payment').modal('show');
     }
+
+    const GREY = 'opacity:0.45; pointer-events:none; user-select:none;';
+
+    function applyUpdatePaymentType(type) {
+        const wrapPayment  = document.getElementById('update-wrap-payment');
+        const wrapLate     = document.getElementById('update-wrap-late');
+        const wrapInterest = document.getElementById('update-wrap-interest');
+        const wrapTopup    = document.getElementById('update-wrap-topup');
+
+        const inputPaid     = document.getElementById('update-payment-paid');
+        const inputDiscount = document.getElementById('update-payment-discount');
+        const inputLate     = document.getElementById('update-payment-late');
+        const inputInterest = document.getElementById('update-payment-interest');
+        const inputTopup    = document.getElementById('update-payment-topup');
+
+        // reset all first
+        [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.removeAttribute('style'));
+        [inputPaid, inputDiscount, inputLate, inputInterest, inputTopup].forEach(i => i.disabled = false);
+
+        if (type === 'CCM') {
+            wrapTopup.setAttribute('style', GREY);
+            inputTopup.disabled = true;
+            inputTopup.value = '';
+
+            wrapInterest.setAttribute('style', GREY);
+            inputInterest.disabled = true;
+            inputInterest.value = '';
+
+        } else if (type === 'INTEREST') {
+            wrapTopup.setAttribute('style', GREY);
+            inputTopup.disabled = true;
+            inputTopup.value = '';
+
+            wrapPayment.setAttribute('style', GREY);
+            inputPaid.disabled = true;
+            inputPaid.value = '';
+            inputDiscount.disabled = true;
+            inputDiscount.value = '';
+
+            wrapLate.setAttribute('style', GREY);
+            inputLate.disabled = true;
+            inputLate.value = '';
+
+        } else if (type === 'TOPUP') {
+            wrapPayment.setAttribute('style', GREY);
+            inputPaid.disabled = true;
+            inputPaid.value = '';
+            inputDiscount.disabled = true;
+            inputDiscount.value = '';
+
+            wrapLate.setAttribute('style', GREY);
+            inputLate.disabled = true;
+            inputLate.value = '';
+
+            wrapInterest.setAttribute('style', GREY);
+            inputInterest.disabled = true;
+            inputInterest.value = '';
+        }
+    }
+
+    const GREY_STYLE_ADD = 'opacity:0.45; pointer-events:none; user-select:none;';
+
+    function applyAddPaymentType(type) {
+        const wrapPayment  = document.getElementById('add-wrap-payment');
+        const wrapLate     = document.getElementById('add-wrap-late');
+        const wrapInterest = document.getElementById('add-wrap-interest');
+        const wrapTopup    = document.getElementById('add-wrap-topup');
+
+        const inputPayment  = document.getElementById('add-input-payment-amount');
+        const inputLate     = document.getElementById('add-input-payment-late');
+        const inputInterest = document.getElementById('add-input-payment-interest');
+        const inputTopup    = document.getElementById('add-input-topup');
+
+        // reset all
+        [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.removeAttribute('style'));
+        [inputPayment, inputLate, inputInterest, inputTopup].forEach(i => i.disabled = false);
+
+        if (type === 'CCM') {
+            wrapTopup.setAttribute('style', GREY_STYLE_ADD);
+            inputTopup.disabled = true;
+            inputTopup.value = 0;
+
+            wrapInterest.setAttribute('style', GREY_STYLE_ADD);
+            inputInterest.disabled = true;
+            inputInterest.value = 0;
+
+        } else if (type === 'INTEREST') {
+            wrapTopup.setAttribute('style', GREY_STYLE_ADD);
+            inputTopup.disabled = true;
+            inputTopup.value = 0;
+
+            wrapPayment.setAttribute('style', GREY_STYLE_ADD);
+            inputPayment.disabled = true;
+            inputPayment.value = 0;
+
+            wrapLate.setAttribute('style', GREY_STYLE_ADD);
+            inputLate.disabled = true;
+            inputLate.value = 0;
+
+        } else if (type === 'TOPUP') {
+            wrapPayment.setAttribute('style', GREY_STYLE_ADD);
+            inputPayment.disabled = true;
+            inputPayment.value = 0;
+
+            wrapLate.setAttribute('style', GREY_STYLE_ADD);
+            inputLate.disabled = true;
+            inputLate.value = 0;
+
+            wrapInterest.setAttribute('style', GREY_STYLE_ADD);
+            inputInterest.disabled = true;
+            inputInterest.value = 0;
+        }
+    }
+
+    // init on page load
+    applyAddPaymentType('CCM');
 
     function deletePayment(rowIndex) {
         const data = table_payment.row(rowIndex).data();

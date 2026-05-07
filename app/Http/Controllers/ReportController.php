@@ -420,4 +420,167 @@ class ReportController extends Controller
             ], 500);
         }
     }
+
+    public function customer_payment_report(Request $request)
+    {
+        switch(Auth::user()->role_id){
+            case 1:
+                $query = DB::table('companies');
+                break;
+            case 2:
+                $query = DB::table('companies')->where('branch_id', Auth::user()->branch_id);
+                break;
+            default:
+                $query = DB::table('companies')->where('id', Auth::user()->company_id);
+                break;
+        }
+        $companies = $query->get();
+        return view('report.customerpaymentreport')->with('companies', $companies);
+    }
+
+    public function load_customer_payment_report(Request $request)
+    {
+        try {
+            $draw      = $request->input('draw');
+            $search    = $request->input('search.value');
+            $start     = $request->input('start', 0);
+            $length    = $request->input('length', 10);
+            $fromDate  = $request->input('from_date');
+            $toDate    = $request->input('to_date');
+            $companyId = $request->input('company_id');
+
+            if (!$fromDate && !$toDate && !$companyId) {
+                return response()->json([
+                    "draw"            => intval($draw),
+                    "recordsTotal"    => 0,
+                    "recordsFiltered" => 0,
+                    "data"            => [],
+                ]);
+            }
+
+            $query = DB::table('payments')
+                ->select([
+                    'payments.id',
+                    'payments.payment_code',
+                    'payments.loan_id',
+                    'payments.collection_type',
+                    'payments.created_at as pay_date',
+                    'payments.payment_amount',
+                    'payments.late_paid_amount',
+                    'payments.interest_paid_amount',
+                    'payments.discount_amount',
+                    'payments.top_up',
+                    'loans.payment as payment',
+                    'loans.first_payment as first_payment',
+                    'customers.customer_name as customer_name',
+                    'companies.id as company_id',
+                    'companies.company_name as company_name',
+                    'companies.company_code as company_code',
+                    'branches.branch_name as branch_name',
+                    'branches.branch_code as branch_code',
+                ])
+                ->join('customers', 'customers.id', '=', 'payments.customer_id')
+                ->join('loans',     'loans.id',     '=', 'payments.loan_id')
+                ->join('companies', 'companies.id', '=', 'loans.company_id')
+                ->join('branches',  'branches.id',  '=', 'companies.branch_id');
+
+            // ── Role filter ──────────────────────────────────────────────
+            switch (Auth::user()->role_id) {
+                case 1:
+                    break;
+                case 2:
+                    $query->where('companies.branch_id', Auth::user()->branch_id);
+                    break;
+                case 3:
+                case 4:
+                    $query->where('loans.company_id', Auth::user()->company_id);
+                    break;
+                default:
+                    throw new \Exception('Invalid role id.');
+            }
+
+            // ── Date filter (using created_at) ───────────────────────────
+            if ($fromDate && $toDate) {
+                $query->whereBetween('payments.created_at', [
+                    $fromDate . ' 00:00:00',
+                    $toDate   . ' 23:59:59',
+                ]);
+            } elseif ($fromDate) {
+                $query->whereDate('payments.created_at', '>=', $fromDate);
+            } elseif ($toDate) {
+                $query->whereDate('payments.created_at', '<=', $toDate);
+            }
+
+            // ── Company filter ───────────────────────────────────────────
+            if ($companyId) {
+                $query->where('companies.id', $companyId);
+            }
+
+            // ── Collection type filter ───────────────────────────────────────────
+            $collectionType = $request->input('collection_type');
+            if (!empty($collectionType)) {
+                $query->where('payments.collection_type', $collectionType);
+            }
+
+            // ── Search ───────────────────────────────────────────────────
+            if (!empty($search)) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('payments.payment_code',    'like', "%{$search}%")
+                    ->orWhere('customers.customer_name','like', "%{$search}%")
+                    ->orWhere('companies.company_name', 'like', "%{$search}%")
+                    ->orWhere('companies.company_code', 'like', "%{$search}%");
+                });
+            }
+
+            $recordsTotal    = $query->count();
+            $recordsFiltered = $recordsTotal;
+
+            $data = (clone $query)
+                ->orderBy('payments.loan_id')
+                ->orderBy('payments.payment_code')
+                ->skip($start)
+                ->take($length)
+                ->get();
+
+            // ── Running balance ──────────────────────────────────────────
+            $running = [];
+
+            foreach ($data as $row) {
+                $loanId = $row->loan_id;
+
+                if (!isset($running[$loanId])) {
+                    $running[$loanId] = 0;
+                }
+
+                $row->running_payment = (float) $row->payment_amount
+                    + (float) $row->late_paid_amount
+                    + (float) $row->interest_paid_amount
+                    + (float) $row->discount_amount
+                    - (float) ($row->top_up ?? 0);
+
+                $running[$loanId] += $row->running_payment;
+
+                $row->installment_calc = ($row->first_payment && $row->first_payment > 0)
+                    ? floor($running[$loanId] / $row->first_payment)
+                    : null;
+
+                $row->deducted_balance = (float) ($row->payment ?? 0) - $running[$loanId];
+            }
+
+            return response()->json([
+                "draw"            => intval($draw),
+                "recordsTotal"    => $recordsTotal,
+                "recordsFiltered" => $recordsFiltered,
+                "data"            => $data,
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Customer Payment Report Load Error: ' . $e->getMessage());
+
+            return response()->json([
+                'error'   => 'Server error occurred',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }

@@ -319,6 +319,15 @@ return [
 'allowed_login_outside_hours' => '允许在非工作时间登录',
 'can_login_anytime' => '可以随时登录',
 'restricted_to_set_hours_only' => '仅限设定时间登录',
+'customer_payment_report' => '客户付款报告',
+'search' => '搜索',
+'late_paid_amount' => '逾期付款金额',
+'interest_paid_amount' => '利息付款金额',
+'top_up' => '充值',
+'total_cost' => '总费用',
+'total_pay' => '总付款',
+'payment_type' => '付款类型',
+'top_up_amount' => '充值金额',
 
 ];
 

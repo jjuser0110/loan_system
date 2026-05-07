@@ -13,7 +13,8 @@ class Payment extends Model
         'payment_amount' => 'decimal:2',
         'late_paid_amount' => 'decimal:2',
         'interest_paid_amount' => 'decimal:2',
-        'discount_amount' => 'decimal:2'
+        'discount_amount' => 'decimal:2',
+        'top_up' => 'decimal:2'
     ];
 
     protected $fillable = [
@@ -27,6 +28,7 @@ class Payment extends Model
         'discount_amount',
         'bank',
         'cheque',
+        'top_up',
         'collection_type',
         'created_by',
         'updated_by',

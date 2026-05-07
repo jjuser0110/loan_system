@@ -319,6 +319,15 @@ return [
 'allowed_login_outside_hours' => 'Dibenarkan log masuk di luar waktu kerja',
 'can_login_anytime' => 'Boleh log masuk pada bila-bila masa',
 'restricted_to_set_hours_only' => 'Terhad kepada waktu yang ditetapkan sahaja',
+'customer_payment_report' => 'Laporan Bayaran Pelanggan',
+'search' => 'Cari',
+'late_paid_amount' => 'Jumlah Bayaran Lewat',
+'interest_paid_amount' => 'Jumlah Bayaran Faedah',
+'top_up' => 'Tambah Nilai',
+'total_cost' => 'Jumlah Kos',
+'total_pay' => 'Jumlah Bayaran',
+'payment_type' => 'Jenis Bayaran',
+'top_up_amount' => 'Jumlah Tambah Nilai',
 
 ];
 

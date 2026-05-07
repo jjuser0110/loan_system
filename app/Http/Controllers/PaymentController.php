@@ -120,10 +120,9 @@ class PaymentController extends Controller
                 ->take($length)
                 ->get();
 
-            $running = [];
+           $running = [];
 
             foreach ($data as $row) {
-
                 $loanId = $row->loan_id;
 
                 if (!isset($running[$loanId])) {
@@ -131,6 +130,7 @@ class PaymentController extends Controller
                 }
 
                 $running[$loanId] += $row->payment_amount;
+                $running[$loanId] -= ($row->top_up ?? 0); // top_up increases balance, so reverse it
 
                 $row->running_payment = $running[$loanId];
 
@@ -139,7 +139,7 @@ class PaymentController extends Controller
                     ? floor($row->running_payment / $row->first_payment)
                     : null;
 
-                 $row->deducted_balance =
+                $row->deducted_balance =
                     ($row->payment ?? 0) - $running[$loanId];
             }
 
@@ -309,6 +309,7 @@ class PaymentController extends Controller
                 'discount_amount' => 'nullable|numeric|min:0',
                 'late_paid_amount' => 'nullable|numeric',
                 'interest_paid_amount' => 'nullable|numeric',
+                'top_up' => 'nullable|numeric|min:0',
                 'collection_type' => 'nullable|string',
                 'cheque' => 'nullable|string',
                 'bank'=> 'nullable|string',
@@ -326,6 +327,8 @@ class PaymentController extends Controller
             $total_payment = $payment_amount + $discount_amount;
             $late_paid_amount = $v['late_paid_amount'] ?? 0;
             $interest_paid_amount = $v['interest_paid_amount'] ?? 0;
+            $top_up = $v['top_up'] ?? 0;
+
             if ($late_paid_amount > $loan->late_balance) {
                 throw new Exception('Late payment exceeds remaining late balance.');
             }
@@ -370,6 +373,7 @@ class PaymentController extends Controller
                 'loan_id'=>$loan->id,
                 'late_paid_amount'=>$late_paid_amount,
                 'interest_paid_amount'=>$interest_paid_amount,
+                'top_up'        => $top_up,
                 'payment_amount'=>$payment_amount,
                 'discount_amount'=>$discount_amount,
                 'collection_type'=>$v['collection_type'],
@@ -470,31 +474,20 @@ class PaymentController extends Controller
                     
                     if(!$nextSchedule){
                         $newInterestAmount = ($newBalance / 100) * $loan->interest_rate;
-                        // $lastSchedule = PaymentSchedule::where('loan_code',$loan->loan_code)->orderBy('due_date','desc')->first();
-                        // $prefix = $loan->loan_code.'-S';
-                        // $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
-                        // $nextSchedule = PaymentSchedule::create([
-                        //     'schedule_code' => $schedule_code,
-                        //     'loan_code' => $loan->loan_code,
-                        //     'company_id' => $loan->company_id,
-                        //     'customer_id' => $loan->customer_id,
-                        //     'due_date' => Carbon::parse($lastSchedule->due_date)->addMonths(1)->format('Y-m-d'),
-                        //     'interest_amount' => $newInterestAmount,
-                        //     'interest_paid_amount' => 0,
-                        // ]);
                         $interest_balance_change = $newInterestAmount;
                     }
                 }
                 $interest_balance_change = 0; // SET TO 0 DUE TO USE CRONJOB GENERATE NEW SCHEDULE
                 $loan->update([
                     'paid' => $loan->paid + $payment_amount,
-                    'balance' => $newBalance,
+                    'balance'          => $newBalance + $top_up,
                     'interest' => $loan->interest + $interest_balance_change,
                     'interest_paid' => $loan->interest_paid + $interest_paid_amount,
                     'interest_balance' => ($loan->interest + $interest_balance_change) - ($loan->interest_paid + $interest_paid_amount),
                     'late_paid' => $loan->late_paid + $late_paid_amount,
                     'late_balance' => $loan->late_balance - $late_paid_amount,
                     'discount' => $loan->discount + $discount_amount,
+                    'loan_amount' => $loan->loan_amount + $top_up,
                 ]);
                 $this->loanController->update_loan_misc($loan);
             }
@@ -582,7 +575,8 @@ class PaymentController extends Controller
 
                 $loan->update([
                     'paid' => $loan->paid + $payment_amount,
-                    'balance' => $loan->balance - $total_payment,
+                    'balance'          => $loan->balance - $total_payment + $top_up,  // ← add + $top_up
+                    'loan_amount'      => $loan->loan_amount + $top_up, 
                     'interest_paid' => $loan->interest_paid + $interest_paid_amount,
                     'interest_balance' => $loan->interest - ($loan->interest_paid + $interest_paid_amount),
                     'late_paid' => $loan->late_paid + $late_paid_amount,
@@ -658,6 +652,7 @@ class PaymentController extends Controller
                 'interest_paid_amount' => 'nullable|numeric',
                 'collection_type' => 'nullable|string',
                 'cheque' => 'nullable|string',
+                'top_up' => 'nullable|numeric|min:0',
                 'bank'=> 'nullable|string',
                 'remark'=> 'nullable|string',
             ]);
@@ -692,6 +687,10 @@ class PaymentController extends Controller
             $diff_late_paid = $new_late_paid - $old_late_paid;
             $diff_discount = $new_discount - $old_discount;
             $diff_total = $new_total - $old_total;
+
+            $old_top_up   = $payment->top_up ?? 0;
+            $new_top_up   = $v['top_up'] ?? 0;
+            $diff_top_up  = $new_top_up - $old_top_up;
 
             $company = Company::where('id',$loan->company_id)->first();
             if(!$company){
@@ -910,7 +909,8 @@ class PaymentController extends Controller
                 $interest_balance_change = 0; // SET TO 0 DUE TO USE CRONJOB GENERATE NEW SCHEDULE
                 $loan->update([
                     'paid' => $loan->paid + $diff_payment,
-                    'balance' => $newBalance,
+                    'balance'          => $newBalance + $diff_top_up,
+                    'loan_amount'      => $loan->loan_amount + $diff_top_up,
                     'interest' => $loan->interest + $interest_balance_change,
                     'interest_paid' => $loan->interest_paid + $diff_interest_paid,
                     'interest_balance' => ($loan->interest + $interest_balance_change) - ($loan->interest_paid + $diff_interest_paid),
@@ -1121,7 +1121,8 @@ class PaymentController extends Controller
 
                 $loan->update([
                     'paid' => $loan->paid + $diff_payment,
-                    'balance' => $loan->balance - $diff_total,
+                    'balance'          => $loan->balance - $diff_total + $diff_top_up,
+                    'loan_amount'      => $loan->loan_amount + $diff_top_up,
                     'interest_paid' => $loan->interest_paid + $diff_interest_paid,
                     'interest_balance' => $loan->interest - ($loan->interest_paid + $diff_interest_paid),
                     'late_paid' => $loan->late_paid + $diff_late_paid,
@@ -1194,6 +1195,7 @@ class PaymentController extends Controller
                 'interest_paid_amount' => $new_interest_paid,
                 'late_paid_amount' => $new_late_paid,
                 'discount_amount' => $new_discount,
+                'top_up'               => $new_top_up,
                 'collection_type' => $v['collection_type'] ?? $payment->collection_type,
                 'payment_method_id' => $pymt->id,
                 'updated_by' => Auth::user()->id,
