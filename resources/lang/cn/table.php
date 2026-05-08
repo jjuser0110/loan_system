@@ -329,6 +329,7 @@ return [
 'payment_type' => '付款类型',
 'top_up_amount' => '充值金额',
 'enter_top_up_amount' => '输入充值金额',
+'all_loan' => '所有贷款',
 
 ];
 
