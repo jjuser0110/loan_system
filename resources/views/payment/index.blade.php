@@ -54,17 +54,13 @@
                     {{-- Payment type selector --}}
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_type') }}</label>
-                        <select class="form-control" id="update-payment-type" onchange="applyUpdatePaymentType(this.value)">
-                            <option value="CCM">CCM</option>
-                            <option value="INTEREST">{{ __('table.interest') }}</option>
-                            <option value="TOPUP">{{ __('table.top_up') }}</option>
+                        <select class="form-control" id="update-payment_type" name="payment_type" required>
+                            <option value="CCM">Payment / CCM</option>
+                            <option value="INTEREST">Pay SKIM A Interest</option>
+                            <option value="DISCOUNT">Discount Amount</option>
+                            <option value="LATE">Pay Late</option>
+                            <option value="TOPUP">Top Up</option>
                         </select>
-                    </div>
-
-                    {{-- TOP-UP only --}}
-                    <div class="col-md-12 mb-3" id="update-wrap-topup" style="display:none;">
-                        <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
-                        <input type="number" class="form-control" id="update-payment-topup" name="top_up" placeholder="5000.00" step="0.01">
                     </div>
 
                     {{-- CCM only --}}
@@ -77,6 +73,12 @@
                             <label class="col-form-label">{{ __('table.discount') }}</label>
                             <input type="number" class="form-control" id="update-payment-discount" name="discount_amount">
                         </div>
+                    </div>
+                    
+                    {{-- TOP-UP only --}}
+                    <div class="col-md-12 mb-3" id="update-wrap-topup" style="display:none;">
+                        <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
+                        <input type="number" class="form-control" id="update-payment-topup" name="top_up" placeholder="5000.00" step="0.01">
                     </div>
 
                     {{-- greyed for non-CCM --}}
@@ -91,20 +93,11 @@
                         <input type="number" class="form-control" id="update-payment-interest" name="interest_paid_amount">
                     </div>
 
-                    <div class="col-md-12 mb-3">
-                        <label class="col-form-label">{{ __('table.collection') }}</label>
-                        <select class="form-control" name="collection_type" id="update-payment-collection">
-                            <option value="SKIM A">{{ __('table.skim_A') }}</option>
-                            <option value="SKIM B">{{ __('table.skim_B') }}</option>
-                        </select>
-                    </div>
+                    {{-- Hidden collection type --}}
+                    <input type="hidden" name="collection_type" id="update-payment-collection" value="">
 
-                    <div class="col-md-12 mb-3">
-                        <label class="col-form-label">{{ __('table.payment_method') }}</label>
-                        <select class="form-control" id="update_payment_method_id" name="payment_method_id" required>
-                            <option>{{ __('table.please_insert_loan_code_first') }}</option>
-                        </select>
-                    </div>
+                    {{-- Hidden payment method --}}
+                    <input type="hidden" name="payment_method_id" id="update_payment_method_id" value="">
 
                     <div class="col-12">
                         <label class="col-form-label">{{ __('table.remark') }}</label>
@@ -154,13 +147,9 @@
                     "data": "payment_code",
                     "render": function(data) {
                         if (!data) return '-';
-
-                        // get last part after "P"
                         let match = data.match(/P(\d+)$/);
-
                         if (!match) return '-';
-
-                        return parseInt(match[1], 10); // remove leading zeros
+                        return parseInt(match[1], 10);
                     }
                 },
                 {
@@ -171,7 +160,6 @@
                     "render": function(data) {
                         let value = parseFloat(data);
                         if (isNaN(value) || value == 0) return '-';
-
                         return `<strong style="color:green">${value}</strong>`;
                     }
                 },
@@ -180,7 +168,6 @@
                     "render": function(data) {
                         let value = parseFloat(data);
                         if (isNaN(value) || value == 0) return '-';
-
                         return `<strong>${value}</strong>`;
                     }
                 },
@@ -189,7 +176,6 @@
                     "render": function(data) {
                         let value = parseFloat(data);
                         if (isNaN(value) || value == 0) return '-';
-
                         return `<strong style="color:orange">${value}</strong>`;
                     }
                 },
@@ -197,11 +183,7 @@
                     "data": "top_up_cap",
                     "render": function(data) {
                         let value = parseFloat(data);
-
-                        if (isNaN(value) || value == 0) {
-                            return '-';
-                        }
-
+                        if (isNaN(value) || value == 0) return '-';
                         return `<strong style="color:orange">${value}</strong>`;
                     }
                 },
@@ -209,11 +191,7 @@
                     "data": "top_up",
                     "render": function(data) {
                         let value = parseFloat(data);
-
-                        if (isNaN(value) || value == 0) {
-                            return '-';
-                        }
-
+                        if (isNaN(value) || value == 0) return '-';
                         return `<strong style="color:orange">${value}</strong>`;
                     }
                 },
@@ -221,7 +199,6 @@
                     "data": "deducted_balance",
                     "render": function(data) {
                         if (data == null) return '-';
-
                         return parseFloat(data).toFixed(2);
                     }
                 },
@@ -251,28 +228,40 @@
                     }
                 }
                 @endif
-            ]
+                ]
+            });
+
+            // Event listener for modal payment type change
+            document.getElementById('update-payment_type').addEventListener('change', function () {
+                applyUpdatePaymentType(this.value);
             });
         });
 
         function updatePayment(rowIndex) {
             const data = table_payment.row(rowIndex).data();
 
-            document.getElementById('update-payment-id').value       = data.id;
-            document.getElementById('update-payment-paid').value     = data.payment_amount;
-            document.getElementById('update-payment-interest').value = data.interest_paid_amount;
-            document.getElementById('update-payment-late').value     = data.late_paid_amount;
-            document.getElementById('update-payment-discount').value = data.discount_amount;
-            document.getElementById('update-payment-topup').value    = data.top_up ?? 0;
+            document.getElementById('update-payment-id').value         = data.id;
             document.getElementById('update-payment-collection').value = data.collection_type;
-            document.getElementById('update-payment-remark').value   = data.remark;
+            document.getElementById('update-payment-remark').value     = data.remark;
 
-            // detect type from existing record
+            // Detect type from existing record
             let type = 'CCM';
-            if (data.top_up > 0)               type = 'TOPUP';
-            else if (data.interest_paid_amount > 0 && data.payment_amount == 0) type = 'INTEREST';
-            document.getElementById('update-payment-type').value = type;
+            if (data.top_up > 0)                                                   type = 'TOPUP';
+            else if (data.interest_paid_amount > 0 && data.payment_amount == 0)   type = 'INTEREST';
+            else if (data.discount_amount > 0 && data.payment_amount == 0)        type = 'DISCOUNT';
+            else if (data.late_paid_amount > 0 && data.payment_amount == 0)       type = 'LATE';
+
+            document.getElementById('update-payment_type').value = type;
+
+            // Apply type first (this locks/unlocks fields)
             applyUpdatePaymentType(type);
+
+            // Then fill in values AFTER applyUpdatePaymentType so they don't get cleared
+            document.getElementById('update-payment-paid').value       = data.payment_amount     ?? '';
+            document.getElementById('update-payment-interest').value   = data.interest_paid_amount ?? '';
+            document.getElementById('update-payment-late').value       = data.late_paid_amount   ?? '';
+            document.getElementById('update-payment-discount').value   = data.discount_amount    ?? '';
+            document.getElementById('update-payment-topup').value      = data.top_up             ?? '';
 
             setupUpdatePaymentMethod(data.company_code, data.payment_method_id);
             $('#modal-update-payment').modal('show');
@@ -292,48 +281,40 @@
             const inputInterest = document.getElementById('update-payment-interest');
             const inputTopup    = document.getElementById('update-payment-topup');
 
-            // reset all first
-            [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.removeAttribute('style'));
-            [inputPaid, inputDiscount, inputLate, inputInterest, inputTopup].forEach(i => i.disabled = false);
+            // Reset — grey everything first
+            [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.setAttribute('style', GREY));
+            [inputPaid, inputDiscount, inputLate, inputInterest, inputTopup].forEach(i => {
+                i.disabled = true;
+                i.required = false;
+                i.value    = '';
+            });
 
             if (type === 'CCM') {
-                wrapTopup.setAttribute('style', GREY);
-                inputTopup.disabled = true;
-                inputTopup.value = '';
-
-                wrapInterest.setAttribute('style', GREY);
-                inputInterest.disabled = true;
-                inputInterest.value = '';
+                wrapPayment.removeAttribute('style');
+                inputPaid.disabled = false;
+                inputPaid.required = true;
+                inputDiscount.disabled = false;
 
             } else if (type === 'INTEREST') {
-                wrapTopup.setAttribute('style', GREY);
-                inputTopup.disabled = true;
-                inputTopup.value = '';
+                wrapInterest.removeAttribute('style');
+                inputInterest.disabled = false;
+                inputInterest.required = true;
 
-                wrapPayment.setAttribute('style', GREY);
+            } else if (type === 'DISCOUNT') {
+                wrapPayment.removeAttribute('style');
+                inputDiscount.disabled = false;
+                inputDiscount.required = true;
                 inputPaid.disabled = true;
-                inputPaid.value = '';
-                inputDiscount.disabled = true;
-                inputDiscount.value = '';
 
-                wrapLate.setAttribute('style', GREY);
-                inputLate.disabled = true;
-                inputLate.value = '';
+            } else if (type === 'LATE') {
+                wrapLate.removeAttribute('style');
+                inputLate.disabled = false;
+                inputLate.required = true;
 
             } else if (type === 'TOPUP') {
-                wrapPayment.setAttribute('style', GREY);
-                inputPaid.disabled = true;
-                inputPaid.value = '';
-                inputDiscount.disabled = true;
-                inputDiscount.value = '';
-
-                wrapLate.setAttribute('style', GREY);
-                inputLate.disabled = true;
-                inputLate.value = '';
-
-                wrapInterest.setAttribute('style', GREY);
-                inputInterest.disabled = true;
-                inputInterest.value = '';
+                wrapTopup.removeAttribute('style');
+                inputTopup.disabled = false;
+                inputTopup.required = true;
             }
         }
 
@@ -348,8 +329,7 @@
                     success: function (response) {
                         if(response.success == true){
                             setReloadSwal('success','',response.message);
-                        }
-                        else{
+                        } else {
                             setDefaultSwal('error','',response.message);
                         }
                     },
@@ -369,10 +349,9 @@
                 }
             });
         }
-        
+
         $('#form-update-payment').on('submit', function (e) {
             e.preventDefault();
-            let form = $(this);
             let formData = new FormData(this);
             $.ajax({
                 url: "{{ route('payment.update') }}",
@@ -380,12 +359,11 @@
                 data: formData,
                 processData: false,
                 contentType: false,
-                header: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
+                headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
                 success: function (response) {
                     if(response.success == true){
                         setReloadSwal('success','',response.message);
-                    }
-                    else{
+                    } else {
                         setDefaultSwal('error','',response.message);
                     }
                 },
@@ -396,31 +374,25 @@
         });
 
         function setupUpdatePaymentMethod(x, y) {
-            let d = document.getElementById('update_payment_method_id');
-            d.disabled = true;
-            if (x != false) {
+            if (x) {
                 fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(x)}`, {
-                    headers: {
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    }
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
                 })
                 .then(response => response.json())
                 .then(methods => {
-                    d.innerHTML = "";
-                    if (methods.length === 0) {
-                        d.innerHTML = '<option>No payment method found.</option>';
+                    if (methods.length > 0) {
+                        // Use existing payment method id if matched, else first
+                        let matched = methods.find(m => m.id == y);
+                        document.getElementById('update_payment_method_id').value = matched ? matched.id : methods[0].id;
                     } else {
-                        methods.forEach(method => {
-                            d.innerHTML += `<option value="${method.id}" ${y == method.id ? 'selected' : ''}>${method.bank_name} / ${method.account_no} (RM ${formatCredit(method.amount)})</option>`;
-                        });
-                        d.disabled = false; // enable so it gets submitted
+                        document.getElementById('update_payment_method_id').value = '';
                     }
                 })
                 .catch(error => {
-                    d.innerHTML = '<option>-- Failed to get methods. --</option>';
+                    document.getElementById('update_payment_method_id').value = '';
                 });
             } else {
-                d.innerHTML = "<option>Please select loan first.</option>";
+                document.getElementById('update_payment_method_id').value = '';
             }
         }
     </script>

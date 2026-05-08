@@ -625,6 +625,7 @@ class LoanController extends Controller
             'loans.next_due_amount',
             'loans.next_due_date',
             'loans.outstanding',
+            'loans.interest_group',
             'customers.customer_name',
             'customers.customer_code',
             'companies.company_code',

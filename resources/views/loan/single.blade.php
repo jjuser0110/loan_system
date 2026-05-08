@@ -103,6 +103,9 @@
                 <li class="nav-item">
                     <a class="nav-link" data-bs-target="#payment" href="#payment" data-bs-toggle="tab">{{ __('table.payment') }}</a>
                 </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-target="#allloan" href="#allloan" data-bs-toggle="tab">{{ __('table.all_loan') }}</a>
+                </li>
             </ul>
              <div class="tab-content">
                 <div id="overview" class="tab-pane active">
@@ -618,7 +621,7 @@
                 </div>
             </div>
 
-             <div class="tab-content">
+            <div class="tab-content">
                 <div id="payment" class="tab-pane">
                      <div class="col-lg-12">
                         <section class="card">
@@ -684,6 +687,48 @@
                     </div>
                 </div>
             </div>
+            
+            <div class="tab-content">
+                <div id="allloan" class="tab-pane">
+                    <div class="col-lg-12 mb-3">
+                        <section class="card" style="overflow:auto">
+                            <div class="card-body">
+                                <div style="margin-bottom: 10px;">
+                                    <label style="cursor:pointer; user-select:none;">
+                                        <input type="checkbox" id="hide-fully-paid" checked>
+                                        &nbsp;{{ __('table.hide_fully_paid') }}
+                                    </label>
+                                </div>
+                                <table class="table cus-table table-bordered mb-0" id="table-all-loan">
+                                    <thead>
+                                        <tr>
+                                            <th>{{ __('table.loan_code') }}</th>
+                                            <th>{{ __('table.company') }}</th>
+                                            <th>{{ __('table.interest_group') }}</th>
+                                            <th>{{ __('table.created_date') }}</th>
+                                            <th>{{ __('table.payment_due') }}</th>
+                                            <th>{{ __('table.last_payment') }}</th>
+                                            <th>{{ __('table.loan_amount') }}</th>
+                                            <th>{{ __('table.capital') }}</th>
+                                            <th>{{ __('table.paid') }}</th>
+                                            <th>{{ __('table.outstanding') }}</th>
+                                            <th>{{ __('table.loan_term') }}</th>
+                                            <th>{{ __('table.installment') }}</th>
+                                            <th>{{ __('table.interest_rate') }}</th>
+                                            <th>{{ __('table.int') }}</th>
+                                            <th>{{ __('table.late') }}</th>
+                                            <th>{{ __('table.status') }}</th>
+                                            <th>{{ __('table.actions') }}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
@@ -815,9 +860,11 @@
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_type') }}</label>
                         <select class="form-control" id="add-payment-type" onchange="applyAddPaymentType(this.value)">
-                            <option value="CCM">CCM</option>
-                            <option value="INTEREST">{{ __('table.interest') }}</option>
-                            <option value="TOPUP">{{ __('table.top_up') }}</option>
+                            <option value="CCM">Payment / CCM</option>
+                            <option value="INTEREST">Pay SKIM A Interest</option>
+                            <option value="DISCOUNT">Discount Amount</option>
+                            <option value="LATE">Pay Late</option>
+                            <option value="TOPUP">Top Up</option>
                         </select>
                     </div>
 
@@ -854,20 +901,11 @@
                         <p class="p-note">{{ $loan->interest_balance ?? '0.00' }}</p>
                     </div>
 
-                    <div class="col-md-12 mb-3">
-                        <label class="col-form-label">{{ __('table.collection') }}</label>
-                        <select class="form-control" name="collection_type" required>
-                            <option value="SKIM A" {{ $loan->interest_group == 'SKIM A' ? 'selected' : '' }}>{{ __('table.skim_A') }}</option>
-                            <option value="SKIM B" {{ $loan->interest_group == 'SKIM B' ? 'selected' : '' }}>{{ __('table.skim_B') }}</option>
-                        </select>
-                    </div>
+                    {{-- Hidden collection type - auto from loan's interest_group --}}
+                    <input type="hidden" name="collection_type" id="add-collection-type" value="{{ $loan->interest_group ?? 'SKIM A' }}">
 
-                    <div class="col-md-12 mb-3">
-                        <label class="col-form-label">{{ __('table.payment_method') }}</label>
-                        <select class="form-control" id="payment_method_id" name="payment_method_id" disabled required>
-                            <option>{{ __('table.please_insert_loan_code_first') }}</option>
-                        </select>
-                    </div>
+                    {{-- Hidden payment method --}}
+                    <input type="hidden" name="payment_method_id" id="add-payment-method-id" value="">
 
                     <div class="col-12">
                         <label class="col-form-label">{{ __('table.remark') }}</label>
@@ -900,9 +938,11 @@
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_type') }}</label>
                         <select class="form-control" id="update-payment-type" onchange="applyUpdatePaymentType(this.value)">
-                            <option value="CCM">CCM</option>
-                            <option value="INTEREST">{{ __('table.interest') }}</option>
-                            <option value="TOPUP">{{ __('table.top_up') }}</option>
+                            <option value="CCM">Payment / CCM</option>
+                            <option value="INTEREST">Pay SKIM A Interest</option>
+                            <option value="DISCOUNT">Discount Amount</option>
+                            <option value="LATE">Pay Late</option>
+                            <option value="TOPUP">Top Up</option>
                         </select>
                     </div>
 
@@ -936,20 +976,11 @@
                         <input type="number" class="form-control" id="update-payment-interest" name="interest_paid_amount">
                     </div>
 
-                    <div class="col-md-12 mb-3">
-                        <label class="col-form-label">{{ __('table.collection') }}</label>
-                        <select class="form-control" name="collection_type" id="update-payment-collection">
-                            <option value="SKIM A">{{ __('table.skim_A') }}</option>
-                            <option value="SKIM B">{{ __('table.skim_B') }}</option>
-                        </select>
-                    </div>
+                    {{-- Hidden collection type --}}
+                    <input type="hidden" name="collection_type" id="update-payment-collection" value="">
 
-                    <div class="col-md-12 mb-3">
-                        <label class="col-form-label">{{ __('table.payment_method') }}</label>
-                        <select class="form-control" id="update_payment_method_id" name="payment_method_id" required>
-                            <option>{{ __('table.please_insert_loan_code_first') }}</option>
-                        </select>
-                    </div>
+                    {{-- Hidden payment method --}}
+                    <input type="hidden" name="payment_method_id" id="update_payment_method_id" value="">
 
                     <div class="col-12">
                         <label class="col-form-label">{{ __('table.remark') }}</label>
@@ -1241,6 +1272,7 @@
                         e.preventDefault();
                         searchInput.value = loan.loan_code;
                         dropdown.style.display = 'none';
+                        console.log(loan.interest_group);
                         setupPaymentMethod(loan);
                     });
                     dropdown.appendChild(item);
@@ -1310,25 +1342,41 @@
     function updatePayment(rowIndex) {
         const data = table_payment.row(rowIndex).data();
 
-        document.getElementById('update-payment-id').value       = data.id;
-        document.getElementById('update-payment-paid').value     = data.payment_amount;
-        document.getElementById('update-payment-interest').value = data.interest_paid_amount;
-        document.getElementById('update-payment-late').value     = data.late_paid_amount;
-        document.getElementById('update-payment-discount').value = data.discount_amount;
-        document.getElementById('update-payment-topup').value    = data.top_up ?? 0;
+        document.getElementById('update-payment-id').value         = data.id;
         document.getElementById('update-payment-collection').value = data.collection_type;
-        document.getElementById('update-payment-remark').value   = data.remark;
+        document.getElementById('update-payment-remark').value     = data.remark;
 
-        // detect type from existing record
+        // Detect type from existing record
         let type = 'CCM';
-        if (data.top_up > 0)               type = 'TOPUP';
-        else if (data.interest_paid_amount > 0 && data.payment_amount == 0) type = 'INTEREST';
+        if (data.top_up > 0)                                                   type = 'TOPUP';
+        else if (data.interest_paid_amount > 0 && data.payment_amount == 0)   type = 'INTEREST';
+        else if (data.discount_amount > 0 && data.payment_amount == 0)        type = 'DISCOUNT';
+        else if (data.late_paid_amount > 0 && data.payment_amount == 0)       type = 'LATE';
+
         document.getElementById('update-payment-type').value = type;
+
+        // Apply type first (locks/unlocks fields)
         applyUpdatePaymentType(type);
+
+        // Fill values AFTER applyUpdatePaymentType so they don't get cleared
+        document.getElementById('update-payment-paid').value     = data.payment_amount      ?? '';
+        document.getElementById('update-payment-interest').value = data.interest_paid_amount ?? '';
+        document.getElementById('update-payment-late').value     = data.late_paid_amount    ?? '';
+        document.getElementById('update-payment-discount').value = data.discount_amount     ?? '';
+        document.getElementById('update-payment-topup').value    = data.top_up              ?? '';
 
         setupUpdatePaymentMethod(data.company_code, data.payment_method_id);
         $('#modal-update-payment').modal('show');
     }
+
+    @if($loan?->company->company_code)
+    document.addEventListener('DOMContentLoaded', function () {
+        setupPaymentMethod({
+            company_code: "{{ $loan?->company->company_code }}",
+            interest_group: "{{ $loan?->interest_group ?? 'SKIM A' }}"
+        });
+    });
+    @endif
 
     const GREY = 'opacity:0.45; pointer-events:none; user-select:none;';
 
@@ -1344,48 +1392,40 @@
         const inputInterest = document.getElementById('update-payment-interest');
         const inputTopup    = document.getElementById('update-payment-topup');
 
-        // reset all first
-        [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.removeAttribute('style'));
-        [inputPaid, inputDiscount, inputLate, inputInterest, inputTopup].forEach(i => i.disabled = false);
+        // Reset — grey everything first
+        [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.setAttribute('style', GREY));
+        [inputPaid, inputDiscount, inputLate, inputInterest, inputTopup].forEach(i => {
+            i.disabled = true;
+            i.required = false;
+            i.value = '';
+        });
 
         if (type === 'CCM') {
-            wrapTopup.setAttribute('style', GREY);
-            inputTopup.disabled = true;
-            inputTopup.value = '';
-
-            wrapInterest.setAttribute('style', GREY);
-            inputInterest.disabled = true;
-            inputInterest.value = '';
+            wrapPayment.removeAttribute('style');
+            inputPaid.disabled = false;
+            inputPaid.required = true;
+            inputDiscount.disabled = false;
 
         } else if (type === 'INTEREST') {
-            wrapTopup.setAttribute('style', GREY);
-            inputTopup.disabled = true;
-            inputTopup.value = '';
+            wrapInterest.removeAttribute('style');
+            inputInterest.disabled = false;
+            inputInterest.required = true;
 
-            wrapPayment.setAttribute('style', GREY);
+        } else if (type === 'DISCOUNT') {
+            wrapPayment.removeAttribute('style');
+            inputDiscount.disabled = false;
+            inputDiscount.required = true;
             inputPaid.disabled = true;
-            inputPaid.value = '';
-            inputDiscount.disabled = true;
-            inputDiscount.value = '';
 
-            wrapLate.setAttribute('style', GREY);
-            inputLate.disabled = true;
-            inputLate.value = '';
+        } else if (type === 'LATE') {
+            wrapLate.removeAttribute('style');
+            inputLate.disabled = false;
+            inputLate.required = true;
 
         } else if (type === 'TOPUP') {
-            wrapPayment.setAttribute('style', GREY);
-            inputPaid.disabled = true;
-            inputPaid.value = '';
-            inputDiscount.disabled = true;
-            inputDiscount.value = '';
-
-            wrapLate.setAttribute('style', GREY);
-            inputLate.disabled = true;
-            inputLate.value = '';
-
-            wrapInterest.setAttribute('style', GREY);
-            inputInterest.disabled = true;
-            inputInterest.value = '';
+            wrapTopup.removeAttribute('style');
+            inputTopup.disabled = false;
+            inputTopup.required = true;
         }
     }
 
@@ -1401,45 +1441,42 @@
         const inputLate     = document.getElementById('add-input-payment-late');
         const inputInterest = document.getElementById('add-input-payment-interest');
         const inputTopup    = document.getElementById('add-input-topup');
+        const inputDiscount = document.querySelector('#add-wrap-payment [name="discount_amount"]');
 
-        // reset all
-        [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.removeAttribute('style'));
-        [inputPayment, inputLate, inputInterest, inputTopup].forEach(i => i.disabled = false);
+        // Reset — grey everything first
+        [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.setAttribute('style', GREY_STYLE_ADD));
+        [inputPayment, inputLate, inputInterest, inputTopup, inputDiscount].forEach(i => {
+            i.disabled = true;
+            i.required = false;
+            i.value = 0;
+        });
 
         if (type === 'CCM') {
-            wrapTopup.setAttribute('style', GREY_STYLE_ADD);
-            inputTopup.disabled = true;
-            inputTopup.value = 0;
-
-            wrapInterest.setAttribute('style', GREY_STYLE_ADD);
-            inputInterest.disabled = true;
-            inputInterest.value = 0;
+            wrapPayment.removeAttribute('style');
+            inputPayment.disabled = false;
+            inputPayment.required = true;
+            inputDiscount.disabled = false;
 
         } else if (type === 'INTEREST') {
-            wrapTopup.setAttribute('style', GREY_STYLE_ADD);
-            inputTopup.disabled = true;
-            inputTopup.value = 0;
+            wrapInterest.removeAttribute('style');
+            inputInterest.disabled = false;
+            inputInterest.required = true;
 
-            wrapPayment.setAttribute('style', GREY_STYLE_ADD);
+        } else if (type === 'DISCOUNT') {
+            wrapPayment.removeAttribute('style');
+            inputDiscount.disabled = false;
+            inputDiscount.required = true;
             inputPayment.disabled = true;
-            inputPayment.value = 0;
 
-            wrapLate.setAttribute('style', GREY_STYLE_ADD);
-            inputLate.disabled = true;
-            inputLate.value = 0;
+        } else if (type === 'LATE') {
+            wrapLate.removeAttribute('style');
+            inputLate.disabled = false;
+            inputLate.required = true;
 
         } else if (type === 'TOPUP') {
-            wrapPayment.setAttribute('style', GREY_STYLE_ADD);
-            inputPayment.disabled = true;
-            inputPayment.value = 0;
-
-            wrapLate.setAttribute('style', GREY_STYLE_ADD);
-            inputLate.disabled = true;
-            inputLate.value = 0;
-
-            wrapInterest.setAttribute('style', GREY_STYLE_ADD);
-            inputInterest.disabled = true;
-            inputInterest.value = 0;
+            wrapTopup.removeAttribute('style');
+            inputTopup.disabled = false;
+            inputTopup.required = true;
         }
     }
 
@@ -1594,70 +1631,49 @@
     });
     @endif
 
-    function setupPaymentMethod(x){
-        let d = document.getElementById('payment_method_id');
-        d.disabled = true;
-        if(x != false){
-            fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(x)}`, {
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
+    function setupPaymentMethod(loan) {
+        if (loan) {
+            fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(loan.company_code)}`, {
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
             })
             .then(response => response.json())
             .then(methods => {
-                d.innerHTML = "";
-                if (methods.length === 0) {
-                    d.innerHTML = '<option>No payment method found.</option>';
+                if (methods.length > 0) {
+                    document.getElementById('add-payment-method-id').value = methods[0].id;
                 } else {
-                    methods.forEach(method => {
-                        d.innerHTML += `<option value="${method.id}">${method.bank_name} / ${method.account_no} (RM ${formatCredit(method.amount)})</option>`;
-                    });
-                    d.disabled = false;
+                    document.getElementById('add-payment-method-id').value = '';
                 }
             })
             .catch(error => {
-                d.innerHTML = '<option>-- Failed to get methods. --</option>';
+                document.getElementById('add-payment-method-id').value = '';
             });
-        }
-        else{ 
-            d.innerHTML = "<option>Please select loan first.</option>";
+
+            // Auto set collection type from loan's interest_group
+            document.getElementById('add-collection-type').value = loan.interest_group ?? 'SKIM A';
         }
     }
 
-    function setupUpdatePaymentMethod(x,y){
-        let d = document.getElementById('update_payment_method_id');
-        d.disabled = true;
-        if(x != false){
+    function setupUpdatePaymentMethod(x, y) {
+        if (x) {
             fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(x)}`, {
-                headers: {
-                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                }
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
             })
             .then(response => response.json())
             .then(methods => {
-                d.innerHTML = "";
-                if (methods.length === 0) {
-                    d.innerHTML = '<option>No payment method found.</option>';
+                if (methods.length > 0) {
+                    let matched = methods.find(m => m.id == y);
+                    document.getElementById('update_payment_method_id').value = matched ? matched.id : methods[0].id;
                 } else {
-                    methods.forEach(method => {
-                        d.innerHTML += `<option value="${method.id}" ${y == method.id ? 'selected' : ''}>${method.bank_name} / ${method.account_no} (RM ${formatCredit(method.amount)})</option>`;
-                    });
-                    d.disabled = false;
+                    document.getElementById('update_payment_method_id').value = '';
                 }
             })
             .catch(error => {
-                d.innerHTML = '<option>-- Failed to get methods. --</option>';
+                document.getElementById('update_payment_method_id').value = '';
             });
-        }
-        else{ 
-            d.innerHTML = "<option>Please select loan first.</option>";
+        } else {
+            document.getElementById('update_payment_method_id').value = '';
         }
     }
-    @if($loan?->company->company_code)
-    document.addEventListener('DOMContentLoaded', function(){
-        setupPaymentMethod("{{ $loan?->company->company_code }}")
-    })
-    @endif
 
     document.getElementById('loan-status').addEventListener('change', function() {
         $.ajax({
@@ -1764,6 +1780,148 @@ document.addEventListener('DOMContentLoaded', function () {
 
     loanAmount.addEventListener('input', calculateCapital);
     processingFee.addEventListener('input', calculateCapital);
+});
+</script>
+
+<script>
+let table_all_loan = null;
+
+$('a[data-bs-target="#allloan"]').on('shown.bs.tab', function() {
+    if (table_all_loan === null) {
+        table_all_loan = $('#table-all-loan').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "fixedHeader": false,
+            "ajax": {
+                "url": "{{ route('loan.load_loan', ['customer_code' => $loan->customer->customer_code]) }}",
+                "type": "GET",
+                "data": function(d) {
+                    d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
+                },
+                "dataSrc": function(json) {
+                    return json.data;
+                }
+            },
+            "order": [[2, "desc"]],
+            "columns": [
+                { "data": "loan_code" },
+                {
+                    "data": "company_code",
+                    "render": function(data, type, row) {
+                        return `${row.company_code}<br>${row.company_name}`;
+                    }
+                },
+                { "data": "interest_group" },
+                {
+                    "data": "created_at",
+                    "render": function(data) {
+                        if (!data) return '-';
+                        const parts = data.substring(0, 10).split('-');
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                },
+                {
+                    "data": "next_due_date",
+                    "render": function(data) {
+                        if (!data) return '-';
+                        const parts = data.substring(0, 10).split('-');
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                },
+                {
+                    "data": "updated_at",
+                    "defaultContent": "-",
+                    "render": function(data) {
+                        if (!data) return '-';
+                        const parts = data.substring(0, 10).split('-');
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                },
+                { "data": "loan_amount" },
+                { "data": "capital" },
+                {
+                    "data": "paid",
+                    "render": function(data) { return `<strong>${data}</strong>`; }
+                },
+                {
+                    "data": "outstanding",
+                    "render": function(data) { return `<strong>${data}</strong>`; }
+                },
+                {
+                    "data": "loan_term",
+                    "render": function(data, type, row) {
+                        return row.interest_group == 'SKIM B' ? row.loan_term : '-';
+                    }
+                },
+                {
+                    "data": "installment",
+                    "render": function(data, type, row) {
+                        return `<strong>${row.installment}</strong>`;
+                    }
+                },
+                {
+                    "data": "interest_rate",
+                    "render": function(data) { return parseFloat(data).toFixed(2); }
+                },
+                { "data": "interest_paid" },
+                { "data": "late_paid" },
+                {
+                    "data": "status",
+                    "render": function(data) {
+                        const green  = ['Active'];
+                        const red    = ['Fully Paid'];
+                        const yellow = ['Overdue', 'Bad Debt', 'Blacklist'];
+                        let clr = green.includes(data) ? 'green' : red.includes(data) ? 'red' : '#7a6800';
+                        return `<span style="color:${clr}">${data}</span>`;
+                    }
+                },
+                {
+                    "data": null,
+                    "render": function(data, type, row) {
+                        let url = `
+                        <div class="cus-action-wrapper">
+                            <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}"
+                                class="cus-action-icon" style="background-color:#17a2b8;color:white;" title="View Detail">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}"
+                                class="cus-action-icon" style="background-color:#6c757d;color:white;" title="Create Schedule">
+                                <i class="fas fa-calendar-alt"></i>
+                            </a>
+                            <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}"
+                                class="cus-action-icon" style="background-color:#28a745;color:white;" title="Create Payment">
+                                <i class="fas fa-money-check-alt"></i>
+                            </a>
+                        </div>`;
+                        url = url.replaceAll(':loan_code', row.loan_code);
+                        return url;
+                    }
+                }
+            ],
+            "drawCallback": function() {
+                $('#table-all-loan tbody tr').each(function(index) {
+                    const statusCell = $(this).find('td:nth-child(16)').text().trim();
+                    if (statusCell === 'Fully Paid') {
+                        $(this).find('td').attr('style', 'background-color: rgba(255,0,0,0.15) !important');
+                    } else if (statusCell === 'Overdue') {
+                        $(this).find('td').attr('style', 'background-color: rgba(255,220,50,0.35) !important');
+                    } else if (statusCell === 'Active') {
+                        $(this).find('td').attr('style', 'background-color: rgba(0,180,0,0.1) !important');
+                    } else {
+                        if (index % 2 !== 0) {
+                            $(this).find('td').attr('style', 'background-color: rgba(0,0,0,0.05) !important');
+                        } else {
+                            $(this).find('td').attr('style', 'background-color: white !important');
+                        }
+                    }
+                });
+            }
+        });
+
+        $('#hide-fully-paid').on('change', function() {
+            table_all_loan.draw();
+        });
+    }
 });
 </script>
 

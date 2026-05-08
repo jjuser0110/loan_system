@@ -329,6 +329,10 @@ return [
 'payment_type' => 'Payment Type',
 'top_up_amount' => 'Top Up Amount',
 'enter_top_up_amount' => 'Enter Top Up Amount',
+'all_loan' => '',
+'' => '',
+'' => '',
+'' => '',
 '' => '',
     
 ];

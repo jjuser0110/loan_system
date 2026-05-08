@@ -29,6 +29,7 @@ class Payment extends Model
         'bank',
         'cheque',
         'top_up',
+        'top_up_cap',
         'collection_type',
         'created_by',
         'updated_by',
