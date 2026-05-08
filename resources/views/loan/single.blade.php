@@ -635,6 +635,7 @@
                                         <th>{{ __('table.discount') }}</th>
                                         <th>{{ __('table.int_paid') }}</th>
                                         <th>{{ __('table.late_paid') }}</th>
+                                        <th>{{ __('table.top_up_cap') }}</th>
                                         <th>{{ __('table.top_up_amt') }}</th>
                                         <th>{{ __('table.balance') }}</th>
                                         <th>{{ __('table.remark') }}</th>
@@ -1142,7 +1143,28 @@
                     }
                 },
                 {
-                    "data": "top_up"
+                    "data": "top_up_cap",
+                    "render": function(data) {
+                        let value = parseFloat(data);
+
+                        if (isNaN(value) || value == 0) {
+                            return '-';
+                        }
+
+                        return `<strong style="color:orange">${value}</strong>`;
+                    }
+                },
+                {
+                    "data": "top_up",
+                    "render": function(data) {
+                        let value = parseFloat(data);
+
+                        if (isNaN(value) || value == 0) {
+                            return '-';
+                        }
+
+                        return `<strong style="color:orange">${value}</strong>`;
+                    }
                 },
                 {
                     "data": "deducted_balance",
