@@ -1693,21 +1693,31 @@
 
     function activateTabFromHash() {
         const hash = window.location.hash || '#overview';
-        const validTabs = ['#overview', '#loan', '#schedule', '#payment'];
+        const validTabs = ['#overview', '#loan', '#schedule', '#payment', '#allloan'];
         const target = validTabs.includes(hash) ? hash : '#overview';
 
-        // Remove active from all li and nav-link and panes
         $('.nav-tabs li').removeClass('active');
         $('.nav-tabs .nav-link').removeClass('active');
         $('.tab-pane').removeClass('active');
 
-        // Activate correct li and nav-link
         const $link = $(`.nav-tabs .nav-link[data-bs-target="${target}"]`);
         $link.addClass('active');
-        $link.closest('li').addClass('active'); // <-- this is the key fix
-
-        // Activate correct pane
+        $link.closest('li').addClass('active');
         $(target).addClass('active');
+
+        setTimeout(function() {
+            if (target === '#payment' && typeof table_payment !== 'undefined' && table_payment) {
+                table_payment.columns.adjust().draw();
+            }
+            if (target === '#schedule' && typeof table_schedule !== 'undefined' && table_schedule) {
+                table_schedule.columns.adjust().draw();
+            }
+            if (target === '#allloan') {
+                setTimeout(function() {
+                    initAllLoanTable();
+                }, 50);
+            }
+        }, 50);
     }
 
     // On page load
@@ -1786,142 +1796,146 @@ document.addEventListener('DOMContentLoaded', function () {
 <script>
 let table_all_loan = null;
 
-$('a[data-bs-target="#allloan"]').on('shown.bs.tab', function() {
-    if (table_all_loan === null) {
-        table_all_loan = $('#table-all-loan').DataTable({
-            "processing": true,
-            "serverSide": true,
-            "fixedHeader": false,
-            "ajax": {
-                "url": "{{ route('loan.load_loan', ['customer_code' => $loan->customer->customer_code]) }}",
-                "type": "GET",
-                "data": function(d) {
-                    d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
-                },
-                "dataSrc": function(json) {
-                    return json.data;
+function initAllLoanTable() {
+    if (table_all_loan !== null) return; // prevent double init
+
+    table_all_loan = $('#table-all-loan').DataTable({
+        "processing": true,
+        "serverSide": true,
+        "fixedHeader": false,
+        "ajax": {
+            "url": "{{ route('loan.load_loan', ['customer_code' => $loan->customer->customer_code]) }}",
+            "type": "GET",
+            "data": function(d) {
+                d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
+            },
+            "dataSrc": function(json) {
+                return json.data;
+            }
+        },
+        "order": [[2, "desc"]],
+        "columns": [
+            { "data": "loan_code" },
+            {
+                "data": "company_code",
+                "render": function(data, type, row) {
+                    return `${row.company_code}<br>${row.company_name}`;
                 }
             },
-            "order": [[2, "desc"]],
-            "columns": [
-                { "data": "loan_code" },
-                {
-                    "data": "company_code",
-                    "render": function(data, type, row) {
-                        return `${row.company_code}<br>${row.company_name}`;
-                    }
-                },
-                { "data": "interest_group" },
-                {
-                    "data": "created_at",
-                    "render": function(data) {
-                        if (!data) return '-';
-                        const parts = data.substring(0, 10).split('-');
-                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                    }
-                },
-                {
-                    "data": "next_due_date",
-                    "render": function(data) {
-                        if (!data) return '-';
-                        const parts = data.substring(0, 10).split('-');
-                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                    }
-                },
-                {
-                    "data": "updated_at",
-                    "defaultContent": "-",
-                    "render": function(data) {
-                        if (!data) return '-';
-                        const parts = data.substring(0, 10).split('-');
-                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                    }
-                },
-                { "data": "loan_amount" },
-                { "data": "capital" },
-                {
-                    "data": "paid",
-                    "render": function(data) { return `<strong>${data}</strong>`; }
-                },
-                {
-                    "data": "outstanding",
-                    "render": function(data) { return `<strong>${data}</strong>`; }
-                },
-                {
-                    "data": "loan_term",
-                    "render": function(data, type, row) {
-                        return row.interest_group == 'SKIM B' ? row.loan_term : '-';
-                    }
-                },
-                {
-                    "data": "installment",
-                    "render": function(data, type, row) {
-                        return `<strong>${row.installment}</strong>`;
-                    }
-                },
-                {
-                    "data": "interest_rate",
-                    "render": function(data) { return parseFloat(data).toFixed(2); }
-                },
-                { "data": "interest_paid" },
-                { "data": "late_paid" },
-                {
-                    "data": "status",
-                    "render": function(data) {
-                        const green  = ['Active'];
-                        const red    = ['Fully Paid'];
-                        const yellow = ['Overdue', 'Bad Debt', 'Blacklist'];
-                        let clr = green.includes(data) ? 'green' : red.includes(data) ? 'red' : '#7a6800';
-                        return `<span style="color:${clr}">${data}</span>`;
-                    }
-                },
-                {
-                    "data": null,
-                    "render": function(data, type, row) {
-                        let url = `
-                        <div class="cus-action-wrapper">
-                            <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}"
-                                class="cus-action-icon" style="background-color:#17a2b8;color:white;" title="View Detail">
-                                <i class="fas fa-eye"></i>
-                            </a>
-                            <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}"
-                                class="cus-action-icon" style="background-color:#6c757d;color:white;" title="Create Schedule">
-                                <i class="fas fa-calendar-alt"></i>
-                            </a>
-                            <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}"
-                                class="cus-action-icon" style="background-color:#28a745;color:white;" title="Create Payment">
-                                <i class="fas fa-money-check-alt"></i>
-                            </a>
-                        </div>`;
-                        url = url.replaceAll(':loan_code', row.loan_code);
-                        return url;
+            { "data": "interest_group" },
+            {
+                "data": "created_at",
+                "render": function(data) {
+                    if (!data) return '-';
+                    const parts = data.substring(0, 10).split('-');
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            },
+            {
+                "data": "next_due_date",
+                "render": function(data) {
+                    if (!data) return '-';
+                    const parts = data.substring(0, 10).split('-');
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            },
+            {
+                "data": "updated_at",
+                "defaultContent": "-",
+                "render": function(data) {
+                    if (!data) return '-';
+                    const parts = data.substring(0, 10).split('-');
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+            },
+            { "data": "loan_amount" },
+            { "data": "capital" },
+            {
+                "data": "paid",
+                "render": function(data) { return `<strong>${data}</strong>`; }
+            },
+            {
+                "data": "outstanding",
+                "render": function(data) { return `<strong>${data}</strong>`; }
+            },
+            {
+                "data": "loan_term",
+                "render": function(data, type, row) {
+                    return row.interest_group == 'SKIM B' ? row.loan_term : '-';
+                }
+            },
+            {
+                "data": "installment",
+                "render": function(data, type, row) {
+                    return `<strong>${row.installment}</strong>`;
+                }
+            },
+            {
+                "data": "interest_rate",
+                "render": function(data) { return parseFloat(data).toFixed(2); }
+            },
+            { "data": "interest_paid" },
+            { "data": "late_paid" },
+            {
+                "data": "status",
+                "render": function(data) {
+                    const green  = ['Active'];
+                    const red    = ['Fully Paid'];
+                    let clr = green.includes(data) ? 'green' : red.includes(data) ? 'red' : '#7a6800';
+                    return `<span style="color:${clr}">${data}</span>`;
+                }
+            },
+            {
+                "data": null,
+                "render": function(data, type, row) {
+                    let url = `
+                    <div class="cus-action-wrapper">
+                        <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}"
+                            class="cus-action-icon" style="background-color:#17a2b8;color:white;" title="View Detail">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}"
+                            class="cus-action-icon" style="background-color:#6c757d;color:white;" title="Create Schedule">
+                            <i class="fas fa-calendar-alt"></i>
+                        </a>
+                        <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}"
+                            class="cus-action-icon" style="background-color:#28a745;color:white;" title="Create Payment">
+                            <i class="fas fa-money-check-alt"></i>
+                        </a>
+                    </div>`;
+                    url = url.replaceAll(':loan_code', row.loan_code);
+                    return url;
+                }
+            }
+        ],
+        "drawCallback": function() {
+            $('#table-all-loan tbody tr').each(function(index) {
+                const statusCell = $(this).find('td:nth-child(16)').text().trim();
+                if (statusCell === 'Fully Paid') {
+                    $(this).find('td').attr('style', 'background-color: rgba(255,0,0,0.15) !important');
+                } else if (statusCell === 'Overdue') {
+                    $(this).find('td').attr('style', 'background-color: rgba(255,220,50,0.35) !important');
+                } else if (statusCell === 'Active') {
+                    $(this).find('td').attr('style', 'background-color: rgba(0,180,0,0.1) !important');
+                } else {
+                    if (index % 2 !== 0) {
+                        $(this).find('td').attr('style', 'background-color: rgba(0,0,0,0.05) !important');
+                    } else {
+                        $(this).find('td').attr('style', 'background-color: white !important');
                     }
                 }
-            ],
-            "drawCallback": function() {
-                $('#table-all-loan tbody tr').each(function(index) {
-                    const statusCell = $(this).find('td:nth-child(16)').text().trim();
-                    if (statusCell === 'Fully Paid') {
-                        $(this).find('td').attr('style', 'background-color: rgba(255,0,0,0.15) !important');
-                    } else if (statusCell === 'Overdue') {
-                        $(this).find('td').attr('style', 'background-color: rgba(255,220,50,0.35) !important');
-                    } else if (statusCell === 'Active') {
-                        $(this).find('td').attr('style', 'background-color: rgba(0,180,0,0.1) !important');
-                    } else {
-                        if (index % 2 !== 0) {
-                            $(this).find('td').attr('style', 'background-color: rgba(0,0,0,0.05) !important');
-                        } else {
-                            $(this).find('td').attr('style', 'background-color: white !important');
-                        }
-                    }
-                });
-            }
-        });
+            });
+        }
+    });
 
-        $('#hide-fully-paid').on('change', function() {
-            table_all_loan.draw();
-        });
-    }
+    $('#hide-fully-paid').on('change', function() {
+        table_all_loan.draw();
+    });
+}
+
+// Init on tab click
+$('a[data-bs-target="#allloan"]').on('shown.bs.tab', function() {
+    initAllLoanTable();
 });
 </script>
 
