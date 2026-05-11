@@ -52,7 +52,9 @@
                                 <th>{{ __('table.customer_name') }}</th>
                                 <th>{{ __('table.expenses_name') }}</th>
                                 <th>{{ __('table.expenses_description') }}</th>
+                                <th>{{ __('table.interest_paid') }}</th>
                                 <th>{{ __('table.customer_payment') }}</th>
+                                <th>{{ __('table.top_up_capital') }}</th>
                                 <th>{{ __('table.loan_topup') }}</th>
                                 <th>{{ __('table.expenses') }}</th>
                                 <th>{{ __('table.account_total') }}</th>
@@ -60,11 +62,13 @@
                         </thead>
                         <tfoot>
                             <tr>
-                                <th colspan="5" class="text-right">Total</th>
-                                <th></th>  {{-- customer_payment total --}}
-                                <th></th>  {{-- loan_top_up total --}}
-                                <th></th>  {{-- expenses total --}}
-                                <th></th>  {{-- account_total total --}}
+                                <th colspan="6" class="text-right">Total</th>
+                                <th></th>  {{-- interest_paid --}}
+                                <th></th>  {{-- customer_payment --}}
+                                <th></th>  {{-- top_up_capital --}}
+                                <th></th>  {{-- loan_top_up --}}
+                                <th></th>  {{-- expenses --}}
+                                <th></th>  {{-- account_total (last balance) --}}
                             </tr>
                         </tfoot>
                         <tbody></tbody>
@@ -184,6 +188,14 @@
                     }
                 },
                 {
+                    data: "interest_paid",
+                    name: "interest_paid",
+                    width: "160px",
+                    render: function(data) {
+                        return data ? parseFloat(data).toFixed(2) : '-';
+                    }
+                },
+                {
                     data: "customer_payment",
                     name: "customer_payment",
                     width: "50px",  
@@ -192,6 +204,14 @@
                         let color = value < 0 ? 'red' : 'green';
 
                         return `<span style="color:${color}">${value.toFixed(2)}</span>`;
+                    }
+                },
+                {
+                    data: "top_up_amount",
+                    name: "top_up_amount",
+                    width: "160px",
+                    render: function(data) {
+                        return data ? data : '-';
                     }
                 },
                 {
@@ -235,17 +255,26 @@
                 let totalPayment   = 0;
                 let totalLoanTopUp = 0;
                 let totalExpenses  = 0;
+                let lastAccountTotal = 0;
 
-                api.rows({ search: 'applied' }).data().each(function(row) {
+                let allRows = api.rows({ search: 'applied' }).data();
+
+                allRows.each(function(row) {
                     totalPayment   += parseFloat(row.customer_payment || 0);
                     totalLoanTopUp += parseFloat(row.loan_top_up      || 0);
                     totalExpenses  += parseFloat(row.expenses         || 0);
                 });
 
-                $(api.column(6).footer()).html(totalPayment.toFixed(2));
-                $(api.column(7).footer()).html(totalLoanTopUp.toFixed(2));
-                $(api.column(8).footer()).html(totalExpenses.toFixed(2));
-            }
+                // Show last row's account_total_amount as final balance
+                if (allRows.length > 0) {
+                    lastAccountTotal = parseFloat(allRows[allRows.length - 1].account_total_amount || 0);
+                }
+
+                $(api.column(7).footer()).html(totalPayment.toFixed(2));
+                $(api.column(9).footer()).html(totalLoanTopUp.toFixed(2));
+                $(api.column(10).footer()).html(totalExpenses.toFixed(2));
+                $(api.column(11).footer()).html(lastAccountTotal.toFixed(2)); // ← last balance
+            },
         });
     });
 

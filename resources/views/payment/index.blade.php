@@ -74,9 +74,15 @@
                             <input type="number" class="form-control" id="update-payment-discount" name="discount_amount">
                         </div>
                     </div>
-                    
+
+                    {{-- TOP-UP Capital only --}}
+                    <div class="col-md-12 mb-3" id="update-wrap-topup-capital">
+                        <label class="col-form-label">{{ __('table.top_up_capital') }}</label>
+                        <input type="number" class="form-control" id="update-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01">
+                    </div>
+
                     {{-- TOP-UP only --}}
-                    <div class="col-md-12 mb-3" id="update-wrap-topup" style="display:none;">
+                    <div class="col-md-12 mb-3" id="update-wrap-topup-amount">
                         <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
                         <input type="number" class="form-control" id="update-payment-topup" name="top_up" placeholder="5000.00" step="0.01">
                     </div>
@@ -180,7 +186,7 @@
                     }
                 },
                 {
-                    "data": "top_up_cap",
+                    "data": "top_up_capital",
                     "render": function(data) {
                         let value = parseFloat(data);
                         if (isNaN(value) || value == 0) return '-';
@@ -262,6 +268,7 @@
             document.getElementById('update-payment-late').value       = data.late_paid_amount   ?? '';
             document.getElementById('update-payment-discount').value   = data.discount_amount    ?? '';
             document.getElementById('update-payment-topup').value      = data.top_up             ?? '';
+            document.getElementById('update-topup-capital').value      = data.top_up_capital       ?? '';
 
             setupUpdatePaymentMethod(data.company_code, data.payment_method_id);
             $('#modal-update-payment').modal('show');
@@ -270,20 +277,22 @@
         const GREY = 'opacity:0.45; pointer-events:none; user-select:none;';
 
         function applyUpdatePaymentType(type) {
-            const wrapPayment  = document.getElementById('update-wrap-payment');
-            const wrapLate     = document.getElementById('update-wrap-late');
-            const wrapInterest = document.getElementById('update-wrap-interest');
-            const wrapTopup    = document.getElementById('update-wrap-topup');
+            const wrapPayment      = document.getElementById('update-wrap-payment');
+            const wrapLate         = document.getElementById('update-wrap-late');
+            const wrapInterest     = document.getElementById('update-wrap-interest');
+            const wrapTopupCap     = document.getElementById('update-wrap-topup-capital');  // ← updated
+            const wrapTopupAmount  = document.getElementById('update-wrap-topup-amount');   // ← updated
 
-            const inputPaid     = document.getElementById('update-payment-paid');
-            const inputDiscount = document.getElementById('update-payment-discount');
-            const inputLate     = document.getElementById('update-payment-late');
-            const inputInterest = document.getElementById('update-payment-interest');
-            const inputTopup    = document.getElementById('update-payment-topup');
+            const inputPaid        = document.getElementById('update-payment-paid');
+            const inputDiscount    = document.getElementById('update-payment-discount');
+            const inputLate        = document.getElementById('update-payment-late');
+            const inputInterest    = document.getElementById('update-payment-interest');
+            const inputTopup       = document.getElementById('update-payment-topup');
+            const inputTopupCap    = document.getElementById('update-topup-capital');       // ← updated
 
             // Reset — grey everything first
-            [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.setAttribute('style', GREY));
-            [inputPaid, inputDiscount, inputLate, inputInterest, inputTopup].forEach(i => {
+            [wrapPayment, wrapLate, wrapInterest, wrapTopupCap, wrapTopupAmount].forEach(w => w.setAttribute('style', GREY));
+            [inputPaid, inputDiscount, inputLate, inputInterest, inputTopup, inputTopupCap].forEach(i => {
                 i.disabled = true;
                 i.required = false;
                 i.value    = '';
@@ -291,8 +300,8 @@
 
             if (type === 'CCM') {
                 wrapPayment.removeAttribute('style');
-                inputPaid.disabled = false;
-                inputPaid.required = true;
+                inputPaid.disabled    = false;
+                inputPaid.required    = true;
                 inputDiscount.disabled = false;
 
             } else if (type === 'INTEREST') {
@@ -304,7 +313,7 @@
                 wrapPayment.removeAttribute('style');
                 inputDiscount.disabled = false;
                 inputDiscount.required = true;
-                inputPaid.disabled = true;
+                inputPaid.disabled     = true;
 
             } else if (type === 'LATE') {
                 wrapLate.removeAttribute('style');
@@ -312,9 +321,11 @@
                 inputLate.required = true;
 
             } else if (type === 'TOPUP') {
-                wrapTopup.removeAttribute('style');
-                inputTopup.disabled = false;
-                inputTopup.required = true;
+                wrapTopupCap.removeAttribute('style');     // ← both shown for TOPUP
+                wrapTopupAmount.removeAttribute('style');  // ← both shown for TOPUP
+                inputTopupCap.disabled  = false;
+                inputTopup.disabled     = false;
+                inputTopup.required     = true;
             }
         }
 

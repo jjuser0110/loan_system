@@ -40,12 +40,35 @@ class PaymentController extends Controller
 
     public function load_payment(Request $request){
         try{
-            $draw = $request->input('draw');
-            $search = $request->input('search.value');
-            $start = $request->input('start', 0);
-            $length = $request->input('length', 10);
-            $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
-            $orderByDirection = $request->input('order.0.dir');
+            $draw             = $request->input('draw');
+            $search           = $request->input('search.value');
+            $start            = $request->input('start', 0);
+            $length           = $request->input('length', 10);
+
+            // Safe column map — never pass raw user input to orderBy
+            $columnMap = [
+                'payment_code'         => 'payments.payment_code',
+                'created_at'           => 'payments.created_at',
+                'installment_calc'     => 'payments.payment_amount',
+                'payment_amount'       => 'payments.payment_amount',
+                'discount_amount'      => 'payments.discount_amount',
+                'interest_paid_amount' => 'payments.interest_paid_amount',
+                'late_paid_amount'     => 'payments.late_paid_amount',
+                'top_up_capital'       => 'payments.top_up_capital',
+                'top_up'               => 'payments.top_up',
+                'deducted_balance'     => 'payments.payment_amount',
+                'remark'               => 'payments.remark',
+                'collection_type'      => 'payments.collection_type',
+                'loan_code'            => 'loans.loan_code',
+            ];
+
+            $orderColumnIndex = $request->input('order.0.column', 0);
+            $orderColumnData  = $request->input("columns.{$orderColumnIndex}.data", 'payment_code');
+            $orderByColumn    = $columnMap[$orderColumnData] ?? 'payments.payment_code';
+            $orderByDirection = in_array($request->input('order.0.dir'), ['asc', 'desc'])
+                                ? $request->input('order.0.dir')
+                                : 'desc';
+
             $query = Payment::query()
                 ->select([
                     'payments.*',
@@ -67,61 +90,49 @@ class PaymentController extends Controller
                     'loans.capital as capital',
                     'loans.first_payment as first_payment',
                 ])
-                ->join('customers', 'customers.id', '=', 'payments.customer_id')
-                ->join('users', 'users.id', '=', 'payments.created_by')
-                ->join('loans', 'loans.id', '=', 'payments.loan_id')
-                ->join('companies', 'companies.id', '=', 'loans.company_id')
+                ->join('customers',       'customers.id',               '=', 'payments.customer_id')
+                ->join('users',           'users.id',                   '=', 'payments.created_by')
+                ->join('loans',           'loans.id',                   '=', 'payments.loan_id')
+                ->join('companies',       'companies.id',               '=', 'loans.company_id')
                 ->join('payment_methods', 'payments.payment_method_id', '=', 'payment_methods.id')
-                ->join('banks', 'banks.id', '=', 'payment_methods.bank_id')
-                ->join('branches', 'branches.id', '=', 'companies.branch_id');
+                ->join('banks',           'banks.id',                   '=', 'payment_methods.bank_id')
+                ->join('branches',        'branches.id',                '=', 'companies.branch_id');
 
             switch (Auth::user()->role_id) {
-                case 1:
-                    break;
-
-                case 2:
-                    $query->where('companies.branch_id', Auth::user()->branch_id);
-                    break;
-
+                case 1: break;
+                case 2: $query->where('companies.branch_id', Auth::user()->branch_id); break;
                 case 3:
-                case 4:
-                    $query->where('loans.company_id', Auth::user()->company_id);
-                    break;
-
-                default:
-                    throw new Exception('Invalid role id.');
+                case 4: $query->where('loans.company_id', Auth::user()->company_id); break;
+                default: throw new Exception('Invalid role id.');
             }
+
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
-                    $q->where('payments.payment_code', 'like', "%{$search}%")
+                    $q->where('payments.payment_code',    'like', "%{$search}%")
                     ->orWhere('customers.customer_name', 'like', "%{$search}%")
-                    ->orWhere('customers.nric_number', 'like', "%{$search}%")
+                    ->orWhere('customers.nric_number',   'like', "%{$search}%")
                     ->orWhere('customers.customer_code', 'like', "%{$search}%")
-                    ->orWhere('companies.company_name', 'like', "%{$search}%")
-                    ->orWhere('companies.company_code', 'like', "%{$search}%")
-                    ->orWhere('branches.branch_code', 'like', "%{$search}%")
-                    ->orWhere('branches.branch_name', 'like', "%{$search}%");
+                    ->orWhere('companies.company_name',  'like', "%{$search}%")
+                    ->orWhere('companies.company_code',  'like', "%{$search}%")
+                    ->orWhere('branches.branch_code',    'like', "%{$search}%")
+                    ->orWhere('branches.branch_name',    'like', "%{$search}%");
                 });
             }
 
-            if(isset($request->loan_code)){
+            if (isset($request->loan_code)) {
                 $query->where('loans.loan_code', $request->loan_code);
             }
 
-            $totalQuery = clone $query;
-            $recordsTotal = $totalQuery->count();
-
+            $recordsTotal    = (clone $query)->count();
             $recordsFiltered = $recordsTotal;
 
             $data = $query
-                ->orderBy('payments.loan_id')
-                ->orderBy('payments.payment_code')
+                ->orderBy($orderByColumn, $orderByDirection) // ← NOW ACTUALLY USED
                 ->skip($start)
                 ->take($length)
                 ->get();
 
-           $running = [];
-
+            $running = [];
             foreach ($data as $row) {
                 $loanId = $row->loan_id;
 
@@ -130,27 +141,23 @@ class PaymentController extends Controller
                 }
 
                 $running[$loanId] += $row->payment_amount;
-                $running[$loanId] -= ($row->top_up ?? 0); // top_up increases balance, so reverse it
+                $running[$loanId] -= ($row->top_up ?? 0);
 
-                $row->running_payment = $running[$loanId];
-
-                $row->installment_calc =
-                    ($row->first_payment && $row->first_payment > 0)
-                    ? floor($row->running_payment / $row->first_payment)
-                    : null;
-
-                $row->deducted_balance =
-                    ($row->payment ?? 0) - $running[$loanId];
+                $row->running_payment   = $running[$loanId];
+                $row->installment_calc  = ($row->first_payment && $row->first_payment > 0)
+                                        ? floor($row->running_payment / $row->first_payment)
+                                        : null;
+                $row->deducted_balance  = ($row->payment ?? 0) - $running[$loanId];
             }
 
             return response()->json([
-                "draw" => intval($draw),
-                "recordsTotal" => $recordsTotal,
+                "draw"            => intval($draw),
+                "recordsTotal"    => $recordsTotal,
                 "recordsFiltered" => $recordsFiltered,
-                "data" => $data,
+                "data"            => $data,
             ]);
-        }
-        catch(Exception $e){
+
+        } catch(Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()
@@ -310,6 +317,7 @@ class PaymentController extends Controller
                 'late_paid_amount' => 'nullable|numeric',
                 'interest_paid_amount' => 'nullable|numeric',
                 'top_up' => 'nullable|numeric|min:0',
+                'top_up_capital' => 'nullable|numeric|min:0',
                 'collection_type' => 'nullable|string',
                 'cheque' => 'nullable|string',
                 'bank'=> 'nullable|string',
@@ -328,6 +336,7 @@ class PaymentController extends Controller
             $late_paid_amount = $v['late_paid_amount'] ?? 0;
             $interest_paid_amount = $v['interest_paid_amount'] ?? 0;
             $top_up = $v['top_up'] ?? 0;
+            $top_up_capital = $v['top_up_capital'] ?? 0;
 
             if ($late_paid_amount > $loan->late_balance) {
                 throw new Exception('Late payment exceeds remaining late balance.');
@@ -374,6 +383,7 @@ class PaymentController extends Controller
                 'late_paid_amount'=>$late_paid_amount,
                 'interest_paid_amount'=>$interest_paid_amount,
                 'top_up'        => $top_up,
+                'top_up_capital'  => $top_up_capital,
                 'payment_amount'=>$payment_amount,
                 'discount_amount'=>$discount_amount,
                 'collection_type'=>$v['collection_type'],
@@ -488,6 +498,7 @@ class PaymentController extends Controller
                     'late_balance' => $loan->late_balance - $late_paid_amount,
                     'discount' => $loan->discount + $discount_amount,
                     'loan_amount' => $loan->loan_amount + $top_up,
+                    'capital' => $loan->capital + $top_up_capital,
                 ]);
                 $this->loanController->update_loan_misc($loan);
             }
@@ -581,7 +592,8 @@ class PaymentController extends Controller
                     'interest_balance' => $loan->interest - ($loan->interest_paid + $interest_paid_amount),
                     'late_paid' => $loan->late_paid + $late_paid_amount,
                     'late_balance' => $loan->late_balance - $late_paid_amount,
-                    'discount' => $loan->discount + $discount_amount
+                    'discount' => $loan->discount + $discount_amount,
+                    'capital' => $loan->capital + $top_up_capital,
                 ]); 
                 $bbamount = ($p->payment_amount + $p->discount_amount) * -1;
                 $new_stockbb = $company->stockbb + $bbamount;
@@ -653,6 +665,7 @@ class PaymentController extends Controller
                 'collection_type' => 'nullable|string',
                 'cheque' => 'nullable|string',
                 'top_up' => 'nullable|numeric|min:0',
+                'top_up_capital' => 'nullable|numeric|min:0',
                 'bank'=> 'nullable|string',
                 'remark'=> 'nullable|string',
             ]);
@@ -691,6 +704,10 @@ class PaymentController extends Controller
             $old_top_up   = $payment->top_up ?? 0;
             $new_top_up   = $v['top_up'] ?? 0;
             $diff_top_up  = $new_top_up - $old_top_up;
+
+            $old_top_up_capital    = $payment->top_up_capital    ?? 0;
+            $new_top_up_capital    = $v['top_up_capital']    ?? 0;
+            $diff_top_up_capital   = $new_top_up_capital - $old_top_up_capital;
 
             $company = Company::where('id',$loan->company_id)->first();
             if(!$company){
@@ -917,6 +934,7 @@ class PaymentController extends Controller
                     'late_paid' => $loan->late_paid + $diff_late_paid,
                     'late_balance' => $loan->late_balance - $diff_late_paid,
                     'discount' => $loan->discount + $diff_discount,
+                    'capital' => $loan->capital + $diff_top_up_capital,
                 ]);
 
                 $cbefore = $company->stocka;
@@ -1128,6 +1146,7 @@ class PaymentController extends Controller
                     'late_paid' => $loan->late_paid + $diff_late_paid,
                     'late_balance' => $loan->late_balance - $diff_late_paid,
                     'discount' => $loan->discount + $diff_discount,
+                    'capital' => $loan->capital + $diff_top_up_capital,
                 ]);
 
                 $this->loanController->update_loan_misc($loan);
@@ -1196,6 +1215,7 @@ class PaymentController extends Controller
                 'late_paid_amount' => $new_late_paid,
                 'discount_amount' => $new_discount,
                 'top_up'               => $new_top_up,
+                'top_up_capital' => $new_top_up_capital,
                 'collection_type' => $v['collection_type'] ?? $payment->collection_type,
                 'payment_method_id' => $pymt->id,
                 'updated_by' => Auth::user()->id,

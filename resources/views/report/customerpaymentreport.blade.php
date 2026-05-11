@@ -43,9 +43,12 @@
             {{ __('table.skim_B') }}
         </button>
     </div>
-    <div class="col-md-6 d-flex align-items-end justify-content-end">
+    <div class="col-md-6 d-flex align-items-end justify-content-end gap-2">
         <button class="btn btn-primary w-100" id="btn-filter">
             {{ __('table.filter') }}
+        </button>
+        <button class="btn btn-danger w-100" id="btn-download-pdf" disabled>
+            <i class="fas fa-file-pdf"></i> PDF
         </button>
     </div>
 </div>
@@ -66,6 +69,7 @@
                             <th>{{ __('table.late_paid_amount') }}</th>
                             <th>{{ __('table.interest_paid_amount') }}</th>
                             <th>{{ __('table.discount_amount') }}</th>
+                            <th>{{ __('table.top_up_capital') }}</th>
                             <th>{{ __('table.top_up') }}</th>
                             <th>{{ __('table.total_pay') }}</th>
                             <th>{{ __('table.balance') }}</th>
@@ -80,15 +84,18 @@
 @endsection
 
 @section('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
 <script>
     let currentSkim = '';
     let table_customer_payment;
 
     function setSkimFilter(skim) {
         currentSkim = skim;
-        $('#btn-skim-all').removeClass('btn-primary btn-outline-primary').addClass(skim === ''       ? 'btn-primary' : 'btn-outline-primary');
-        $('#btn-skim-a').removeClass('btn-primary btn-outline-primary').addClass(skim === 'SKIM A'  ? 'btn-primary' : 'btn-outline-primary');
-        $('#btn-skim-b').removeClass('btn-primary btn-outline-primary').addClass(skim === 'SKIM B'  ? 'btn-primary' : 'btn-outline-primary');
+        $('#btn-skim-all').removeClass('btn-primary btn-outline-primary').addClass(skim === ''      ? 'btn-primary' : 'btn-outline-primary');
+        $('#btn-skim-a').removeClass('btn-primary btn-outline-primary').addClass(skim === 'SKIM A' ? 'btn-primary' : 'btn-outline-primary');
+        $('#btn-skim-b').removeClass('btn-primary btn-outline-primary').addClass(skim === 'SKIM B' ? 'btn-primary' : 'btn-outline-primary');
         if (table_customer_payment) table_customer_payment.ajax.reload();
     }
 
@@ -103,12 +110,12 @@
         if (savedCompany) $('#filter_company').val(savedCompany);
 
         table_customer_payment = $('#table-customer-payment').DataTable({
-            processing:  true,
-            serverSide:  true,
-            fixedHeader: false,
-            lengthMenu:  [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
-            searching:   false,
-            stateSave:   true,
+            processing:   true,
+            serverSide:   true,
+            fixedHeader:  false,
+            lengthMenu:   [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
+            searching:    false,
+            stateSave:    true,
             deferLoading: 0,
             ajax: {
                 url:  "{{ route('report.load_customer_payment_report') }}",
@@ -172,10 +179,17 @@
                     }
                 },
                 {
+                    data: "top_up_capital",
+                    render: function (data) {
+                        let v = data ? parseFloat(data) : 0;
+                        return v > 0 ? `<span style="color:red">${v.toFixed(2)}</span>` : '-';
+                    }
+                },
+                {
                     data: "top_up",
                     render: function (data) {
                         let v = data ? parseFloat(data) : 0;
-                        return v > 0 ? `<span style="color:blue">${v.toFixed(2)}</span>` : '-';
+                        return v > 0 ? `<span style="color:red">${v.toFixed(2)}</span>` : '-';
                     }
                 },
                 {
@@ -196,7 +210,9 @@
         });
 
         if (savedFrom || savedTo || savedCompany) {
-            table_customer_payment.ajax.reload();
+            table_customer_payment.ajax.reload(function() {
+                $('#btn-download-pdf').prop('disabled', false);
+            });
         }
 
         $('#btn-filter').on('click', function () {
@@ -213,7 +229,9 @@
             sessionStorage.setItem('cpr_to_date',   to);
             sessionStorage.setItem('cpr_company',   company);
 
-            table_customer_payment.ajax.reload();
+            table_customer_payment.ajax.reload(function() {
+                $('#btn-download-pdf').prop('disabled', false);
+            });
         });
 
         $('#filter_search').on('keydown', function (e) {
@@ -223,6 +241,197 @@
         $('#btn-skim-all').on('click', function () { setSkimFilter(''); });
         $('#btn-skim-a').on('click',   function () { setSkimFilter('SKIM A'); });
         $('#btn-skim-b').on('click',   function () { setSkimFilter('SKIM B'); });
+
+        $('#btn-download-pdf').on('click', function () {
+            let from         = $('#filter_from_date').val();
+            let to           = $('#filter_to_date').val();
+            let company      = $('#filter_company').val();
+            let companyLabel = $('#filter_company option:selected').text().trim();
+            let searchVal    = $('#filter_search').val();
+
+            let $btn = $(this);
+            $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generating...');
+
+            $.ajax({
+                url:  "{{ route('report.load_customer_payment_report') }}",
+                type: "GET",
+                data: {
+                    from_date:       from,
+                    to_date:         to,
+                    company_id:      company,
+                    collection_type: currentSkim,
+                    search:          { value: searchVal },
+                    start:           0,
+                    length:          100000
+                },
+                success: function (response) {
+                    if (!response || !response.data) {
+                        alert('Unexpected response from server.');
+                        return;
+                    }
+
+                    let rows = response.data;
+
+                    const { jsPDF } = window.jspdf;
+                    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+
+                    // Title
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Customer Payment Report', 148, 15, { align: 'center' });
+
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'normal');
+                    let subLines = [];
+                    if (companyLabel && company) subLines.push('Company: ' + companyLabel);
+                    if (currentSkim)             subLines.push('Skim: ' + currentSkim);
+                    if (from)                    subLines.push('From: ' + from);
+                    if (to)                      subLines.push('To: ' + to);
+                    if (subLines.length) doc.text(subLines.join('   |   '), 148, 21, { align: 'center' });
+
+                    doc.setFontSize(8);
+                    doc.text('Generated: ' + new Date().toLocaleString(), 148, 26, { align: 'center' });
+
+                    // Totals
+                    let totalPayment  = 0;
+                    let totalLate     = 0;
+                    let totalInterest = 0;
+                    let totalDiscount = 0;
+                    let totalTopUpCap = 0;
+                    let totalTopUp    = 0;
+                    let totalTotalPay = 0; // ← rename from totalRunning
+
+                    let tableRows = rows.map(function (row, index) {
+                        let payment  = parseFloat(row.payment_amount       || 0);
+                        let late     = parseFloat(row.late_paid_amount     || 0);
+                        let interest = parseFloat(row.interest_paid_amount || 0);
+                        let discount = parseFloat(row.discount_amount      || 0);
+                        let topUpCap = parseFloat(row.top_up_capital       || 0);
+                        let topUp    = parseFloat(row.top_up               || 0);
+                        let running  = parseFloat(row.running_payment      || 0);
+                        let balance  = parseFloat(row.deducted_balance     || 0);
+
+                        totalPayment  += payment;
+                        totalLate     += late;
+                        totalInterest += interest;
+                        totalDiscount += discount;
+                        totalTopUpCap += topUpCap;
+                        totalTopUp    += topUp;
+                        totalTotalPay += payment + topUp - topUpCap; // ← same logic as running_payment per row
+
+                        let dateStr = '-';
+                        if (row.pay_date) {
+                            const parts = row.pay_date.substring(0, 10).split('-');
+                            dateStr = `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        }
+
+                        return [
+                            index + 1,
+                            row.payment_code    || '-',
+                            row.customer_name   || '-',
+                            row.collection_type || '-',
+                            dateStr,
+                            payment.toFixed(2),
+                            late.toFixed(2),
+                            interest.toFixed(2),
+                            discount.toFixed(2),
+                            topUpCap > 0 ? topUpCap.toFixed(2) : '-',
+                            topUp    > 0 ? topUp.toFixed(2)    : '-',
+                            running.toFixed(2),
+                            balance.toFixed(2),
+                        ];
+                    });
+
+                    doc.autoTable({
+                        startY: 30,
+                        head: [[
+                            '#', 'Payment Code', 'Customer Name', 'Type', 'Date',
+                            'Payment', 'Late', 'Interest', 'Discount',
+                            'Top Up Cap', 'Top Up', 'Total Pay', 'Balance'
+                        ]],
+                        body: tableRows,
+                        foot: [[
+                            '', '', '', '', 'Total',
+                            totalPayment.toFixed(2),
+                            totalLate.toFixed(2),
+                            totalInterest.toFixed(2),
+                            totalDiscount.toFixed(2),
+                            totalTopUpCap > 0 ? totalTopUpCap.toFixed(2) : '-',
+                            totalTopUp    > 0 ? totalTopUp.toFixed(2)     : '-',
+                            totalTotalPay.toFixed(2),  // ← sum of payment+topup-topUpCap
+                            ''                         // ← balance left blank, it's a running value
+                        ]],
+                        theme: 'grid',
+                        didParseCell: function (data) {
+                            if (data.section === 'body' || data.section === 'foot') {
+                                let colorCols = [5, 6, 7, 8, 11, 12];
+                                if (colorCols.includes(data.column.index)) {
+                                    let value = parseFloat(data.cell.raw || 0);
+                                    if (value < 0)      data.cell.styles.textColor = [255, 0, 0];
+                                    else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
+                                }
+                                // top_up_cap (9) and top_up (10) red if > 0
+                                if ([9, 10].includes(data.column.index)) {
+                                    let value = parseFloat(data.cell.raw || 0);
+                                    if (value > 0) data.cell.styles.textColor = [255, 0, 0];
+                                }
+                            }
+                        },
+                        headStyles: {
+                            fillColor: [41, 128, 185],
+                            textColor: 255,
+                            fontStyle: 'bold',
+                            fontSize:  7,
+                            halign:    'center'
+                        },
+                        footStyles: {
+                            fillColor: [236, 240, 241],
+                            textColor: [0, 0, 0],
+                            fontStyle: 'bold',
+                            fontSize:  7.5
+                        },
+                        bodyStyles: { fontSize: 7 },
+                        columnStyles: {
+                            0:  { halign: 'center', cellWidth: 6  },
+                            1:  { cellWidth: 25 },
+                            2:  { cellWidth: 30 },
+                            3:  { halign: 'center', cellWidth: 16 },
+                            4:  { halign: 'center', cellWidth: 18 },
+                            5:  { halign: 'right',  cellWidth: 18 },
+                            6:  { halign: 'right',  cellWidth: 14 },
+                            7:  { halign: 'right',  cellWidth: 14 },
+                            8:  { halign: 'right',  cellWidth: 14 },
+                            9:  { halign: 'right',  cellWidth: 16 },
+                            10: { halign: 'right',  cellWidth: 14 },
+                            11: { halign: 'right',  cellWidth: 18 },
+                            12: { halign: 'right',  cellWidth: 18 },
+                        },
+                        didDrawPage: function (data) {
+                            doc.setFontSize(8);
+                            doc.setFont('helvetica', 'normal');
+                            doc.text(
+                                'Page ' + doc.internal.getCurrentPageInfo().pageNumber,
+                                data.settings.margin.left,
+                                doc.internal.pageSize.height - 8
+                            );
+                        }
+                    });
+
+                    let filename = 'customer_payment_report';
+                    if (from) filename += '_' + from;
+                    if (to)   filename += '_to_' + to;
+                    filename += '.pdf';
+
+                    doc.save(filename);
+                },
+                error: function (xhr, status, error) {
+                    alert('Failed to fetch data: ' + (xhr.responseJSON?.message || error));
+                },
+                complete: function () {
+                    $btn.prop('disabled', false).html('<i class="fas fa-file-pdf"></i> PDF');
+                }
+            });
+        });
     });
 </script>
 @endsection

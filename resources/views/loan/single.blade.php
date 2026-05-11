@@ -104,7 +104,10 @@
                     <a class="nav-link" data-bs-target="#payment" href="#payment" data-bs-toggle="tab">{{ __('table.payment') }}</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" data-bs-target="#allloan" href="#allloan" data-bs-toggle="tab">{{ __('table.all_loan') }}</a>
+                    <a class="nav-link" 
+                    href="{{ url('customer/' . $loan->customer_id . '/edit#loan') }}">
+                        {{ __('table.all_loan') }}
+                    </a>
                 </li>
             </ul>
              <div class="tab-content">
@@ -687,47 +690,6 @@
                     </div>
                 </div>
             </div>
-            
-            <div class="tab-content">
-                <div id="allloan" class="tab-pane">
-                    <div class="col-lg-12 mb-3">
-                        <section class="card" style="overflow:auto">
-                            <div class="card-body">
-                                <div style="margin-bottom: 10px;">
-                                    <label style="cursor:pointer; user-select:none;">
-                                        <input type="checkbox" id="hide-fully-paid" checked>
-                                        &nbsp;{{ __('table.hide_fully_paid') }}
-                                    </label>
-                                </div>
-                                <table class="table cus-table table-bordered mb-0" id="table-all-loan">
-                                    <thead>
-                                        <tr>
-                                            <th>{{ __('table.loan_code') }}</th>
-                                            <th>{{ __('table.company') }}</th>
-                                            <th>{{ __('table.interest_group') }}</th>
-                                            <th>{{ __('table.created_date') }}</th>
-                                            <th>{{ __('table.payment_due') }}</th>
-                                            <th>{{ __('table.last_payment') }}</th>
-                                            <th>{{ __('table.loan_amount') }}</th>
-                                            <th>{{ __('table.capital') }}</th>
-                                            <th>{{ __('table.paid') }}</th>
-                                            <th>{{ __('table.outstanding') }}</th>
-                                            <th>{{ __('table.loan_term') }}</th>
-                                            <th>{{ __('table.installment') }}</th>
-                                            <th>{{ __('table.interest_rate') }}</th>
-                                            <th>{{ __('table.int') }}</th>
-                                            <th>{{ __('table.late') }}</th>
-                                            <th>{{ __('table.status') }}</th>
-                                            <th>{{ __('table.actions') }}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody></tbody>
-                                </table>
-                            </div>
-                        </section>
-                    </div>
-                </div>
-            </div>
 
         </div>
     </div>
@@ -868,22 +830,30 @@
                         </select>
                     </div>
 
-                    {{-- Top-up --}}
-                    <div class="col-md-12 mb-3" id="add-wrap-topup">
-                        <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
-                        <input type="number" class="form-control" id="add-input-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
-                    </div>
-
                     {{-- Payment / capital --}}
                     <div class="row mb-3" id="add-wrap-payment">
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" id="add-input-payment-amount" name="payment_amount" value="0">
-                            <p class="p-note">{{ __('table.outstanding') }}: {{ $loan->balance ?? '0.00' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->next_due_amount ?? '' }} <br> {{ __('table.due_date') }}: {{ $loan?->next_due_date ?? '' }}</p>
+                            <p class="p-note">{{ $loan->interest_group ?? 'No SKIM' }} <br> {{ __('table.outstanding') }}: {{ $loan->balance ?? '0.00' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->next_due_amount ?? '' }} <br> {{ __('table.date') }}: {{ now()->format('Y-n-j') }} &nbsp;&nbsp;&nbsp; {{ __('table.due_date') }}: {{ $loan?->next_due_date ?? '' }}</p>
                         </div>
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.discount') }}</label>
                             <input type="number" class="form-control" name="discount_amount" value="0">
+                        </div>
+                    </div>
+
+                    {{-- Top-up- capital --}}
+                    <div class="row mb-3" id="add-wrap-topup">
+                        <div class="col-md-6">
+                            <label class="col-form-label">{{ __('table.top_up_capital') }}</label>
+                            <input type="number" class="form-control" id="add-input-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01" value="0">
+                        </div>
+
+                        {{-- Top-up --}}
+                        <div class="col-md-6">
+                            <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
+                            <input type="number" class="form-control" id="add-input-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
                         </div>
                     </div>
 
@@ -946,12 +916,6 @@
                         </select>
                     </div>
 
-                    {{-- TOP-UP only --}}
-                    <div class="col-md-12 mb-3" id="update-wrap-topup" style="display:none;">
-                        <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
-                        <input type="number" class="form-control" id="update-payment-topup" name="top_up" placeholder="5000.00" step="0.01">
-                    </div>
-
                     {{-- CCM only --}}
                     <div class="row mb-3" id="update-wrap-payment">
                         <div class="col-md-6">
@@ -961,6 +925,20 @@
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.discount') }}</label>
                             <input type="number" class="form-control" id="update-payment-discount" name="discount_amount">
+                        </div>
+                    </div>
+
+                    {{-- Top-up- capital --}}
+                    <div class="row mb-3" id="update-wrap-topup">
+                        <div class="col-md-6">
+                            <label class="col-form-label">{{ __('table.top_up_capital') }}</label>
+                            <input type="number" class="form-control" id="update-payment-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01" value="0">
+                        </div>
+
+                        {{-- Top-up --}}
+                        <div class="col-md-6">
+                            <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
+                            <input type="number" class="form-control" id="update-payment-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
                         </div>
                     </div>
 
@@ -1113,6 +1091,14 @@
             "processing": true,
             "serverSide": true,
             "fixedHeader": false,
+            "ordering":   true,
+            "order":      [[0, "desc"]],
+            "columnDefs": [
+                { "orderable": false, "targets": [2, 9, 12] },  // installment_calc, deducted_balance, action
+                @if(Auth::user()->role_id <= 3)
+                { "orderable": false, "targets": [13] },         // edit/delete action column
+                @endif
+            ],
             "ajax": {
                 "url": "{{ route('payment.load_payment',['loan_code'=>':loan_code']) }}".replace(':loan_code',"{{ $loan->loan_code }}"),
                 "type": "GET"
@@ -1174,7 +1160,7 @@
                     }
                 },
                 {
-                    "data": "top_up_cap",
+                    "data": "top_up_capital",
                     "render": function(data) {
                         let value = parseFloat(data);
 
@@ -1364,6 +1350,7 @@
         document.getElementById('update-payment-late').value     = data.late_paid_amount    ?? '';
         document.getElementById('update-payment-discount').value = data.discount_amount     ?? '';
         document.getElementById('update-payment-topup').value    = data.top_up              ?? '';
+        document.getElementById('update-payment-topup-capital').value    = data.top_up_capital         ?? '';
 
         setupUpdatePaymentMethod(data.company_code, data.payment_method_id);
         $('#modal-update-payment').modal('show');
@@ -1693,7 +1680,7 @@
 
     function activateTabFromHash() {
         const hash = window.location.hash || '#overview';
-        const validTabs = ['#overview', '#loan', '#schedule', '#payment', '#allloan'];
+        const validTabs = ['#overview', '#loan', '#schedule', '#payment'];
         const target = validTabs.includes(hash) ? hash : '#overview';
 
         $('.nav-tabs li').removeClass('active');
@@ -1711,11 +1698,6 @@
             }
             if (target === '#schedule' && typeof table_schedule !== 'undefined' && table_schedule) {
                 table_schedule.columns.adjust().draw();
-            }
-            if (target === '#allloan') {
-                setTimeout(function() {
-                    initAllLoanTable();
-                }, 50);
             }
         }, 50);
     }
@@ -1790,152 +1772,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     loanAmount.addEventListener('input', calculateCapital);
     processingFee.addEventListener('input', calculateCapital);
-});
-</script>
-
-<script>
-let table_all_loan = null;
-
-function initAllLoanTable() {
-    if (table_all_loan !== null) return; // prevent double init
-
-    table_all_loan = $('#table-all-loan').DataTable({
-        "processing": true,
-        "serverSide": true,
-        "fixedHeader": false,
-        "ajax": {
-            "url": "{{ route('loan.load_loan', ['customer_code' => $loan->customer->customer_code]) }}",
-            "type": "GET",
-            "data": function(d) {
-                d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
-            },
-            "dataSrc": function(json) {
-                return json.data;
-            }
-        },
-        "order": [[2, "desc"]],
-        "columns": [
-            { "data": "loan_code" },
-            {
-                "data": "company_code",
-                "render": function(data, type, row) {
-                    return `${row.company_code}<br>${row.company_name}`;
-                }
-            },
-            { "data": "interest_group" },
-            {
-                "data": "created_at",
-                "render": function(data) {
-                    if (!data) return '-';
-                    const parts = data.substring(0, 10).split('-');
-                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
-            },
-            {
-                "data": "next_due_date",
-                "render": function(data) {
-                    if (!data) return '-';
-                    const parts = data.substring(0, 10).split('-');
-                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
-            },
-            {
-                "data": "updated_at",
-                "defaultContent": "-",
-                "render": function(data) {
-                    if (!data) return '-';
-                    const parts = data.substring(0, 10).split('-');
-                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                }
-            },
-            { "data": "loan_amount" },
-            { "data": "capital" },
-            {
-                "data": "paid",
-                "render": function(data) { return `<strong>${data}</strong>`; }
-            },
-            {
-                "data": "outstanding",
-                "render": function(data) { return `<strong>${data}</strong>`; }
-            },
-            {
-                "data": "loan_term",
-                "render": function(data, type, row) {
-                    return row.interest_group == 'SKIM B' ? row.loan_term : '-';
-                }
-            },
-            {
-                "data": "installment",
-                "render": function(data, type, row) {
-                    return `<strong>${row.installment}</strong>`;
-                }
-            },
-            {
-                "data": "interest_rate",
-                "render": function(data) { return parseFloat(data).toFixed(2); }
-            },
-            { "data": "interest_paid" },
-            { "data": "late_paid" },
-            {
-                "data": "status",
-                "render": function(data) {
-                    const green  = ['Active'];
-                    const red    = ['Fully Paid'];
-                    let clr = green.includes(data) ? 'green' : red.includes(data) ? 'red' : '#7a6800';
-                    return `<span style="color:${clr}">${data}</span>`;
-                }
-            },
-            {
-                "data": null,
-                "render": function(data, type, row) {
-                    let url = `
-                    <div class="cus-action-wrapper">
-                        <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}"
-                            class="cus-action-icon" style="background-color:#17a2b8;color:white;" title="View Detail">
-                            <i class="fas fa-eye"></i>
-                        </a>
-                        <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}"
-                            class="cus-action-icon" style="background-color:#6c757d;color:white;" title="Create Schedule">
-                            <i class="fas fa-calendar-alt"></i>
-                        </a>
-                        <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}"
-                            class="cus-action-icon" style="background-color:#28a745;color:white;" title="Create Payment">
-                            <i class="fas fa-money-check-alt"></i>
-                        </a>
-                    </div>`;
-                    url = url.replaceAll(':loan_code', row.loan_code);
-                    return url;
-                }
-            }
-        ],
-        "drawCallback": function() {
-            $('#table-all-loan tbody tr').each(function(index) {
-                const statusCell = $(this).find('td:nth-child(16)').text().trim();
-                if (statusCell === 'Fully Paid') {
-                    $(this).find('td').attr('style', 'background-color: rgba(255,0,0,0.15) !important');
-                } else if (statusCell === 'Overdue') {
-                    $(this).find('td').attr('style', 'background-color: rgba(255,220,50,0.35) !important');
-                } else if (statusCell === 'Active') {
-                    $(this).find('td').attr('style', 'background-color: rgba(0,180,0,0.1) !important');
-                } else {
-                    if (index % 2 !== 0) {
-                        $(this).find('td').attr('style', 'background-color: rgba(0,0,0,0.05) !important');
-                    } else {
-                        $(this).find('td').attr('style', 'background-color: white !important');
-                    }
-                }
-            });
-        }
-    });
-
-    $('#hide-fully-paid').on('change', function() {
-        table_all_loan.draw();
-    });
-}
-
-// Init on tab click
-$('a[data-bs-target="#allloan"]').on('shown.bs.tab', function() {
-    initAllLoanTable();
 });
 </script>
 

@@ -213,6 +213,23 @@ class ReportController extends Controller
                             ELSE CONCAT('Manual # ', COALESCE(payment_method_logs.description, '-'))
                         END as description
                     "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'loan' THEN
+                                (SELECT l.interest_paid FROM loans l WHERE l.id = payment_method_logs.content_id LIMIT 1)
+                            WHEN payment_method_logs.type = 'payment' THEN
+                                (SELECT p.interest_paid_amount FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            ELSE NULL
+                        END as interest_paid
+                    "),
+
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'payment' THEN
+                                (SELECT p.top_up_capital FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            ELSE NULL
+                        END as top_up_capital
+                    "),
                 ])
                 ->join('payment_methods', 'payment_method_logs.payment_method_id', '=', 'payment_methods.id')
                 ->join('companies',       'payment_methods.company_id',            '=', 'companies.id')
@@ -247,6 +264,7 @@ class ReportController extends Controller
 
             $query->where(function($q) {
                 $q->where('payment_method_logs.description', '!=', 'Expense Updated')
+                ->where('payment_method_logs.description', '!=', 'Payment Updated')
                 ->orWhereNull('payment_method_logs.description');
             });
 
@@ -470,6 +488,7 @@ class ReportController extends Controller
                     'payments.interest_paid_amount',
                     'payments.discount_amount',
                     'payments.top_up',
+                    'payments.top_up_capital',
                     'loans.payment as payment',
                     'loans.first_payment as first_payment',
                     'customers.customer_name as customer_name',

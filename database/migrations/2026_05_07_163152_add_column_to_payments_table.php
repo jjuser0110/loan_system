@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payments', function (Blueprint $table) {
-            $table->decimal('top_up_cap')->after('top_up')->nullable();
+            $table->decimal('top_up_capital')->after('top_up')->nullable();
         });
     }
 

@@ -40,10 +40,17 @@
 
                     <div class="row">
                         {{-- CCM ONLY: payment/capital --}}
-                        <div class="col-md-12 col-lg-6 col-xl-6 col-xxl-6 mb-3 id="wrap-payment-amount">
+                        <div class="col-md-12 col-lg-12 col-xl-12 col-xxl-12 mb-3" id="wrap-payment-amount">
                             <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" id="input-payment-amount" name="payment_amount" placeholder="10000.00" step="0.01" autocomplete="off">
-                            <p class="p-note" id="loan-payment-balance">{{ __('table.outstanding') }}: {{ $loan?->outstanding ?? '' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->next_due_amount ?? '' }} <br> {{ __('table.due_date') }}: {{ $loan?->next_due_date ?? '' }}</p>
+                            <p class="p-note" id="loan-payment-balance">{{ $loan->interest_group ?? 'No SKIM' }} <br> {{ __('table.outstanding') }}: {{ $loan->balance ?? '0.00' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->next_due_amount ?? '' }} <br> {{ __('table.date') }}: {{ now()->format('Y-n-j') }} &nbsp;&nbsp;&nbsp; {{ __('table.due_date') }}: {{ $loan?->next_due_date ?? '' }}</p>
+                        </div>
+
+                        {{-- TOP-UP ONLY: top_up_capital --}}
+                        <div class="col-md-12 col-lg-6 col-xl-6 col-xxl-6 mb-3 field-topup">
+                            <label class="col-form-label">{{ __('table.top_up_capital') }}</label>
+                            <input type="number" class="form-control" id="input-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01" autocomplete="off">
+                            <p class="p-note">{{ __('table.enter_top_up_capital') }}</p>
                         </div>
 
                         {{-- TOP-UP ONLY: top_up_amount --}}
@@ -138,8 +145,15 @@
                         searchInput.value = loan.loan_code;
                         selected = loan;
                         document.getElementById('customer-code').value = `${loan.customer_code} / ${loan.customer_name}`;
-                        document.getElementById('loan-payment-balance').innerHTML =
-                            `Outstanding: ${loan.outstanding ?? ''} &nbsp;&nbsp;&nbsp; Next Payment: ${loan.next_due_amount ?? ''} &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Due Date: ${loan.next_due_date ?? ''}`;
+                        document.getElementById('loan-payment-balance').innerHTML = `
+                            ${loan.interest_group ?? 'No SKIM'} <br>
+                            Outstanding: ${loan.outstanding ?? '0.00'} 
+                            &nbsp;&nbsp;&nbsp; 
+                            Next Payment: ${loan.next_due_amount ?? ''} <br>
+                            Date: ${new Date().toISOString().split('T')[0]} 
+                            &nbsp;&nbsp;&nbsp; 
+                            Due Date: ${loan.next_due_date ?? ''}
+                        `;
                         document.getElementById('loan-late-balance').innerHTML    = `Outstanding: ${loan.total_late_balance}`;
                         document.getElementById('loan-interest-balance').innerHTML = `Outstanding: ${loan.total_interest_balance}`;
                         dropdown.style.display = 'none';
@@ -174,25 +188,24 @@
         const wrapDiscount = document.getElementById('wrap-discount-amount');
         const wrapLate     = document.getElementById('wrap-late-amount');
         const wrapInterest = document.getElementById('wrap-interest-amount');
-        const wrapTopup    = document.querySelector('.field-topup');
+        const wrapTopups   = document.querySelectorAll('.field-topup'); // ← ALL topup wrappers
 
-        const inputPayment  = document.getElementById('input-payment-amount');
-        const inputLate     = document.getElementById('input-payment-late');
-        const inputInterest = document.getElementById('input-payment-interest');
-        const inputTopup    = document.getElementById('input-topup-amount');
-        const inputDiscount = document.getElementById('input-discount-amount');
+        const inputPayment     = document.getElementById('input-payment-amount');
+        const inputLate        = document.getElementById('input-payment-late');
+        const inputInterest    = document.getElementById('input-payment-interest');
+        const inputTopup       = document.getElementById('input-topup-amount');
+        const inputTopupCap    = document.getElementById('input-topup-capital'); // ← ADD
+        const inputDiscount    = document.getElementById('input-discount-amount');
 
-        // Reset all first — grey everything
-        [wrapPayment, wrapDiscount, wrapLate, wrapInterest, wrapTopup].forEach(w => {
-            w.setAttribute('style', GREY_STYLE);
-        });
-        [inputPayment, inputLate, inputInterest, inputTopup, inputDiscount].forEach(i => {
+        // Reset all — grey everything
+        [wrapPayment, wrapDiscount, wrapLate, wrapInterest].forEach(w => w.setAttribute('style', GREY_STYLE));
+        wrapTopups.forEach(w => w.setAttribute('style', GREY_STYLE)); // ← grey all topup wrappers
+        [inputPayment, inputLate, inputInterest, inputTopup, inputTopupCap, inputDiscount].forEach(i => {
             i.disabled = true;
             i.required = false;
-            i.value = '';
+            i.value    = '';
         });
 
-        // Only unlock the relevant field
         if (type === 'CCM') {
             wrapPayment.removeAttribute('style');
             inputPayment.disabled = false;
@@ -214,9 +227,10 @@
             inputLate.required = true;
 
         } else if (type === 'TOPUP') {
-            wrapTopup.removeAttribute('style');
-            inputTopup.disabled = false;
-            inputTopup.required = true;
+            wrapTopups.forEach(w => w.removeAttribute('style')); // ← un-grey ALL topup wrappers
+            inputTopup.disabled    = false;
+            inputTopup.required    = true;
+            inputTopupCap.disabled = false; // ← both enabled for TOPUP
         }
     }
 
