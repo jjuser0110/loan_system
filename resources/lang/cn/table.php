@@ -330,6 +330,9 @@ return [
 'top_up_amount' => '充值金额',
 'enter_top_up_amount' => '输入充值金额',
 'all_loan' => '所有贷款',
+'interest_paid' => '已支付利息',
+'top_up_capital' => '追加资本',
+'enter_top_up_capital' => '输入追加资本',
 
 ];
 

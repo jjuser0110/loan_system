@@ -329,7 +329,10 @@ return [
 'payment_type' => 'Jenis Bayaran',
 'top_up_amount' => 'Jumlah Tambah Nilai',
 'enter_top_up_amount' => 'Masukkan Baki Tambah Nilai',
-'all_loan' => '所有贷款',
+'all_loan' => 'Semua Pinjaman',
+'interest_paid' => 'Faedah Dibayar',
+'top_up_capital' => 'Modal Tambahan',
+'enter_top_up_capital' => 'Masukkan Modal Tambahan',
 
 ];
 

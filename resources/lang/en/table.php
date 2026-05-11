@@ -330,7 +330,6 @@ return [
 'top_up_amount' => 'Top Up Amount',
 'enter_top_up_amount' => 'Enter Top Up Amount',
 'all_loan' => 'All Loan',
-
 'interest_paid' => 'Interest Paid',
 'top_up_capital' => 'Topup Capital',
 'enter_top_up_capital' => 'Enter Topup Capital',
