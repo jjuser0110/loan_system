@@ -9,12 +9,10 @@
         <label>{{ __('table.from_date') }}</label>
         <input type="date" id="filter_from_date" class="form-control">
     </div>
-
     <div class="col-md-3">
         <label>{{ __('table.to_date') }}</label>
         <input type="date" id="filter_to_date" class="form-control">
     </div>
-
     <div class="col-md-3">
         <label>{{ __('table.company') }}</label>
         <select id="filter_company" class="form-control">
@@ -27,7 +25,6 @@
         </select>
     </div>
     <br>
-
     <div class="col-md-3 d-flex align-items-end gap-2">
         <button class="btn btn-primary w-100" id="btn-filter">
             {{ __('table.filter') }}
@@ -63,12 +60,12 @@
                         <tfoot>
                             <tr>
                                 <th colspan="6" class="text-right">Total</th>
-                                <th></th>  {{-- interest_paid --}}
-                                <th></th>  {{-- customer_payment --}}
-                                <th></th>  {{-- top_up_capital --}}
-                                <th></th>  {{-- loan_top_up --}}
-                                <th></th>  {{-- expenses --}}
-                                <th></th>  {{-- account_total (last balance) --}}
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
                             </tr>
                         </tfoot>
                         <tbody></tbody>
@@ -78,7 +75,6 @@
         </section>
     </div>
 </div>
-
 @endsection
 
 @section('scripts')
@@ -86,420 +82,382 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 
 <script>
-    let table_cash_book_reports;
+let table_cash_book_reports;
 
-    $(document).ready(function() {
-        table_cash_book_reports = $('#table-cash-book-reports').DataTable({
-            processing: true,
-            serverSide: true,
-            fixedHeader: false,
-            stateSave: true,
-            searching: false,
-            deferLoading: 0,
-            lengthMenu: [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
-            dom: 'lrtip',
-            ajax: {
-                url: "{{ route('report.load_cash_book_reports') }}",
-                type: "GET",
-                data: function(d) {
-                    d.from_date = $('#filter_from_date').val();
-                    d.to_date = $('#filter_to_date').val();
-                    d.company_id = $('#filter_company').val();
+$(document).ready(function () {
+
+    // ── DataTable ─────────────────────────────────────────────────────────
+    table_cash_book_reports = $('#table-cash-book-reports').DataTable({
+        processing:   true,
+        serverSide:   true,
+        fixedHeader:  false,
+        stateSave:    true,
+        searching:    false,
+        deferLoading: 0,
+        lengthMenu:   [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
+        dom:          'lrtip',
+        ajax: {
+            url:  "{{ route('report.load_cash_book_reports') }}",
+            type: "GET",
+            data: function (d) {
+                d.from_date  = $('#filter_from_date').val();
+                d.to_date    = $('#filter_to_date').val();
+                d.company_id = $('#filter_company').val();
+            }
+        },
+        order: [[2, "asc"]],
+        columns: [
+            {
+                data: null, name: "id", width: "10px",
+                render: function (data, type, row, meta) {
+                    return meta.row + meta.settings._iDisplayStart + 1;
                 }
             },
-            order: [[2, "asc"]],
-            columns: [
-                {
-                    data: null,
-                    name: "id",
-                    width: "10px",
-                    render: function (data, type, row, meta) {
-                        return meta.row + meta.settings._iDisplayStart + 1;
+            {
+                data: "description", name: "description", width: "200px",
+                render: function (data) {
+                    if (!data || data === '-') return '-';
+                    if (data.startsWith('Loan #')) {
+                        let loanCode = data.replace('Loan #', '').trim();
+                        return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '#loan">' + data + '</a>';
                     }
-                },
-                {
-                    data: "description",
-                    name: "description",
-                    width: "200px",
-                    render: function(data) {
-                        if (!data || data === '-') return '-';
-
-                        if (data.startsWith('Loan #')) {
-                            let loanCode = data.replace('Loan #', '').trim();
-                            return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '#loan">' + data + '</a>';
+                    if (data.startsWith('Expense #')) {
+                        return '<a href="{{ url("expense/index") }}">' + data + '</a>';
+                    }
+                    if (data.startsWith('Payment #')) {
+                        let paymentCode = data.replace('Payment #', '').trim();
+                        let match = paymentCode.match(/^(.+)-P\d+$/);
+                        if (match) {
+                            return '<a href="{{ url("loan/single_loan") }}/' + match[1] + '#payment">' + data + '</a>';
                         }
-
-                        if (data.startsWith('Expense #')) {
-                            return '<a href="{{ url("expense/index") }}">' + data + '</a>';
-                        }
-
-                        if (data.startsWith('Payment #')) {
-                            // Extract payment code e.g. S260009-001-P003
-                            let paymentCode = data.replace('Payment #', '').trim();
-
-                            // Extract loan code: remove last -PXXX part e.g. S260009-001
-                            let match = paymentCode.match(/^(.+)-P\d+$/);
-                            if (match) {
-                                let loanCode = match[1];
-                                return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '#payment">' + data + '</a>';
-                            }
-
-                            // Fallback if pattern doesn't match
-                            return '<a href="{{ url("payment/index") }}">' + data + '</a>';
-                        }
-
-                        return data;
+                        return '<a href="{{ url("payment/index") }}">' + data + '</a>';
                     }
-                },
-                {
-                    data: "date",
-                    name: "date",
-                    width: "60px",
-                    "render": function(data, type, row, meta) {
-                        if (!data) return '-';
-                        const parts = data.substring(0, 10).split('-');
-                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                    }
-                },
-                {
-                    data: "customer_name",
-                    name: "customer_name",
-                    width: "200px",
-                    render: function(data, type, row) {
-                        return data && row.customer_id
-                            ? '<a href="{{ url("customer") }}/' + row.customer_id + '/edit">' + data + '</a>'
-                            : (data ?? '-');
-                    }
-                },
-                {
-                    data: "expenses_name",
-                    name: "expenses_name",
-                    width: "160px",
-                    render: function(data) {
-                        return data ? data : '-';
-                    }
-                },
-                {
-                    data: "expenses_description",
-                    name: "expenses_description",
-                    width: "160px",
-                    render: function(data) {
-                        return data ? data : '-';
-                    }
-                },
-                {
-                    data: "interest_paid",
-                    name: "interest_paid",
-                    width: "160px",
-                    render: function(data) {
-                        return data ? parseFloat(data).toFixed(2) : '-';
-                    }
-                },
-                {
-                    data: "customer_payment",
-                    name: "customer_payment",
-                    width: "50px",  
-                    render: function(data) {
-                        let value = data ? parseFloat(data) : 0;
-                        let color = value < 0 ? 'red' : 'green';
-
-                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
-                    }
-                },
-                {
-                    data: "top_up_amount",
-                    name: "top_up_amount",
-                    width: "160px",
-                    render: function(data) {
-                        return data ? data : '-';
-                    }
-                },
-                {
-                    data: "loan_top_up",
-                    name: "loan_top_up",
-                    width: "50px",
-                    render: function(data) {
-                        let value = data ? parseFloat(data) : 0;
-                        let color = value < 0 ? 'red' : 'green';
-
-                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
-                    }
-                },
-                {
-                    data: "expenses",
-                    name: "expenses",
-                    width: "50px",
-                    render: function(data) {
-                        let value = data ? parseFloat(data) : 0;
-                        let color = value < 0 ? 'red' : 'green';
-
-                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
-                    }
-                },
-                {
-                    data: "account_total_amount",
-                    name: "account_total_amount",
-                    width: "50px",
-                    render: function(data) {
-                        let value = data ? parseFloat(data) : 0;
-                        let color = value < 0 ? 'red' : 'green';
-
-                        return `<span style="color:${color}">${value.toFixed(2)}</span>`;
-                    }
-                },
-            ],
-
-            footerCallback: function(row, data, start, end, display) {
-                let api = this.api();
-
-                let totalPayment   = 0;
-                let totalLoanTopUp = 0;
-                let totalExpenses  = 0;
-                let lastAccountTotal = 0;
-
-                let allRows = api.rows({ search: 'applied' }).data();
-
-                allRows.each(function(row) {
-                    totalPayment   += parseFloat(row.customer_payment || 0);
-                    totalLoanTopUp += parseFloat(row.loan_top_up      || 0);
-                    totalExpenses  += parseFloat(row.expenses         || 0);
-                });
-
-                // Show last row's account_total_amount as final balance
-                if (allRows.length > 0) {
-                    lastAccountTotal = parseFloat(allRows[allRows.length - 1].account_total_amount || 0);
+                    return data;
                 }
-
-                $(api.column(7).footer()).html(totalPayment.toFixed(2));
-                $(api.column(9).footer()).html(totalLoanTopUp.toFixed(2));
-                $(api.column(10).footer()).html(totalExpenses.toFixed(2));
-                $(api.column(11).footer()).html(lastAccountTotal.toFixed(2)); // ← last balance
             },
-        });
+            {
+                data: "date", name: "date", width: "60px",
+                render: function (data) {
+                    if (!data) return '-';
+                    const p = data.substring(0, 10).split('-');
+                    return p[2] + '-' + p[1] + '-' + p[0];
+                }
+            },
+            {
+                data: "customer_name", name: "customer_name", width: "200px",
+                render: function (data, type, row) {
+                    return data && row.customer_id
+                        ? '<a href="{{ url("customer") }}/' + row.customer_id + '/edit">' + data + '</a>'
+                        : (data ?? '-');
+                }
+            },
+            {
+                data: "expenses_name", name: "expenses_name", width: "160px",
+                render: function (data) { return data || '-'; }
+            },
+            {
+                data: "expenses_description", name: "expenses_description", width: "160px",
+                render: function (data) { return data || '-'; }
+            },
+            {
+                data: "interest_paid", name: "interest_paid", width: "100px",
+                render: function (data) { return data ? parseFloat(data).toFixed(2) : '-'; }
+            },
+            {
+                data: "customer_payment", name: "customer_payment", width: "80px",
+                render: function (data) {
+                    let v = parseFloat(data || 0);
+                    return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
+                }
+            },
+            {
+                data: "top_up_capital", name: "top_up_capital", width: "100px",
+                render: function (data) { return data ? parseFloat(data).toFixed(2) : '-'; }
+            },
+            {
+                data: "loan_top_up", name: "loan_top_up", width: "80px",
+                render: function (data) {
+                    let v = parseFloat(data || 0);
+                    return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
+                }
+            },
+            {
+                data: "expenses", name: "expenses", width: "80px",
+                render: function (data) {
+                    let v = parseFloat(data || 0);
+                    return '<span style="color:' + (v > 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
+                }
+            },
+            {
+                data: "account_total_amount", name: "account_total_amount", width: "80px",
+                render: function (data) {
+                    let v = parseFloat(data || 0);
+                    return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
+                }
+            },
+        ],
+        footerCallback: function () {
+            let api = this.api();
+            let allRows = api.rows({ search: 'applied' }).data();
+            let totIP = 0, totCP = 0, totTUC = 0, totLTU = 0, totEXP = 0, lastAT = 0;
+            allRows.each(function (r) {
+                totIP  += parseFloat(r.interest_paid    || 0);
+                totCP  += parseFloat(r.customer_payment || 0);
+                totTUC += parseFloat(r.top_up_capital   || 0);
+                totLTU += parseFloat(r.loan_top_up      || 0);
+                totEXP += parseFloat(r.expenses         || 0);
+            });
+            if (allRows.length > 0) lastAT = parseFloat(allRows[allRows.length - 1].account_total_amount || 0);
+            $(api.column(6).footer()).html(totIP.toFixed(2));
+            $(api.column(7).footer()).html(totCP.toFixed(2));
+            $(api.column(8).footer()).html(totTUC.toFixed(2));
+            $(api.column(9).footer()).html(totLTU.toFixed(2));
+            $(api.column(10).footer()).html(totEXP.toFixed(2));
+            $(api.column(11).footer()).html(lastAT.toFixed(2));
+        },
     });
 
-    $('#btn-filter').on('click', function() {
+    // ── Restore session filters ───────────────────────────────────────────
+    let sf = sessionStorage.getItem('cbr_from_date');
+    let st = sessionStorage.getItem('cbr_to_date');
+    let sc = sessionStorage.getItem('cbr_company');
+    if (sf) $('#filter_from_date').val(sf);
+    if (st) $('#filter_to_date').val(st);
+    if (sc) $('#filter_company').val(sc);
+    if (sf || st || sc) {
+        table_cash_book_reports.ajax.reload(function () {
+            $('#btn-download-pdf').prop('disabled', false);
+        });
+    }
+
+    // ── Filter ────────────────────────────────────────────────────────────
+    $('#btn-filter').on('click', function () {
         let from    = $('#filter_from_date').val();
         let to      = $('#filter_to_date').val();
         let company = $('#filter_company').val();
-
         if (!from && !to && !company) {
             alert("{{ __('table.please_select_filter') }}");
             return;
         }
-
-        // Save to sessionStorage
         sessionStorage.setItem('cbr_from_date', from);
-        sessionStorage.setItem('cbr_to_date', to);
-        sessionStorage.setItem('cbr_company', company);
-
-        table_cash_book_reports.ajax.reload(function() {
+        sessionStorage.setItem('cbr_to_date',   to);
+        sessionStorage.setItem('cbr_company',   company);
+        table_cash_book_reports.ajax.reload(function () {
             $('#btn-download-pdf').prop('disabled', false);
         });
     });
 
-    // Restore filter values on page load
-    $(document).ready(function() {
-        let from    = sessionStorage.getItem('cbr_from_date');
-        let to      = sessionStorage.getItem('cbr_to_date');
-        let company = sessionStorage.getItem('cbr_company');
-
-        if (from)    $('#filter_from_date').val(from);
-        if (to)      $('#filter_to_date').val(to);
-        if (company) $('#filter_company').val(company);
-
-        // Auto trigger filter if saved values exist
-        if (from || to || company) {
-            table_cash_book_reports.ajax.reload(function() {
-                $('#btn-download-pdf').prop('disabled', false);
-            });
-        }
-    });
-
-    $('#btn-download-pdf').on('click', function() {
-        let from     = $('#filter_from_date').val();
-        let to       = $('#filter_to_date').val();
-        let company  = $('#filter_company').val();
+    // ── PDF ───────────────────────────────────────────────────────────────
+    $('#btn-download-pdf').on('click', function () {
+        let from         = $('#filter_from_date').val();
+        let to           = $('#filter_to_date').val();
+        let company      = $('#filter_company').val();
         let companyLabel = $('#filter_company option:selected').text().trim();
+        let $btn         = $(this);
 
-        let $btn = $(this);
         $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Generating...');
 
         $.ajax({
-            url: "{{ route('report.load_cash_book_reports') }}",
+            url:  "{{ route('report.load_cash_book_reports') }}",
             type: "GET",
-            data: {
-                from_date:  from,
-                to_date:    to,
-                company_id: company,
-                start:      0,
-                length:     100000
-            },
-            success: function(response) {
-                if (!response || (!response.data && !Array.isArray(response))) {
-                    alert('Unexpected response from server.');
-                    return;
-                }
+            data: { from_date: from, to_date: to, company_id: company, start: 0, length: 100000 },
+            success: function (response) {
+                try {
+                    let rows = response.data || (Array.isArray(response) ? response : []);
+                    if (!rows.length) { alert('No data to export.'); return; }
 
-                // Sort rows by date ASC so running balance is correct
-                let rows = (response.data || (Array.isArray(response) ? response : []));
-                rows.sort(function(a, b) {
-                    return (a.date || '').localeCompare(b.date || '');
-                });
+                    rows.sort(function (a, b) { return (a.date || '').localeCompare(b.date || ''); });
 
-                const { jsPDF } = window.jspdf;
-                const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                    const { jsPDF } = window.jspdf;
+                    const doc  = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                    const PW   = doc.internal.pageSize.width;
+                    const PH   = doc.internal.pageSize.height;
+                    const ML   = 10;
+                    const MR   = 10;
 
-                // Title block
-                doc.setFontSize(14);
-                doc.setFont('helvetica', 'bold');
-                doc.text('Cash Book Report', 148, 15, { align: 'center' });
+                    // Column widths — total 250, fits in 277
+                    const CW = [8, 25, 18, 25, 20, 20, 18, 20, 18, 18, 18, 22];
+                    let CL = []; let cx = ML;
+                    CW.forEach(function (w) { CL.push(cx); cx += w; });
+                    const TW = CW.reduce(function (a, b) { return a + b; }, 0);
 
-                doc.setFontSize(9);
-                doc.setFont('helvetica', 'normal');
-                let subLines = [];
-                if (companyLabel && company) subLines.push('Company: ' + companyLabel);
-                if (from) subLines.push('From: ' + from);
-                if (to)   subLines.push('To: ' + to);
-                if (subLines.length) doc.text(subLines.join('   |   '), 148, 21, { align: 'center' });
-
-                doc.setFontSize(8);
-                doc.text('Generated: ' + new Date().toLocaleString(), 148, 26, { align: 'center' });
-
-                // Build table rows with running balance per day
-                // Group by date to compute daily running total
-                let runningTotal = 0;
-                let currentDate  = null;
-                let dailyNet     = 0;
-
-                let tableRows = rows.map(function(row, index) {
-                    let rowDate       = row.date ? row.date.substring(0, 10) : '';
-                    let custPayment   = parseFloat(row.customer_payment     || 0);
-                    let loanTopUp     = parseFloat(row.loan_top_up          || 0);
-                    let expenses      = parseFloat(row.expenses             || 0);
-                    let account_total = parseFloat(row.account_total_amount || 0);
-
-                    // Running balance: add inflows, subtract outflows
-                    // Inflows: customer_payment + loan_top_up
-                    // Outflows: expenses
-                    runningTotal += custPayment + loanTopUp - expenses;
-
-                    return [
-                        index + 1,
-                        row.description         || '-',
-                        rowDate,
-                        row.customer_name       || '-',
-                        row.expenses_name       || '-',
-                        row.expenses_description || '-',
-                        custPayment.toFixed(2),
-                        loanTopUp.toFixed(2),
-                        expenses.toFixed(2),
-                        account_total.toFixed(2),
-                        runningTotal.toFixed(2)
-                    ];
-                });
-
-                // Totals footer
-                let totalCustPayment = rows.reduce((s, r) => s + parseFloat(r.customer_payment     || 0), 0);
-                let totalLoanTopUp   = rows.reduce((s, r) => s + parseFloat(r.loan_top_up          || 0), 0);
-                let totalExpenses    = rows.reduce((s, r) => s + parseFloat(r.expenses             || 0), 0);
-                let lastRow          = rows[rows.length - 1];
-                let totalAccount     = lastRow ? parseFloat(lastRow.account_total_amount || 0) : 0;
-
-                doc.autoTable({
-                    startY: 30,
-                    head: [[
-                        'No', 'Description', 'Date', 'Customer Name',
-                        'Expenses Name', 'Expenses Description', 'Customer Payment', 'Loan Top Up', 'Expenses', 'Account Total'
-                    ]],
-                    body: tableRows,
-                    foot: [[
-                        '', '', '', '', 'Total', '',
-                        totalCustPayment.toFixed(2),
-                        totalLoanTopUp.toFixed(2),
-                        totalExpenses.toFixed(2),
-                        totalAccount.toFixed(2)
-                    ]],
-                    theme: 'grid',
-                    didParseCell: function(data) {
-                        if (data.section === 'body') {
-                            let value = parseFloat(data.cell.raw || 0);
-                            if (data.column.index === 6) {
-                                if (value < 0) data.cell.styles.textColor = [255, 0, 0];
-                                else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
-                            }
-                            if (data.column.index === 7) {
-                                if (value < 0) data.cell.styles.textColor = [255, 0, 0];
-                                else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
-                            }
-                            if (data.column.index === 8) {
-                                if (value < 0) data.cell.styles.textColor = [255, 0, 0];
-                                else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
-                            }
-                            if (data.column.index === 9) {
-                                if (value < 0) data.cell.styles.textColor = [255, 0, 0];
-                                else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
-                            }
+                    // Color helper
+                    function numColor(colIdx, val) {
+                        if (colIdx === 10) {
+                            // expenses: positive = outflow = red
+                            return val > 0 ? [200,0,0] : (val < 0 ? [0,140,0] : [0,0,0]);
                         }
-                        if (data.section === 'foot') {
-                            let value = parseFloat(data.cell.raw || 0);
-                            if ([6,7,8,9].includes(data.column.index)) {
-                                if (value < 0) data.cell.styles.textColor = [255, 0, 0];
-                                else if (value > 0) data.cell.styles.textColor = [0, 128, 0];
-                            }
-                        }
-                    },
-                    headStyles: {
-                        fillColor: [41, 128, 185],
-                        textColor: 255,
-                        fontStyle: 'bold',
-                        fontSize: 7.5,
-                        halign: 'center'
-                    },
-                    footStyles: {
-                        fillColor: [236, 240, 241],
-                        textColor: [0, 0, 0],
-                        fontStyle: 'bold',
-                        fontSize: 8
-                    },
-                    bodyStyles: { fontSize: 7.5 },
-                    columnStyles: {
-                        0: { halign: 'center', cellWidth: 8  },   // No
-                        1: { cellWidth: 25 },                      // Description
-                        2: { halign: 'center', cellWidth: 20 },   // Date
-                        3: { cellWidth: 30 },                      // Customer Name
-                        4: { cellWidth: 25 },                      // Expenses Name
-                        5: { cellWidth: 25 },                      // Expenses Description
-                        6: { halign: 'right',  cellWidth: 24 },   // Customer Payment
-                        7: { halign: 'right',  cellWidth: 20 },   // Loan Top Up
-                        8: { halign: 'right',  cellWidth: 20 },   // Expenses
-                        9: { halign: 'right',  cellWidth: 24 }    // Account Total
-                    },
-                    didDrawPage: function(data) {
+                        return val < 0 ? [200,0,0] : (val > 0 ? [0,140,0] : [0,0,0]);
+                    }
+
+                    // Opening balance
+                    let fr = rows[0];
+                    let ob = parseFloat(fr.account_total_amount || 0)
+                           - parseFloat(fr.customer_payment     || 0)
+                           - parseFloat(fr.loan_top_up          || 0)
+                           + parseFloat(fr.expenses             || 0);
+
+                    // Title
+                    doc.setFontSize(14);
+                    doc.setFont('helvetica', 'bold');
+                    doc.text('Cash Book Report', PW / 2, 12, { align: 'center' });
+                    doc.setFontSize(9);
+                    doc.setFont('helvetica', 'normal');
+                    let sub = [];
+                    if (companyLabel && company) sub.push('Company: ' + companyLabel);
+                    if (from) sub.push('From: ' + from);
+                    if (to)   sub.push('To: '   + to);
+                    if (sub.length) doc.text(sub.join('   |   '), PW / 2, 18, { align: 'center' });
+                    doc.setFontSize(8);
+                    doc.text('Generated: ' + new Date().toLocaleString(), PW / 2, 23, { align: 'center' });
+
+                    // Opening balance row drawn at fixed y=27
+                    let obY = 27;
+                    doc.setFillColor(232, 245, 232);
+                    doc.rect(ML, obY, TW, 6, 'F');
+                    doc.setDrawColor(180, 210, 180);
+                    doc.rect(ML, obY, TW, 6, 'S');
+                    doc.setFontSize(7.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0, 140, 0);
+                    doc.text('Opening Balance', ML + 2, obY + 4);
+                    doc.text(ob.toFixed(2), CL[11] + CW[11] - 2, obY + 4, { align: 'right' });
+                    doc.setTextColor(0, 0, 0);
+                    doc.setFont('helvetica', 'normal');
+
+                    // Build body
+                    let bodyRows = rows.map(function (row, i) {
+                        let d   = row.date ? row.date.substring(0, 10) : '';
+                        let ip  = parseFloat(row.interest_paid        || 0);
+                        let cp  = parseFloat(row.customer_payment     || 0);
+                        let tuc = parseFloat(row.top_up_capital       || 0);
+                        let ltu = parseFloat(row.loan_top_up          || 0);
+                        let exp = parseFloat(row.expenses             || 0);
+                        let at  = parseFloat(row.account_total_amount || 0);
+                        return [
+                            i + 1,
+                            row.description          || '-',
+                            d,
+                            row.customer_name        || '-',
+                            row.expenses_name        || '-',
+                            row.expenses_description || '-',
+                            ip  !== 0 ? ip.toFixed(2)  : '-',
+                            cp  !== 0 ? cp.toFixed(2)  : '-',
+                            tuc !== 0 ? tuc.toFixed(2) : '-',
+                            ltu !== 0 ? ltu.toFixed(2) : '-',
+                            exp !== 0 ? exp.toFixed(2) : '-',
+                            at.toFixed(2),
+                        ];
+                    });
+
+                    // Totals
+                    let totIP  = rows.reduce(function (s, r) { return s + parseFloat(r.interest_paid    || 0); }, 0);
+                    let totCP  = rows.reduce(function (s, r) { return s + parseFloat(r.customer_payment || 0); }, 0);
+                    let totTUC = rows.reduce(function (s, r) { return s + parseFloat(r.top_up_capital   || 0); }, 0);
+                    let totLTU = rows.reduce(function (s, r) { return s + parseFloat(r.loan_top_up      || 0); }, 0);
+                    let totEXP = rows.reduce(function (s, r) { return s + parseFloat(r.expenses         || 0); }, 0);
+                    let totAT  = parseFloat(rows[rows.length - 1].account_total_amount || 0);
+
+                    // autoTable — no foot, total drawn manually after
+                    doc.autoTable({
+                        startY: 34,
+                        margin: { left: ML, right: MR },
+                        head: [[
+                            'No', 'Description', 'Date', 'Customer Name',
+                            'Expenses Name', 'Expenses Desc',
+                            'Interest Paid', 'Customer Payment', 'Top Up Capital',
+                            'Loan Top Up', 'Expenses', 'Account Total'
+                        ]],
+                        body: bodyRows,
+                        theme: 'grid',
+                        headStyles: {
+                            fillColor: [41, 128, 185], textColor: 255,
+                            fontStyle: 'bold', fontSize: 7, halign: 'center'
+                        },
+                        bodyStyles: { fontSize: 7 },
+                        columnStyles: {
+                            0:  { halign: 'center', cellWidth: CW[0]  },
+                            1:  { cellWidth: CW[1]  },
+                            2:  { halign: 'center', cellWidth: CW[2]  },
+                            3:  { cellWidth: CW[3]  },
+                            4:  { cellWidth: CW[4]  },
+                            5:  { cellWidth: CW[5]  },
+                            6:  { halign: 'right',  cellWidth: CW[6]  },
+                            7:  { halign: 'right',  cellWidth: CW[7]  },
+                            8:  { halign: 'right',  cellWidth: CW[8]  },
+                            9:  { halign: 'right',  cellWidth: CW[9]  },
+                            10: { halign: 'right',  cellWidth: CW[10] },
+                            11: { halign: 'right',  cellWidth: CW[11] },
+                        },
+                        didParseCell: function (data) {
+                            if (data.section !== 'body') return;
+                            if (![6,7,8,9,10,11].includes(data.column.index)) return;
+                            let v = parseFloat(data.cell.raw);
+                            if (isNaN(v)) return;
+                            data.cell.styles.textColor = numColor(data.column.index, v);
+                        },
+                        didDrawPage: function () {
+                            doc.setFontSize(8);
+                            doc.setFont('helvetica', 'normal');
+                            doc.setTextColor(0, 0, 0);
+                            doc.text(
+                                'Page ' + doc.internal.getCurrentPageInfo().pageNumber,
+                                ML, PH - 5
+                            );
+                        },
+                    });
+
+                    // Total row — drawn once after table ends
+                    let fy   = doc.lastAutoTable.finalY;
+                    let rowH = 7;
+                    if (fy + rowH > PH - 12) {
+                        doc.addPage();
+                        fy = 12;
                         doc.setFontSize(8);
                         doc.setFont('helvetica', 'normal');
-                        doc.text(
-                            'Page ' + doc.internal.getCurrentPageInfo().pageNumber,
-                            data.settings.margin.left,
-                            doc.internal.pageSize.height - 8
-                        );
+                        doc.setTextColor(0, 0, 0);
+                        doc.text('Page ' + doc.internal.getNumberOfPages(), ML, PH - 5);
                     }
-                });
 
-                let filename = 'cash_book_report';
-                if (from) filename += '_' + from;
-                if (to)   filename += '_to_' + to;
-                filename += '.pdf';
+                    doc.setFillColor(220, 230, 241);
+                    doc.rect(ML, fy, TW, rowH, 'F');
+                    doc.setDrawColor(150, 170, 200);
+                    doc.rect(ML, fy, TW, rowH, 'S');
+                    doc.setFontSize(7.5);
+                    doc.setFont('helvetica', 'bold');
+                    doc.setTextColor(0, 0, 0);
+                    doc.text('Total', CL[4] + 2, fy + 4.8);
 
-                doc.save(filename);
+                    let totals = [[6,totIP],[7,totCP],[8,totTUC],[9,totLTU],[10,totEXP],[11,totAT]];
+                    totals.forEach(function (pair) {
+                        let ci  = pair[0];
+                        let val = pair[1];
+                        let c   = numColor(ci, val);
+                        doc.setTextColor(c[0], c[1], c[2]);
+                        doc.text(val.toFixed(2), CL[ci] + CW[ci] - 2, fy + 4.8, { align: 'right' });
+                    });
+                    doc.setTextColor(0, 0, 0);
+
+                    // Save
+                    let fn = 'cash_book_report';
+                    if (from) fn += '_' + from;
+                    if (to)   fn += '_to_' + to;
+                    doc.save(fn + '.pdf');
+
+                } catch (err) {
+                    console.error('PDF error:', err);
+                    alert('PDF generation error: ' + err.message);
+                }
             },
-            error: function(xhr, status, error) {
+            error: function (xhr, status, error) {
                 alert('Failed to fetch data: ' + (xhr.responseJSON?.message || error));
             },
-            complete: function() {
+            complete: function () {
                 $btn.prop('disabled', false).html('<i class="fas fa-file-pdf"></i> PDF');
             }
         });
     });
+
+}); // end document.ready
 </script>
 @endsection

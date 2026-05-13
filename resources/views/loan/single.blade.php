@@ -629,7 +629,12 @@
                      <div class="col-lg-12">
                         <section class="card">
                             <div class="mb-3" style="text-align: right;">
-                                <a class="btn btn-xs btn-square btn-primary" onclick="new bootstrap.Modal('#modal-add-payment').show()">{{ __('table.create') }}</a>
+                                <a class="btn btn-xs btn-square btn-success me-1" onclick="exportPaymentReport()">
+                                    <i class="fas fa-file-excel"></i> {{ __('table.payment_report') }}
+                                </a>
+                                <a class="btn btn-xs btn-square btn-primary" onclick="new bootstrap.Modal('#modal-add-payment').show()">
+                                    {{ __('table.create') }}
+                                </a>
                             </div>
                             <table class="table cus-table table-bordered table-striped mb-0" id="table-payments">
                                 <thead>
@@ -1773,6 +1778,47 @@ document.addEventListener('DOMContentLoaded', function () {
     loanAmount.addEventListener('input', calculateCapital);
     processingFee.addEventListener('input', calculateCapital);
 });
+</script>
+
+<script>
+function exportPaymentReport() {
+    const table = $('#table-payments').DataTable();
+    const rows = table.rows({ search: 'applied' }).data().toArray();
+
+    const headers = [
+        '{{ __("table.payment_code") }}',
+        '{{ __("table.payment_date") }}',
+        '{{ __("table.sched") }}',
+        '{{ __("table.paid") }}',
+        '{{ __("table.discount") }}',
+        '{{ __("table.int_paid") }}',
+        '{{ __("table.late_paid") }}',
+        '{{ __("table.top_up_cap") }}',
+        '{{ __("table.top_up_amt") }}',
+        '{{ __("table.balance") }}',
+        '{{ __("table.remark") }}',
+        '{{ __("table.type") }}',
+        '{{ __("table.loan_code") }}',
+    ];
+
+    let csv = '\uFEFF' + headers.join(',') + '\n';
+    rows.forEach(row => {
+        const cols = Array.isArray(row) ? row : Object.values(row);
+        const data = cols.slice(0, headers.length).map(val => {
+            const clean = String(val ?? '').replace(/<[^>]+>/g, '').replace(/"/g, '""');
+            return `"${clean}"`;
+        });
+        csv += data.join(',') + '\n';
+    });
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url  = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href     = url;
+    link.download = 'payment_report_{{ now()->format("Ymd_His") }}.csv';
+    link.click();
+    URL.revokeObjectURL(url);
+}
 </script>
 
 @endsection
