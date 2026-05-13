@@ -333,6 +333,10 @@ return [
 'interest_paid' => 'Interest Paid',
 'top_up_capital' => 'Topup Capital',
 'enter_top_up_capital' => 'Enter Topup Capital',
+'payment_report' => 'Payment Report',
+'' => '',
+'' => '',
+'' => '',
 '' => '',
     
 ];

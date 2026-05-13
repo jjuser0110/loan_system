@@ -333,6 +333,7 @@ return [
 'interest_paid' => 'Faedah Dibayar',
 'top_up_capital' => 'Modal Tambahan',
 'enter_top_up_capital' => 'Masukkan Modal Tambahan',
+'payment_report' => 'Laporan Pembayaran',
 
 ];
 
