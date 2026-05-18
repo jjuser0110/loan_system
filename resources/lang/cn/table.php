@@ -334,6 +334,10 @@ return [
 'top_up_capital' => '追加资本',
 'enter_top_up_capital' => '输入追加资本',
 'payment_report' => '付款报告',
+'new_loan_capital' => '新贷款本金',
+'total' => '总计',
+'exp_amount' => '支出金额',
+'non_exp_amount' => '非支出金额',
 
 ];
 

@@ -334,6 +334,10 @@ return [
 'top_up_capital' => 'Modal Tambahan',
 'enter_top_up_capital' => 'Masukkan Modal Tambahan',
 'payment_report' => 'Laporan Pembayaran',
+'new_loan_capital' => 'Modal Pinjaman Baru',
+'total' => 'Jumlah',
+'exp_amount' => 'Jumlah Perbelanjaan',
+'non_exp_amount' => 'Jumlah Bukan Perbelanjaan',
 
 ];
 
