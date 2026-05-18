@@ -73,6 +73,7 @@
                             <th>{{ __('table.top_up') }}</th>
                             <th>{{ __('table.total_pay') }}</th>
                             <th>{{ __('table.balance') }}</th>
+                            <th>{{ __('table.total') }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -161,7 +162,7 @@
                     data: "late_paid_amount",
                     render: function (data) {
                         let v = data ? parseFloat(data) : 0;
-                        return `<span style="color:${v < 0 ? 'red' : 'green'}">${v.toFixed(2)}</span>`;
+                        return `<span style="color:${v < 0 ? 'orange' : 'orange'}">${v.toFixed(2)}</span>`;
                     }
                 },
                 {
@@ -195,12 +196,19 @@
                 {
                     data: "running_payment",
                     render: function (data) {
-                        let v = data ? parseFloat(data) : 0;
-                        return `<span style="color:green">${v.toFixed(2)}</span>`;
+                        let v = data !== null ? parseFloat(data) : 0;
+                        return `<span style="color:${v < 0 ? 'red' : 'green'}">${v.toFixed(2)}</span>`;
                     }
                 },
                 {
                     data: "deducted_balance",
+                    render: function (data) {
+                        let v = data !== null ? parseFloat(data) : 0;
+                        return `<span style="color:${v < 0 ? 'red' : 'green'}">${v.toFixed(2)}</span>`;
+                    }
+                },
+                {
+                    data: "total_paid_amount",
                     render: function (data) {
                         let v = data !== null ? parseFloat(data) : 0;
                         return `<span style="color:${v < 0 ? 'red' : 'green'}">${v.toFixed(2)}</span>`;

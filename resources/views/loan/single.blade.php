@@ -849,14 +849,14 @@
                     </div>
 
                     {{-- Top-up- capital --}}
-                    <div class="row mb-3" id="add-wrap-topup">
-                        <div class="col-md-6">
+                    <div class="row mb-3">
+                        <div class="col-md-6" id="add-wrap-topup-capital">
                             <label class="col-form-label">{{ __('table.top_up_capital') }}</label>
                             <input type="number" class="form-control" id="add-input-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01" value="0">
                         </div>
 
                         {{-- Top-up --}}
-                        <div class="col-md-6">
+                        <div class="col-md-6" id="add-wrap-topup">
                             <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
                             <input type="number" class="form-control" id="add-input-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
                         </div>
@@ -934,14 +934,14 @@
                     </div>
 
                     {{-- Top-up- capital --}}
-                    <div class="row mb-3" id="update-wrap-topup">
-                        <div class="col-md-6">
+                    <div class="row mb-3">
+                        <div class="col-md-6" id="update-wrap-topup-capital">
                             <label class="col-form-label">{{ __('table.top_up_capital') }}</label>
                             <input type="number" class="form-control" id="update-payment-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01" value="0">
                         </div>
 
                         {{-- Top-up --}}
-                        <div class="col-md-6">
+                        <div class="col-md-6" id="update-wrap-topup">
                             <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
                             <input type="number" class="form-control" id="update-payment-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
                         </div>
@@ -1097,7 +1097,7 @@
             "serverSide": true,
             "fixedHeader": false,
             "ordering":   true,
-            "order":      [[0, "desc"]],
+            "order": [[1, "asc"]],
             "columnDefs": [
                 { "orderable": false, "targets": [2, 9, 12] },  // installment_calc, deducted_balance, action
                 @if(Auth::user()->role_id <= 3)
@@ -1108,9 +1108,6 @@
                 "url": "{{ route('payment.load_payment',['loan_code'=>':loan_code']) }}".replace(':loan_code',"{{ $loan->loan_code }}"),
                 "type": "GET"
             },
-            "order": [
-                [0, "desc"]
-            ],
             "columns": [
                 {
                     "data": "payment_code"
@@ -1173,7 +1170,7 @@
                             return '-';
                         }
 
-                        return `<strong style="color:orange">${value}</strong>`;
+                        return `<strong style="color:red">${value}</strong>`;
                     }
                 },
                 {
@@ -1185,7 +1182,7 @@
                             return '-';
                         }
 
-                        return `<strong style="color:orange">${value}</strong>`;
+                        return `<strong style="color:red">${value}</strong>`;
                     }
                 },
                 {
@@ -1377,16 +1374,18 @@
         const wrapLate     = document.getElementById('update-wrap-late');
         const wrapInterest = document.getElementById('update-wrap-interest');
         const wrapTopup    = document.getElementById('update-wrap-topup');
+        const wrapTopupCapital    = document.getElementById('update-wrap-topup-capital');
 
         const inputPaid     = document.getElementById('update-payment-paid');
         const inputDiscount = document.getElementById('update-payment-discount');
         const inputLate     = document.getElementById('update-payment-late');
         const inputInterest = document.getElementById('update-payment-interest');
         const inputTopup    = document.getElementById('update-payment-topup');
+        const inputTopupCapital    = document.getElementById('update-payment-topup-capital');
 
         // Reset — grey everything first
-        [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.setAttribute('style', GREY));
-        [inputPaid, inputDiscount, inputLate, inputInterest, inputTopup].forEach(i => {
+        [wrapPayment, wrapLate, wrapInterest, wrapTopup, wrapTopupCapital].forEach(w => w.setAttribute('style', GREY));
+        [inputPaid, inputDiscount, inputLate, inputInterest, inputTopup, inputTopupCapital].forEach(i => {
             i.disabled = true;
             i.required = false;
             i.value = '';
@@ -1416,8 +1415,11 @@
 
         } else if (type === 'TOPUP') {
             wrapTopup.removeAttribute('style');
+            wrapTopupCapital.removeAttribute('style');
             inputTopup.disabled = false;
             inputTopup.required = true;
+            inputTopupCapital.disabled = false;
+            inputTopupCapital.required = true;
         }
     }
 
@@ -1427,17 +1429,19 @@
         const wrapPayment  = document.getElementById('add-wrap-payment');
         const wrapLate     = document.getElementById('add-wrap-late');
         const wrapInterest = document.getElementById('add-wrap-interest');
+        const wrapTopupCapital = document.getElementById('add-wrap-topup-capital');
         const wrapTopup    = document.getElementById('add-wrap-topup');
 
         const inputPayment  = document.getElementById('add-input-payment-amount');
         const inputLate     = document.getElementById('add-input-payment-late');
         const inputInterest = document.getElementById('add-input-payment-interest');
+        const inputTopupCapital = document.getElementById('add-input-topup-capital');
         const inputTopup    = document.getElementById('add-input-topup');
         const inputDiscount = document.querySelector('#add-wrap-payment [name="discount_amount"]');
 
         // Reset — grey everything first
-        [wrapPayment, wrapLate, wrapInterest, wrapTopup].forEach(w => w.setAttribute('style', GREY_STYLE_ADD));
-        [inputPayment, inputLate, inputInterest, inputTopup, inputDiscount].forEach(i => {
+        [wrapPayment, wrapLate, wrapInterest, wrapTopup, wrapTopupCapital].forEach(w => w.setAttribute('style', GREY_STYLE_ADD));
+        [inputPayment, inputLate, inputInterest, inputTopup, inputTopupCapital, inputDiscount].forEach(i => {
             i.disabled = true;
             i.required = false;
             i.value = 0;
@@ -1467,8 +1471,13 @@
 
         } else if (type === 'TOPUP') {
             wrapTopup.removeAttribute('style');
+            wrapTopupCapital.removeAttribute('style');
+
             inputTopup.disabled = false;
             inputTopup.required = true;
+
+            inputTopupCapital.disabled = false;
+            inputTopupCapital.required = true;
         }
     }
 
@@ -1819,6 +1828,42 @@ function exportPaymentReport() {
     link.click();
     URL.revokeObjectURL(url);
 }
+</script>
+
+<script>
+function updatePaymentTypeOptions() {
+    let type = ($('#add-collection-type').val() || '').toUpperCase();
+
+    let $select = $('#add-payment-type');
+
+    // show all first
+    $select.find('option').show();
+
+    if (type === 'SKIM B') {
+        // hide TOPUP + INTEREST
+        $select.find('option[value="TOPUP"]').hide();
+        $select.find('option[value="INTEREST"]').hide();
+    }
+
+    if (type === 'SKIM A') {
+        // hide LATE
+        $select.find('option[value="LATE"]').hide();
+    }
+
+    // if current selected is hidden, reset to CCM
+    if ($select.find('option:selected').is(':hidden')) {
+        $select.val('CCM');
+    }
+
+    // also trigger change logic (your existing function)
+    applyAddPaymentType($select.val());
+}
+
+
+// run when modal opens
+$('#modal-add-payment').on('shown.bs.modal', function () {
+    updatePaymentTypeOptions();
+});
 </script>
 
 @endsection

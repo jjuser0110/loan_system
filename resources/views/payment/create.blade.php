@@ -188,7 +188,7 @@
         const wrapDiscount = document.getElementById('wrap-discount-amount');
         const wrapLate     = document.getElementById('wrap-late-amount');
         const wrapInterest = document.getElementById('wrap-interest-amount');
-        const wrapTopups   = document.querySelectorAll('.field-topup'); // ← ALL topup wrappers
+        const wrapTopups   = document.querySelectorAll('.field-topup');
 
         const inputPayment     = document.getElementById('input-payment-amount');
         const inputLate        = document.getElementById('input-payment-late');

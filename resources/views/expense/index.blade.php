@@ -49,7 +49,8 @@
                             <th>{{ __('table.expense_code') }}</th>
                             <th>{{ __('table.title') }}</th>
                             <th>{{ __('table.description') }}</th>
-                            <th>{{ __('table.amount') }}</th>
+                            <th>{{ __('table.exp_amount') }}</th>
+                            <th>{{ __('table.non_exp_amount') }}</th>
                             <th>{{ __('table.date') }}</th>
                             <th>{{ __('table.company') }}</th>
                             <th>{{ __('table.bank') }}</th>
@@ -59,6 +60,14 @@
                         </tr>
                     </thead>
                     <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" style="text-align:right">Total :</th>
+                            <th id="total-expense-amount"></th>
+                            <th id="total-non-amount"></th>
+                            <th colspan="6"></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </section>
@@ -263,7 +272,14 @@
                 { "data": "expense_title" },
                 { "data": "expense_description" },
                 {
-                    data: "amount",
+                    data: "expense_amount",
+                    render: function(data) {
+                        let color = data < 0 ? 'red' : 'green';
+                        return `<span style="color:${color}">${data}</span>`;
+                    }
+                },
+                {
+                    data: "non_amount",
                     render: function(data) {
                         let color = data < 0 ? 'red' : 'green';
                         return `<span style="color:${color}">${data}</span>`;
@@ -312,7 +328,37 @@
                         `;
                     }
                 }
-            ]
+            ],
+            "drawCallback": function(settings) {
+
+            let api = this.api();
+
+            let expenseTotal = api
+                .column(3, { page: 'current' })
+                .data()
+                .reduce(function(a, b) {
+                    return parseFloat(a || 0) + parseFloat(b || 0);
+                }, 0);
+
+            let nonExpenseTotal = api
+                .column(4, { page: 'current' })
+                .data()
+                .reduce(function(a, b) {
+                    return parseFloat(a || 0) + parseFloat(b || 0);
+                }, 0);
+
+            $('#total-expense-amount').html(
+                `<span style="color:${expenseTotal < 0 ? 'red' : 'green'}">
+                    ${expenseTotal.toFixed(2)}
+                </span>`
+            );
+
+            $('#total-non-amount').html(
+                `<span style="color:${nonExpenseTotal < 0 ? 'red' : 'green'}">
+                    ${nonExpenseTotal.toFixed(2)}
+                </span>`
+            );
+        }
         });
 
         // Restore filter from sessionStorage

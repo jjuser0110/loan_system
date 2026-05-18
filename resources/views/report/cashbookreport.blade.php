@@ -18,17 +18,13 @@
         <select id="filter_company" class="form-control">
             <option value="">{{ __('table.select_company') }}</option>
             @foreach($companies as $company)
-                <option value="{{ $company->id }}">
-                    {{ $company->company_name }} ({{ $company->company_code }})
-                </option>
+                <option value="{{ $company->id }}">{{ $company->company_name }} ({{ $company->company_code }})</option>
             @endforeach
         </select>
     </div>
     <br>
     <div class="col-md-3 d-flex align-items-end gap-2">
-        <button class="btn btn-primary w-100" id="btn-filter">
-            {{ __('table.filter') }}
-        </button>
+        <button class="btn btn-primary w-100" id="btn-filter">{{ __('table.filter') }}</button>
         <button class="btn btn-danger w-100" id="btn-download-pdf" disabled>
             <i class="fas fa-file-pdf"></i> PDF
         </button>
@@ -47,12 +43,14 @@
                                 <th>{{ __('table.description') }}</th>
                                 <th>{{ __('table.date') }}</th>
                                 <th>{{ __('table.customer_name') }}</th>
+                                <th>{{ __('table.collection_type') }}</th>
                                 <th>{{ __('table.expenses_name') }}</th>
                                 <th>{{ __('table.expenses_description') }}</th>
+                                <th>{{ __('table.remark') }}</th>
                                 <th>{{ __('table.interest_paid') }}</th>
                                 <th>{{ __('table.customer_payment') }}</th>
                                 <th>{{ __('table.top_up_capital') }}</th>
-                                <th>{{ __('table.loan_topup') }}</th>
+                                <th>{{ __('table.new_loan_capital') }}</th>
                                 <th>{{ __('table.expenses') }}</th>
                                 <th>{{ __('table.account_total') }}</th>
                             </tr>
@@ -60,12 +58,7 @@
                         <tfoot>
                             <tr>
                                 <th colspan="6" class="text-right">Total</th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
-                                <th></th>
+                                <th></th><th></th><th></th><th></th><th></th><th></th>
                             </tr>
                         </tfoot>
                         <tbody></tbody>
@@ -86,7 +79,6 @@ let table_cash_book_reports;
 
 $(document).ready(function () {
 
-    // ── DataTable ─────────────────────────────────────────────────────────
     table_cash_book_reports = $('#table-cash-book-reports').DataTable({
         processing:   true,
         serverSide:   true,
@@ -124,8 +116,8 @@ $(document).ready(function () {
                     if (data.startsWith('Expense #')) {
                         return '<a href="{{ url("expense/index") }}">' + data + '</a>';
                     }
-                    if (data.startsWith('Payment #')) {
-                        let paymentCode = data.replace('Payment #', '').trim();
+                    if (data.startsWith('Payment #') || data.startsWith('Loan TopUp - Payment #')) {
+                        let paymentCode = data.replace('Loan TopUp - Payment #', '').replace('Payment #', '').trim();
                         let match = paymentCode.match(/^(.+)-P\d+$/);
                         if (match) {
                             return '<a href="{{ url("loan/single_loan") }}/' + match[1] + '#payment">' + data + '</a>';
@@ -152,11 +144,19 @@ $(document).ready(function () {
                 }
             },
             {
+                data: "collection_type", name: "collection_type", width: "100px",
+                render: function (data) { return data || '-'; }
+            },
+            {
                 data: "expenses_name", name: "expenses_name", width: "160px",
                 render: function (data) { return data || '-'; }
             },
             {
                 data: "expenses_description", name: "expenses_description", width: "160px",
+                render: function (data) { return data || '-'; }
+            },
+            {
+                data: "remark", name: "remark", width: "160px",
                 render: function (data) { return data || '-'; }
             },
             {
@@ -172,7 +172,11 @@ $(document).ready(function () {
             },
             {
                 data: "top_up_capital", name: "top_up_capital", width: "100px",
-                render: function (data) { return data ? parseFloat(data).toFixed(2) : '-'; }
+                render: function (data) {
+                    if (!data) return '-';
+                    let v = parseFloat(data);
+                    return '<span style="color:red">-' + Math.abs(v).toFixed(2) + '</span>';
+                }
             },
             {
                 data: "loan_top_up", name: "loan_top_up", width: "80px",
@@ -197,13 +201,13 @@ $(document).ready(function () {
             },
         ],
         footerCallback: function () {
-            let api = this.api();
+            let api     = this.api();
             let allRows = api.rows({ search: 'applied' }).data();
             let totIP = 0, totCP = 0, totTUC = 0, totLTU = 0, totEXP = 0, lastAT = 0;
             allRows.each(function (r) {
                 totIP  += parseFloat(r.interest_paid    || 0);
                 totCP  += parseFloat(r.customer_payment || 0);
-                totTUC += parseFloat(r.top_up_capital   || 0);
+                totTUC -= parseFloat(r.top_up_capital   || 0);
                 totLTU += parseFloat(r.loan_top_up      || 0);
                 totEXP += parseFloat(r.expenses         || 0);
             });
@@ -217,7 +221,6 @@ $(document).ready(function () {
         },
     });
 
-    // ── Restore session filters ───────────────────────────────────────────
     let sf = sessionStorage.getItem('cbr_from_date');
     let st = sessionStorage.getItem('cbr_to_date');
     let sc = sessionStorage.getItem('cbr_company');
@@ -230,7 +233,6 @@ $(document).ready(function () {
         });
     }
 
-    // ── Filter ────────────────────────────────────────────────────────────
     $('#btn-filter').on('click', function () {
         let from    = $('#filter_from_date').val();
         let to      = $('#filter_to_date').val();
@@ -247,7 +249,6 @@ $(document).ready(function () {
         });
     });
 
-    // ── PDF ───────────────────────────────────────────────────────────────
     $('#btn-download-pdf').on('click', function () {
         let from         = $('#filter_from_date').val();
         let to           = $('#filter_to_date').val();
@@ -263,77 +264,60 @@ $(document).ready(function () {
             data: { from_date: from, to_date: to, company_id: company, start: 0, length: 100000 },
             success: function (response) {
                 try {
-                    let rows = response.data || (Array.isArray(response) ? response : []);
+                    let rows = response.data || [];
                     if (!rows.length) { alert('No data to export.'); return; }
 
                     rows.sort(function (a, b) { return (a.date || '').localeCompare(b.date || ''); });
 
                     const { jsPDF } = window.jspdf;
-                    const doc  = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-                    const PW   = doc.internal.pageSize.width;
-                    const PH   = doc.internal.pageSize.height;
-                    const ML   = 10;
-                    const MR   = 10;
+                    const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                    const PW  = doc.internal.pageSize.width;
+                    const PH  = doc.internal.pageSize.height;
+                    const ML  = 10;
 
-                    // Column widths — total 250, fits in 277
                     const CW = [8, 25, 18, 25, 20, 20, 18, 20, 18, 18, 18, 22];
-                    let CL = []; let cx = ML;
+                    let CL = [], cx = ML;
                     CW.forEach(function (w) { CL.push(cx); cx += w; });
                     const TW = CW.reduce(function (a, b) { return a + b; }, 0);
 
-                    // Color helper
                     function numColor(colIdx, val) {
-                        if (colIdx === 10) {
-                            // expenses: positive = outflow = red
-                            return val > 0 ? [200,0,0] : (val < 0 ? [0,140,0] : [0,0,0]);
-                        }
+                        if (colIdx === 10) return val > 0 ? [200,0,0] : (val < 0 ? [0,140,0] : [0,0,0]);
                         return val < 0 ? [200,0,0] : (val > 0 ? [0,140,0] : [0,0,0]);
                     }
 
-                    // Opening balance
                     let fr = rows[0];
                     let ob = parseFloat(fr.account_total_amount || 0)
                            - parseFloat(fr.customer_payment     || 0)
                            - parseFloat(fr.loan_top_up          || 0)
                            + parseFloat(fr.expenses             || 0);
 
-                    // Title
-                    doc.setFontSize(14);
-                    doc.setFont('helvetica', 'bold');
+                    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
                     doc.text('Cash Book Report', PW / 2, 12, { align: 'center' });
-                    doc.setFontSize(9);
-                    doc.setFont('helvetica', 'normal');
+                    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
                     let sub = [];
                     if (companyLabel && company) sub.push('Company: ' + companyLabel);
                     if (from) sub.push('From: ' + from);
-                    if (to)   sub.push('To: '   + to);
+                    if (to)   sub.push('To: ' + to);
                     if (sub.length) doc.text(sub.join('   |   '), PW / 2, 18, { align: 'center' });
                     doc.setFontSize(8);
                     doc.text('Generated: ' + new Date().toLocaleString(), PW / 2, 23, { align: 'center' });
 
-                    // Opening balance row drawn at fixed y=27
                     let obY = 27;
-                    doc.setFillColor(232, 245, 232);
-                    doc.rect(ML, obY, TW, 6, 'F');
-                    doc.setDrawColor(180, 210, 180);
-                    doc.rect(ML, obY, TW, 6, 'S');
-                    doc.setFontSize(7.5);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(0, 140, 0);
+                    doc.setFillColor(232, 245, 232); doc.rect(ML, obY, TW, 6, 'F');
+                    doc.setDrawColor(180, 210, 180); doc.rect(ML, obY, TW, 6, 'S');
+                    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(0, 140, 0);
                     doc.text('Opening Balance', ML + 2, obY + 4);
                     doc.text(ob.toFixed(2), CL[11] + CW[11] - 2, obY + 4, { align: 'right' });
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFont('helvetica', 'normal');
+                    doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal');
 
-                    // Build body
                     let bodyRows = rows.map(function (row, i) {
-                        let d   = row.date ? row.date.substring(0, 10) : '';
                         let ip  = parseFloat(row.interest_paid        || 0);
                         let cp  = parseFloat(row.customer_payment     || 0);
                         let tuc = parseFloat(row.top_up_capital       || 0);
                         let ltu = parseFloat(row.loan_top_up          || 0);
                         let exp = parseFloat(row.expenses             || 0);
                         let at  = parseFloat(row.account_total_amount || 0);
+                        let d   = row.date ? row.date.substring(0, 10) : '';
                         return [
                             i + 1,
                             row.description          || '-',
@@ -350,7 +334,6 @@ $(document).ready(function () {
                         ];
                     });
 
-                    // Totals
                     let totIP  = rows.reduce(function (s, r) { return s + parseFloat(r.interest_paid    || 0); }, 0);
                     let totCP  = rows.reduce(function (s, r) { return s + parseFloat(r.customer_payment || 0); }, 0);
                     let totTUC = rows.reduce(function (s, r) { return s + parseFloat(r.top_up_capital   || 0); }, 0);
@@ -358,22 +341,13 @@ $(document).ready(function () {
                     let totEXP = rows.reduce(function (s, r) { return s + parseFloat(r.expenses         || 0); }, 0);
                     let totAT  = parseFloat(rows[rows.length - 1].account_total_amount || 0);
 
-                    // autoTable — no foot, total drawn manually after
                     doc.autoTable({
                         startY: 34,
-                        margin: { left: ML, right: MR },
-                        head: [[
-                            'No', 'Description', 'Date', 'Customer Name',
-                            'Expenses Name', 'Expenses Desc',
-                            'Interest Paid', 'Customer Payment', 'Top Up Capital',
-                            'Loan Top Up', 'Expenses', 'Account Total'
-                        ]],
+                        margin: { left: ML, right: ML },
+                        head: [['No', 'Description', 'Date', 'Customer Name', 'Expenses Name', 'Expenses Desc', 'Interest Paid', 'Customer Payment', 'Top Up Capital', 'Loan Top Up', 'Expenses', 'Account Total']],
                         body: bodyRows,
                         theme: 'grid',
-                        headStyles: {
-                            fillColor: [41, 128, 185], textColor: 255,
-                            fontStyle: 'bold', fontSize: 7, halign: 'center'
-                        },
+                        headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold', fontSize: 7, halign: 'center' },
                         bodyStyles: { fontSize: 7 },
                         columnStyles: {
                             0:  { halign: 'center', cellWidth: CW[0]  },
@@ -397,51 +371,32 @@ $(document).ready(function () {
                             data.cell.styles.textColor = numColor(data.column.index, v);
                         },
                         didDrawPage: function () {
-                            doc.setFontSize(8);
-                            doc.setFont('helvetica', 'normal');
-                            doc.setTextColor(0, 0, 0);
-                            doc.text(
-                                'Page ' + doc.internal.getCurrentPageInfo().pageNumber,
-                                ML, PH - 5
-                            );
+                            doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 0, 0);
+                            doc.text('Page ' + doc.internal.getCurrentPageInfo().pageNumber, ML, PH - 5);
                         },
                     });
 
-                    // Total row — drawn once after table ends
                     let fy   = doc.lastAutoTable.finalY;
                     let rowH = 7;
                     if (fy + rowH > PH - 12) {
-                        doc.addPage();
-                        fy = 12;
-                        doc.setFontSize(8);
-                        doc.setFont('helvetica', 'normal');
-                        doc.setTextColor(0, 0, 0);
+                        doc.addPage(); fy = 12;
+                        doc.setFontSize(8); doc.setFont('helvetica', 'normal'); doc.setTextColor(0, 0, 0);
                         doc.text('Page ' + doc.internal.getNumberOfPages(), ML, PH - 5);
                     }
 
-                    doc.setFillColor(220, 230, 241);
-                    doc.rect(ML, fy, TW, rowH, 'F');
-                    doc.setDrawColor(150, 170, 200);
-                    doc.rect(ML, fy, TW, rowH, 'S');
-                    doc.setFontSize(7.5);
-                    doc.setFont('helvetica', 'bold');
-                    doc.setTextColor(0, 0, 0);
+                    doc.setFillColor(220, 230, 241); doc.rect(ML, fy, TW, rowH, 'F');
+                    doc.setDrawColor(150, 170, 200); doc.rect(ML, fy, TW, rowH, 'S');
+                    doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(0, 0, 0);
                     doc.text('Total', CL[4] + 2, fy + 4.8);
 
-                    let totals = [[6,totIP],[7,totCP],[8,totTUC],[9,totLTU],[10,totEXP],[11,totAT]];
-                    totals.forEach(function (pair) {
-                        let ci  = pair[0];
-                        let val = pair[1];
-                        let c   = numColor(ci, val);
+                    [[6,totIP],[7,totCP],[8,totTUC],[9,totLTU],[10,totEXP],[11,totAT]].forEach(function (pair) {
+                        let c = numColor(pair[0], pair[1]);
                         doc.setTextColor(c[0], c[1], c[2]);
-                        doc.text(val.toFixed(2), CL[ci] + CW[ci] - 2, fy + 4.8, { align: 'right' });
+                        doc.text(pair[1].toFixed(2), CL[pair[0]] + CW[pair[0]] - 2, fy + 4.8, { align: 'right' });
                     });
                     doc.setTextColor(0, 0, 0);
 
-                    // Save
-                    let fn = 'cash_book_report';
-                    if (from) fn += '_' + from;
-                    if (to)   fn += '_to_' + to;
+                    let fn = 'cash_book_report' + (from ? '_' + from : '') + (to ? '_to_' + to : '');
                     doc.save(fn + '.pdf');
 
                 } catch (err) {
@@ -458,6 +413,6 @@ $(document).ready(function () {
         });
     });
 
-}); // end document.ready
+});
 </script>
 @endsection

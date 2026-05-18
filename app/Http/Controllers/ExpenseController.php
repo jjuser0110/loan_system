@@ -133,6 +133,20 @@ class ExpenseController extends Controller
             $recordsTotal = $query->count();
             $data = $query->orderBy($orderByColumn, $orderByDirection)->skip($start)->take($length)->get();
 
+            foreach ($data as $row) {
+
+                $row->expense_amount = 0;
+                $row->non_amount = 0;
+
+                if ($row->expense_type == 'expense') {
+                    $row->expense_amount = $row->amount;
+                }
+
+                if ($row->expense_type == 'non-expense') {
+                    $row->non_amount = $row->amount;
+                }
+            }
+
             return response()->json([
                 "draw"            => intval($draw),
                 "recordsTotal"    => $recordsTotal,

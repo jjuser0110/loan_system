@@ -186,70 +186,64 @@ class ReportController extends Controller
             }
 
             $query = \DB::table('payment_method_logs')
-            ->select([
-                'payment_method_logs.*',
-                'payment_methods.company_id',
-                'companies.company_name',
-                'companies.company_code',
-                'branches.branch_name',
-                'branches.branch_code',
-                'customers.id as customer_id',
-                'customers.customer_name',
-                'expenses.expense_title as expenses_name',
-                'expenses.expense_description as expenses_description',
-                \DB::raw("CASE WHEN payment_method_logs.type = 'payment' THEN payment_method_logs.amount ELSE 0 END as customer_payment"),
-                \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
-                \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
-                \DB::raw("payment_method_logs.total as account_total_amount"),
-                \DB::raw("DATE(payment_method_logs.created_at) as date"),
-                \DB::raw("
-                    CASE
-                        WHEN payment_method_logs.type = 'payment' THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
-                        WHEN payment_method_logs.type = 'loan'    THEN CONCAT('Loan #',    COALESCE(loans.loan_code,       payment_method_logs.description))
-                        WHEN payment_method_logs.type = 'expense' THEN CONCAT('Expense #', COALESCE(expenses.expense_code, payment_method_logs.description))
-                        ELSE CONCAT('Manual # ', COALESCE(payment_method_logs.description, '-'))
-                    END as description
-                "),
-                \DB::raw("
-                    CASE
-                        WHEN payment_method_logs.type = 'loan' THEN
-                            (SELECT l.interest_paid FROM loans l WHERE l.id = payment_method_logs.content_id LIMIT 1)
-                        WHEN payment_method_logs.type = 'payment' THEN
-                            (SELECT p.interest_paid_amount FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
-                        ELSE NULL
-                    END as interest_paid
-                "),
-                \DB::raw("
-                    CASE
-                        WHEN payment_method_logs.type = 'payment' THEN
-                            (SELECT p.top_up_capital FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
-                        ELSE NULL
-                    END as top_up_capital
-                "),
-            ])
-            ->join('payment_methods', 'payment_method_logs.payment_method_id', '=', 'payment_methods.id')
-            ->join('companies',       'payment_methods.company_id',            '=', 'companies.id')
-            ->join('branches',        'companies.branch_id',                   '=', 'branches.id')
-            ->leftJoin('payments', function($join) {
-                $join->on('payment_method_logs.content_id', '=', 'payments.id')
-                    ->where('payment_method_logs.type', '=', 'payment');
-            })
-            ->leftJoin('loans', function($join) {
-                $join->on('payment_method_logs.content_id', '=', 'loans.id')
-                    ->where('payment_method_logs.type', '=', 'loan');
-            })
-            ->leftJoin('expenses', function($join) {
-                $join->on('payment_method_logs.content_id', '=', 'expenses.id')
-                    ->where('payment_method_logs.type', '=', 'expense');
-            })
-            ->leftJoin('customers', function($join) {
-                $join->on(function($q) {
-                    $q->on('payments.customer_id', '=', 'customers.id')
-                    ->orOn('loans.customer_id',  '=', 'customers.id');
+                ->select([
+                    'payment_method_logs.*',
+                    'customers.id as customer_id',
+                    'customers.customer_name',
+                    'payments.remark as remark',
+                    'payments.collection_type as collection_type',
+                    'expenses.expense_title as expenses_name',
+                    'expenses.expense_description as expenses_description',
+                    \DB::raw("CASE WHEN payment_method_logs.type = 'payment' THEN payment_method_logs.amount ELSE 0 END as customer_payment"),
+                    \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
+                    \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
+                    \DB::raw("payment_method_logs.total as account_total_amount"),
+                    \DB::raw("DATE(payment_method_logs.created_at) as date"),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'payment' AND payments.top_up IS NOT NULL AND payments.top_up > 0 THEN CONCAT('Loan TopUp - Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
+                            WHEN payment_method_logs.type = 'payment' THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
+                            WHEN payment_method_logs.type = 'loan'    THEN CONCAT('Loan #',    COALESCE(loans.loan_code,       payment_method_logs.description))
+                            WHEN payment_method_logs.type = 'expense' THEN CONCAT('Expense #', COALESCE(expenses.expense_code, payment_method_logs.description))
+                            ELSE CONCAT('Manual # ', COALESCE(payment_method_logs.description, '-'))
+                        END as description
+                    "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'loan'    THEN (SELECT l.interest_paid        FROM loans    l WHERE l.id = payment_method_logs.content_id LIMIT 1)
+                            WHEN payment_method_logs.type = 'payment' THEN (SELECT p.interest_paid_amount FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            ELSE NULL
+                        END as interest_paid
+                    "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'payment' THEN (SELECT p.top_up_capital FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            ELSE NULL
+                        END as top_up_capital
+                    "),
+                ])
+                ->join('payment_methods', 'payment_method_logs.payment_method_id', '=', 'payment_methods.id')
+                ->join('companies',       'payment_methods.company_id',            '=', 'companies.id')
+                ->join('branches',        'companies.branch_id',                   '=', 'branches.id')
+                ->leftJoin('payments', function ($join) {
+                    $join->on('payment_method_logs.content_id', '=', 'payments.id')
+                        ->where('payment_method_logs.type', '=', 'payment');
+                })
+                ->leftJoin('loans', function ($join) {
+                    $join->on('payment_method_logs.content_id', '=', 'loans.id')
+                        ->where('payment_method_logs.type', '=', 'loan');
+                })
+                ->leftJoin('expenses', function ($join) {
+                    $join->on('payment_method_logs.content_id', '=', 'expenses.id')
+                        ->where('payment_method_logs.type', '=', 'expense');
+                })
+                ->leftJoin('customers', function ($join) {
+                    $join->on(function ($q) {
+                        $q->on('payments.customer_id', '=', 'customers.id')
+                        ->orOn('loans.customer_id',  '=', 'customers.id');
+                    });
                 });
-            });
 
-            // Role filter
             switch (Auth::user()->role_id) {
                 case 1: break;
                 case 2: $query->where('branches.id', Auth::user()->branch_id); break;
@@ -258,13 +252,12 @@ class ReportController extends Controller
                 default: throw new \Exception('Invalid role id.');
             }
 
-            $query->where(function($q) {
+            $query->where(function ($q) {
                 $q->where('payment_method_logs.description', '!=', 'Expense Updated')
                 ->where('payment_method_logs.description', '!=', 'Payment Updated')
                 ->orWhereNull('payment_method_logs.description');
             });
 
-            // Date filter
             if ($fromDate && $toDate) {
                 $query->whereBetween(\DB::raw('DATE(payment_method_logs.created_at)'), [$fromDate, $toDate]);
             } elseif ($fromDate) {
@@ -277,27 +270,44 @@ class ReportController extends Controller
                 $query->where('payment_methods.company_id', $companyId);
             }
 
-            $recordsTotal    = $query->count();
-            $recordsFiltered = $recordsTotal;
+            $total = $query->count();
 
-            $data = $query->orderBy('payment_method_logs.created_at', 'asc')
-                ->skip($start)
-                ->take($length)
-                ->get();
+            $columnMap = [
+                0  => 'payment_method_logs.id',
+                1  => 'payment_method_logs.description',
+                2  => 'payment_method_logs.created_at',
+                3  => 'customers.customer_name',
+                4  => 'payments.collection_type',
+                5  => 'expenses.expense_title',
+                6  => 'expenses.expense_description',
+                7  => 'payments.remark',
+                8  => 'payment_method_logs.created_at',
+                9  => 'payment_method_logs.amount',
+                10 => 'payment_method_logs.amount',
+                11 => 'payment_method_logs.amount',
+                12 => 'payment_method_logs.amount',
+                13 => 'payment_method_logs.total',
+            ];
+
+            $orderColIdx = (int) $request->input('order.0.column', 2);
+            $orderDir    = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
+            $orderCol    = $columnMap[$orderColIdx] ?? 'payment_method_logs.created_at';
+
+            $data = $query->orderBy($orderCol, $orderDir)
+                        ->skip($start)
+                        ->take($length)
+                        ->get();
 
             return response()->json([
                 "draw"            => intval($draw),
-                "recordsTotal"    => $recordsTotal,
-                "recordsFiltered" => $recordsFiltered,
+                "recordsTotal"    => $total,
+                "recordsFiltered" => $total,
                 "data"            => $data,
             ]);
 
         } catch (\Exception $e) {
             \Log::error('Cash Book Reports Load Error: ' . $e->getMessage());
-            return response()->json([
-                'error'   => 'Server error occurred',
-                'message' => $e->getMessage()
-            ], 500);
+            return response()->json(['error' => 'Server error occurred', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -339,57 +349,66 @@ class ReportController extends Controller
                 ]);
             }
 
-            $query = PaymentMethodLog::query()
+            $query = \DB::table('payment_method_logs')
                 ->select([
                     'payment_method_logs.*',
-                    'payment_methods.company_id',
-                    'companies.company_name',
-                    'companies.company_code',
-                    'branches.branch_name',
-                    'branches.branch_code',
                     'customers.id as customer_id',
                     'customers.customer_name',
+                    'payments.remark as remark',
+                    'payments.collection_type as collection_type',
                     'expenses.expense_title as expenses_name',
                     'expenses.expense_description as expenses_description',
-                    // Conditional amounts
                     \DB::raw("CASE WHEN payment_method_logs.type = 'payment' THEN payment_method_logs.amount ELSE 0 END as customer_payment"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
                     \DB::raw("payment_method_logs.total as account_total_amount"),
                     \DB::raw("DATE(payment_method_logs.created_at) as date"),
-                    // Description
                     \DB::raw("
                         CASE
+                            WHEN payment_method_logs.type = 'payment' AND payments.top_up IS NOT NULL AND payments.top_up > 0
+                                                                    THEN CONCAT('Loan TopUp - Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
                             WHEN payment_method_logs.type = 'payment' THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
                             WHEN payment_method_logs.type = 'loan'    THEN CONCAT('Loan #',    COALESCE(loans.loan_code,       payment_method_logs.description))
                             WHEN payment_method_logs.type = 'expense' THEN CONCAT('Expense #', COALESCE(expenses.expense_code, payment_method_logs.description))
                             ELSE CONCAT('Manual # ', COALESCE(payment_method_logs.description, '-'))
                         END as description
                     "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'loan'    THEN (SELECT l.interest_paid        FROM loans    l WHERE l.id = payment_method_logs.content_id LIMIT 1)
+                            WHEN payment_method_logs.type = 'payment' THEN (SELECT p.interest_paid_amount FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            ELSE NULL
+                        END as interest_paid
+                    "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'payment' THEN (SELECT p.top_up_capital FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            ELSE NULL
+                        END as top_up_capital
+                    "),
                 ])
                 ->join('payment_methods', 'payment_method_logs.payment_method_id', '=', 'payment_methods.id')
                 ->join('companies',       'payment_methods.company_id',            '=', 'companies.id')
                 ->join('branches',        'companies.branch_id',                   '=', 'branches.id')
-                ->leftJoin('payments', function($join) {
+                ->leftJoin('payments', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'payments.id')
                         ->where('payment_method_logs.type', '=', 'payment');
                 })
-                ->leftJoin('loans', function($join) {
+                ->leftJoin('loans', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'loans.id')
                         ->where('payment_method_logs.type', '=', 'loan');
                 })
-                ->leftJoin('expenses', function($join) {
+                ->leftJoin('expenses', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'expenses.id')
                         ->where('payment_method_logs.type', '=', 'expense');
                 })
-                ->leftJoin('customers', function($join) {
-                    $join->on(function($q) {
+                ->leftJoin('customers', function ($join) {
+                    $join->on(function ($q) {
                         $q->on('payments.customer_id', '=', 'customers.id')
                         ->orOn('loans.customer_id',  '=', 'customers.id');
                     });
                 });
 
-            // Role filter
             switch (Auth::user()->role_id) {
                 case 1: break;
                 case 2: $query->where('branches.id', Auth::user()->branch_id); break;
@@ -398,7 +417,8 @@ class ReportController extends Controller
                 default: throw new \Exception('Invalid role id.');
             }
 
-            // Date filter
+            // NO description filter here — history shows all records including updated ones
+
             if ($fromDate && $toDate) {
                 $query->whereBetween(\DB::raw('DATE(payment_method_logs.created_at)'), [$fromDate, $toDate]);
             } elseif ($fromDate) {
@@ -411,27 +431,44 @@ class ReportController extends Controller
                 $query->where('payment_methods.company_id', $companyId);
             }
 
-            $recordsTotal    = $query->count();
-            $recordsFiltered = $recordsTotal;
+            $total = $query->count();
 
-            $data = $query->orderBy('payment_method_logs.created_at', 'asc')
-                ->skip($start)
-                ->take($length)
-                ->get();
+            $columnMap = [
+                0  => 'payment_method_logs.id',
+                1  => 'payment_method_logs.description',
+                2  => 'payment_method_logs.created_at',
+                3  => 'customers.customer_name',
+                4  => 'payments.collection_type',
+                5  => 'expenses.expense_title',
+                6  => 'expenses.expense_description',
+                7  => 'payments.remark',
+                8  => 'payment_method_logs.created_at',
+                9  => 'payment_method_logs.amount',
+                10 => 'payment_method_logs.amount',
+                11 => 'payment_method_logs.amount',
+                12 => 'payment_method_logs.amount',
+                13 => 'payment_method_logs.total',
+            ];
+
+            $orderColIdx = (int) $request->input('order.0.column', 2);
+            $orderDir    = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
+            $orderCol    = $columnMap[$orderColIdx] ?? 'payment_method_logs.created_at';
+
+            $data = $query->orderBy($orderCol, $orderDir)
+                        ->skip($start)
+                        ->take($length)
+                        ->get();
 
             return response()->json([
                 "draw"            => intval($draw),
-                "recordsTotal"    => $recordsTotal,
-                "recordsFiltered" => $recordsFiltered,
+                "recordsTotal"    => $total,
+                "recordsFiltered" => $total,
                 "data"            => $data,
             ]);
 
         } catch (\Exception $e) {
-            \Log::error('Cash Book Reports Load Error: ' . $e->getMessage());
-            return response()->json([
-                'error'   => 'Server error occurred',
-                'message' => $e->getMessage()
-            ], 500);
+            \Log::error('Cash Book Report History Load Error: ' . $e->getMessage());
+            return response()->json(['error' => 'Server error occurred', 'message' => $e->getMessage()], 500);
         }
     }
 
@@ -489,10 +526,6 @@ class ReportController extends Controller
                     'loans.first_payment as first_payment',
                     'customers.customer_name as customer_name',
                     'companies.id as company_id',
-                    'companies.company_name as company_name',
-                    'companies.company_code as company_code',
-                    'branches.branch_name as branch_name',
-                    'branches.branch_code as branch_code',
                 ])
                 ->join('customers', 'customers.id', '=', 'payments.customer_id')
                 ->join('loans',     'loans.id',     '=', 'payments.loan_id')
@@ -550,15 +583,39 @@ class ReportController extends Controller
             $recordsTotal    = $query->count();
             $recordsFiltered = $recordsTotal;
 
-            $data = (clone $query)
-                ->orderBy('payments.loan_id')
-                ->orderBy('payments.payment_code')
-                ->skip($start)
-                ->take($length)
-                ->get();
+            $columnMap = [
+                0  => 'payments.id',
+                1  => 'payments.payment_code',
+                2  => 'payments.customer_id',
+                3  => 'payments.collection_type',
+                4  => 'payments.created_at',
+                5  => 'payments.payment_amount',
+                6  => 'payments.late_paid_amount',
+                7  => 'payments.interest_paid_amount',
+                8  => 'payments.discount_amount',
+                9  => 'payments.top_up_capital',
+                10  => 'payments.top_up',
+                11  => 'payments.top_up',
+                12  => 'loans.balance',
+            ];
 
-            // ── Running balance ──────────────────────────────────────────
-            $running = [];
+            $orderColIdx = $request->input('order.0.column');
+            $orderDir    = $request->input('order.0.dir', 'desc') === 'asc' ? 'asc' : 'desc';
+
+            if ($orderColIdx !== null && isset($columnMap[$orderColIdx])) {
+                $orderCol = $columnMap[$orderColIdx];
+            } else {
+                // default order
+                $orderCol = 'payments.created_at';
+                $orderDir = 'desc';
+            }
+
+            $data = $query->orderBy($orderCol, $orderDir)
+                        ->skip($start)
+                        ->take($length)
+                        ->get();
+
+            $totalPayment = [];
 
             foreach ($data as $row) {
                 $loanId = $row->loan_id;
@@ -567,19 +624,28 @@ class ReportController extends Controller
                     $running[$loanId] = 0;
                 }
 
+                if (!isset($totalPayment[$loanId])) {
+                    $totalPayment[$loanId] = 0;
+                }
+
                 $row->running_payment = (float) $row->payment_amount
                     + (float) $row->late_paid_amount
                     + (float) $row->interest_paid_amount
                     + (float) $row->discount_amount
                     - (float) ($row->top_up ?? 0);
 
-                $running[$loanId] += $row->running_payment;
+                // accumulate paid amount
+                $totalPayment[$loanId] += $row->running_payment;
+
+                // deducted balance
+                $row->deducted_balance = (float) ($row->payment ?? 0) - $totalPayment[$loanId];
+
+                // this is what you want
+                $row->total_paid_amount = $totalPayment[$loanId];
 
                 $row->installment_calc = ($row->first_payment && $row->first_payment > 0)
-                    ? floor($running[$loanId] / $row->first_payment)
+                    ? floor($totalPayment[$loanId] / $row->first_payment)
                     : null;
-
-                $row->deducted_balance = (float) ($row->payment ?? 0) - $running[$loanId];
             }
 
             return response()->json([
