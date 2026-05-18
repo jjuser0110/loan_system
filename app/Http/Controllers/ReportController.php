@@ -281,11 +281,11 @@ class ReportController extends Controller
                 5  => 'expenses.expense_title',
                 6  => 'expenses.expense_description',
                 7  => 'payments.remark',
-                8  => 'payment_method_logs.created_at',
-                9  => 'payment_method_logs.amount',
-                10 => 'payment_method_logs.amount',
-                11 => 'payment_method_logs.amount',
-                12 => 'payment_method_logs.amount',
+                8  => 'payments.payment_amount',
+                9  => 'payments.interest_paid_amount',
+                10 => 'payments.top_up',
+                11 => 'payments.top_up_capital',
+                12 => 'expenses.amount',
                 13 => 'payment_method_logs.total',
             ];
 
@@ -442,11 +442,11 @@ class ReportController extends Controller
                 5  => 'expenses.expense_title',
                 6  => 'expenses.expense_description',
                 7  => 'payments.remark',
-                8  => 'payment_method_logs.created_at',
-                9  => 'payment_method_logs.amount',
-                10 => 'payment_method_logs.amount',
-                11 => 'payment_method_logs.amount',
-                12 => 'payment_method_logs.amount',
+                8  => 'payments.payment_amount',
+                9  => 'payments.interest_paid_amount',
+                10 => 'payments.top_up',
+                11 => 'payments.top_up_capital',
+                12 => 'expenses.amount',
                 13 => 'payment_method_logs.total',
             ];
 
