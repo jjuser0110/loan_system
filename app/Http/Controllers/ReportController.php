@@ -444,8 +444,8 @@ class ReportController extends Controller
                 7  => 'payments.remark',
                 8  => 'payments.payment_amount',
                 9  => 'payments.interest_paid_amount',
-                10 => 'payments.top_up',
-                11 => 'payments.top_up_capital',
+                10 => 'payments.top_up_capital',
+                11 => 'payments.top_up',
                 12 => 'expenses.amount',
                 13 => 'payment_method_logs.total',
             ];
