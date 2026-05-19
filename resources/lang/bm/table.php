@@ -338,6 +338,7 @@ return [
 'total' => 'Jumlah',
 'exp_amount' => 'Jumlah Perbelanjaan',
 'non_exp_amount' => 'Jumlah Bukan Perbelanjaan',
+'outstd' => 'Baki tertunggak',
 
 ];
 
