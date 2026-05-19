@@ -30,9 +30,9 @@
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_type') }}</label>
                         <select class="form-control" id="payment_type" name="payment_type" required>
+                            <option value="DEFAULT">Option</option>
                             <option value="CCM">Payment / CCM</option>
                             <option value="INTEREST">Pay SKIM A Interest</option>
-                            <option value="DISCOUNT">Discount Amount</option>
                             <option value="LATE">Pay Late</option>
                             <option value="TOPUP">Top Up</option>
                         </select>
@@ -215,11 +215,6 @@
             wrapInterest.removeAttribute('style');
             inputInterest.disabled = false;
             inputInterest.required = true;
-
-        } else if (type === 'DISCOUNT') {
-            wrapDiscount.removeAttribute('style');
-            inputDiscount.disabled = false;
-            inputDiscount.required = true;
 
         } else if (type === 'LATE') {
             wrapLate.removeAttribute('style');

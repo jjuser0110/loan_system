@@ -58,7 +58,7 @@
                         <tfoot>
                             <tr>
                                 <th colspan="6" class="text-right">Total</th>
-                                <th></th><th></th><th></th><th></th><th></th><th></th>
+                                <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
                             </tr>
                         </tfoot>
                         <tbody></tbody>
@@ -161,7 +161,10 @@ $(document).ready(function () {
             },
             {
                 data: "interest_paid", name: "interest_paid", width: "100px",
-                render: function (data) { return data ? parseFloat(data).toFixed(2) : '-'; }
+                render: function (data) {
+                    let v = parseFloat(data || 0);
+                    return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
+                }
             },
             {
                 data: "customer_payment", name: "customer_payment", width: "80px",
@@ -179,7 +182,7 @@ $(document).ready(function () {
                 }
             },
             {
-                data: "loan_top_up", name: "loan_top_up", width: "80px",
+                data: "top_up", name: "top_up", width: "80px",
                 render: function (data) {
                     let v = parseFloat(data || 0);
                     return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
@@ -189,7 +192,7 @@ $(document).ready(function () {
                 data: "expenses", name: "expenses", width: "80px",
                 render: function (data) {
                     let v = parseFloat(data || 0);
-                    return '<span style="color:' + (v > 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
+                    return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
                 }
             },
             {
@@ -203,21 +206,44 @@ $(document).ready(function () {
         footerCallback: function () {
             let api     = this.api();
             let allRows = api.rows({ search: 'applied' }).data();
+            let openingBalance = 0;
+
             let totIP = 0, totCP = 0, totTUC = 0, totLTU = 0, totEXP = 0, lastAT = 0;
+
             allRows.each(function (r) {
                 totIP  += parseFloat(r.interest_paid    || 0);
                 totCP  += parseFloat(r.customer_payment || 0);
                 totTUC -= parseFloat(r.top_up_capital   || 0);
-                totLTU += parseFloat(r.loan_top_up      || 0);
+                totLTU += parseFloat(r.top_up      || 0);
                 totEXP += parseFloat(r.expenses         || 0);
             });
-            if (allRows.length > 0) lastAT = parseFloat(allRows[allRows.length - 1].account_total_amount || 0);
-            $(api.column(6).footer()).html(totIP.toFixed(2));
-            $(api.column(7).footer()).html(totCP.toFixed(2));
-            $(api.column(8).footer()).html(totTUC.toFixed(2));
-            $(api.column(9).footer()).html(totLTU.toFixed(2));
-            $(api.column(10).footer()).html(totEXP.toFixed(2));
-            $(api.column(11).footer()).html(lastAT.toFixed(2));
+
+            if (allRows.length > 0) {
+                lastAT = parseFloat(allRows[allRows.length - 1].account_total_amount || 0);
+            }
+
+            if (allRows.length > 0) {
+                let firstRow = allRows[0];
+
+                openingBalance =
+                    parseFloat(firstRow.account_total_amount || 0)
+                    - parseFloat(firstRow.customer_payment || 0)
+                    - parseFloat(firstRow.top_up || 0)
+                    + parseFloat(firstRow.expenses || 0);
+            }
+
+            function colorValue(v) {
+                return '<span style="color:' + (v >= 0 ? 'green' : 'red') + '">' + v.toFixed(2) + '</span>';
+            }
+
+            $(api.column(6).footer()).html('<span style="font-weight:bold">Opening Balance: </span>');
+            $(api.column(7).footer()).html(colorValue(openingBalance));
+            $(api.column(8).footer()).html(colorValue(totIP));
+            $(api.column(9).footer()).html(colorValue(totCP));
+            $(api.column(10).footer()).html(colorValue(totTUC));
+            $(api.column(11).footer()).html(colorValue(totLTU));
+            $(api.column(12).footer()).html(colorValue(totEXP));
+            $(api.column(13).footer()).html(colorValue(lastAT));
         },
     });
 

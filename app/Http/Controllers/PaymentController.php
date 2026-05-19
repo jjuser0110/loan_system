@@ -142,6 +142,7 @@ class PaymentController extends Controller
 
                 $running[$loanId] += $row->payment_amount;
                 $running[$loanId] -= ($row->top_up ?? 0);
+                $running[$loanId] += ($row->discount_amount ?? 0);
 
                 $row->running_payment   = $running[$loanId];
                 $row->installment_calc  = ($row->first_payment && $row->first_payment > 0)
@@ -393,13 +394,13 @@ class PaymentController extends Controller
             ]);
 
             $pymt_before = $pymt->amount;
-            $pymt_after = $pymt->amount + ($late_paid_amount + $interest_paid_amount + $payment_amount);
+            $pymt_after = $pymt->amount + ($late_paid_amount + $interest_paid_amount + $payment_amount + $top_up_capital);
             $pymt->update(['amount'=>$pymt_after]);
             $p->payment_method_logs()->create([
                 'type'=> 'payment',
                 'description'=>'Payment Created',
                 'prev_amount'=> $pymt_before,
-                'amount' => ($late_paid_amount + $interest_paid_amount + $payment_amount),
+                'amount' => ($late_paid_amount + $interest_paid_amount + $payment_amount + $top_up_capital),
                 'payment_method_id'=>$loan->payment_method_id,
                 'total' => $pymt_after
             ]);
@@ -684,17 +685,21 @@ class PaymentController extends Controller
             $old_interest_paid = $payment->interest_paid_amount ?? 0;
             $old_late_paid = $payment->late_paid_amount ?? 0;
             $old_discount = $payment->discount_amount ?? 0;
+            $old_top_up_capital    = $payment->top_up_capital    ?? 0;
             $old_total = $old_payment_amount + $old_discount;
-            $prev_total_nett = $old_payment_amount + $old_interest_paid + $old_late_paid;
+            $prev_total_nett = $old_payment_amount + $old_interest_paid + $old_late_paid + $old_top_up_capital;
             $prev_payment_method_id = $payment->payment_method_id;
 
+            $new_top_up_capital    = $v['top_up_capital']    ?? 0;
             $new_payment_amount = $v['payment_amount'] ?? 0;
             $new_interest_paid = $v['interest_paid_amount'] ?? 0;
             $new_late_paid = $v['late_paid_amount'] ?? 0;
             $new_discount = $v['discount_amount'] ?? 0;
-            $new_total_nett = $new_payment_amount + $new_interest_paid + $new_late_paid;
+            $new_total_nett = $new_payment_amount + $new_interest_paid + $new_late_paid +$new_top_up_capital;
             $new_total = $new_payment_amount + $new_discount;
 
+            
+            $diff_top_up_capital   = $new_top_up_capital - $old_top_up_capital;
             $diff_payment = $new_payment_amount - $old_payment_amount;
             $diff_interest_paid = $new_interest_paid - $old_interest_paid;
             $diff_late_paid = $new_late_paid - $old_late_paid;
@@ -704,10 +709,6 @@ class PaymentController extends Controller
             $old_top_up   = $payment->top_up ?? 0;
             $new_top_up   = $v['top_up'] ?? 0;
             $diff_top_up  = $new_top_up - $old_top_up;
-
-            $old_top_up_capital    = $payment->top_up_capital    ?? 0;
-            $new_top_up_capital    = $v['top_up_capital']    ?? 0;
-            $diff_top_up_capital   = $new_top_up_capital - $old_top_up_capital;
 
             $company = Company::where('id',$loan->company_id)->first();
             if(!$company){

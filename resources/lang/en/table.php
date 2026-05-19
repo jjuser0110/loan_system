@@ -338,7 +338,7 @@ return [
 'total' => 'Total',
 'exp_amount' => 'Exp Amount',
 'non_exp_amount' => 'Non-Exp Amount',
-'' => '',
+'outstd' => 'Outstd',
 '' => '',
 '' => '',
 '' => '',

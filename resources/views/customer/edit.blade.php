@@ -1506,10 +1506,9 @@
                                 <i class="fas fa-money-check-alt"></i>
                                 </a>
                                 @if(Auth::user()->role_id == 1)
-                                <a class="cus-action-icon"
-                                style="background-color: #dc3545; color: white;"
-                                title="Delete Loan"
-                                onclick="deleteLoan(${meta.row})">
+                                <a class="cus-action-icon danger" 
+                                title="Delete Loan" 
+                                onclick="deleteLoan(${row.id})">
                                 <i class="fas fa-trash-alt"></i>
                                 </a>
                                 @endif
@@ -1565,6 +1564,37 @@
                 };
                 reader.readAsDataURL(input.files[0]);
             }
+        }
+
+        function deleteLoan(id) {
+            function submitDelete(){
+                $.ajax({
+                    url: "{{ route('loan.delete') }}",
+                    type: "POST",
+                    data: {id: id},
+                    headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+                    success: function (response) {
+                        if(response.success == true){
+                            setReloadSwal('success', '', response.message);
+                        } else {
+                            setDefaultSwal('error', '', response.message);
+                        }
+                    },
+                    error: function (xhr) {
+                        setDefaultSwal('error', '', 'There is something wrong, please try again.');
+                    }
+                });
+            }
+            setConfirmationSwal(
+                "Warning",
+                "This action will cannot be undone. Proceed?",
+                'Process',
+                'Cancel'
+            ).then((result) => {
+                if (result.isConfirmed) {
+                    submitDelete();
+                }
+            });
         }
 
         function submitReferenceForm() {

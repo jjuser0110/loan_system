@@ -266,7 +266,7 @@
                     d.company    = $('#filter_company').val();
                 }
             },
-            "order": [[0, "desc"]],
+            "order": [[0, "asc"]],
             "columns": [
                 { "data": "expense_code" },
                 { "data": "expense_title" },

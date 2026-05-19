@@ -57,7 +57,6 @@
                         <select class="form-control" id="update-payment_type" name="payment_type" required>
                             <option value="CCM">Payment / CCM</option>
                             <option value="INTEREST">Pay SKIM A Interest</option>
-                            <option value="DISCOUNT">Discount Amount</option>
                             <option value="LATE">Pay Late</option>
                             <option value="TOPUP">Top Up</option>
                         </select>
@@ -308,12 +307,6 @@
                 wrapInterest.removeAttribute('style');
                 inputInterest.disabled = false;
                 inputInterest.required = true;
-
-            } else if (type === 'DISCOUNT') {
-                wrapPayment.removeAttribute('style');
-                inputDiscount.disabled = false;
-                inputDiscount.required = true;
-                inputPaid.disabled     = true;
 
             } else if (type === 'LATE') {
                 wrapLate.removeAttribute('style');

@@ -194,7 +194,8 @@ class ReportController extends Controller
                     'payments.collection_type as collection_type',
                     'expenses.expense_title as expenses_name',
                     'expenses.expense_description as expenses_description',
-                    \DB::raw("CASE WHEN payment_method_logs.type = 'payment' THEN payment_method_logs.amount ELSE 0 END as customer_payment"),
+                    'payments.top_up as top_up',
+                    'payments.payment_amount as customer_payment',
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
                     \DB::raw("payment_method_logs.total as account_total_amount"),
@@ -358,7 +359,8 @@ class ReportController extends Controller
                     'payments.collection_type as collection_type',
                     'expenses.expense_title as expenses_name',
                     'expenses.expense_description as expenses_description',
-                    \DB::raw("CASE WHEN payment_method_logs.type = 'payment' THEN payment_method_logs.amount ELSE 0 END as customer_payment"),
+                    'payments.top_up as top_up',
+                    'payments.payment_amount as customer_payment',
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
                     \DB::raw("payment_method_logs.total as account_total_amount"),
@@ -525,6 +527,7 @@ class ReportController extends Controller
                     'loans.payment as payment',
                     'loans.first_payment as first_payment',
                     'customers.customer_name as customer_name',
+                    'customers.id as customer_id',
                     'companies.id as company_id',
                 ])
                 ->join('customers', 'customers.id', '=', 'payments.customer_id')

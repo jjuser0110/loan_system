@@ -360,7 +360,7 @@
                 header: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
                 success: function (response) {
                     if(response.success == true){
-                        setRedirectSwal('success','',response.message,'{{ route('loan.index') }}');
+                        setRedirectSwal('success','',response.message, response.redirect ?? '{{ route('loan.index') }}');
                     }
                     else{
                         setDefaultSwal('error','',response.message);

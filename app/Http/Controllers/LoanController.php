@@ -801,13 +801,15 @@ class LoanController extends Controller
                 'total' => $pym_after
             ]);
             
-
-     
             if(!$this->createPaymentSchedule($l)){
                 throw new Exception('Failed to create payment schedule.');
             }
             DB::commit();
-            return response()->json(['success'=>true,'message'=>"Loan created successfully!"]);
+            return response()->json([
+                'success' => true,
+                'message' => "Loan created successfully!",
+                'redirect' => route('customer.edit', $customer->id) . '#loan'
+            ]);
         }
         catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollback();

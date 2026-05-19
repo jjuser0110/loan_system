@@ -206,7 +206,7 @@
                     d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
                 }
             },
-            "order": [[0, "desc"]],
+            "order": [[6, "desc"]],
             "columns": [
                 {
                     "data": "customer_code",

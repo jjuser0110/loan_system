@@ -72,11 +72,17 @@
                             <th>{{ __('table.top_up_capital') }}</th>
                             <th>{{ __('table.top_up') }}</th>
                             <th>{{ __('table.total_pay') }}</th>
-                            <th>{{ __('table.balance') }}</th>
+                            <th>{{ __('table.outstd') }}</th>
                             <th>{{ __('table.total') }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="5" class="text-right">Total</th>
+                            <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </section>
@@ -139,8 +145,23 @@
                     orderable: false,
                     width: "10px"
                 },
-                { data: "payment_code",    name: "payment_code" },
-                { data: "customer_name",   name: "customer_name" },
+                { 
+                    data: "payment_code", 
+                    name: "payment_code",
+                    render: function(data, type, row) {
+                        if (!data) return '-';
+                        const loanCode = data.replace(/-P\d+$/, '');
+                        return `<a href="/loan/single_loan/${loanCode}#payment" style="text-decoration:none">${data}</a>`;
+                    }
+                },
+                { 
+                    data: "customer_name", 
+                    name: "customer_name",
+                    render: function(data, type, row) {
+                        if (!data) return '-';
+                        return `<a href="/customer/${row.customer_id}/edit" style="text-decoration:none">${data}</a>`;
+                    }
+                },
                 { data: "collection_type", name: "collection_type" },
                 {
                     data: "pay_date",
@@ -215,6 +236,47 @@
                     }
                 },
             ],
+            footerCallback: function () {
+                let api     = this.api();
+                let allRows = api.rows({ search: 'applied' }).data();
+
+                let totPayment      = 0;
+                let totLate         = 0;
+                let totInterest     = 0;
+                let totDiscount     = 0;
+                let totTopUpCapital = 0;
+                let totTopUp        = 0;
+                let totRunning      = 0;
+                let totDeducted     = 0;
+                let totTotalPaid    = 0;
+
+                allRows.each(function (r) {
+                    totPayment      += parseFloat(r.payment_amount      || 0);
+                    totLate         += parseFloat(r.late_paid_amount    || 0);
+                    totInterest     += parseFloat(r.interest_paid_amount|| 0);
+                    totDiscount     += parseFloat(r.discount_amount     || 0);
+                    totTopUpCapital += parseFloat(r.top_up_capital      || 0);
+                    totTopUp        += parseFloat(r.top_up              || 0);
+                    totRunning      += parseFloat(r.running_payment     || 0);
+                    totDeducted     += parseFloat(r.deducted_balance    || 0);
+                    totTotalPaid    += parseFloat(r.total_paid_amount   || 0);
+                });
+
+                function colorValue(v) {
+                    return '<span style="color:' + (v >= 0 ? 'green' : 'red') + '"><strong>' + v.toFixed(2) + '</strong></span>';
+                }
+
+                $(api.column(0).footer()).html('<strong>Total</strong>');
+                $(api.column(5).footer()).html(colorValue(totPayment));
+                $(api.column(6).footer()).html('<span style="color:orange"><strong>' + totLate.toFixed(2) + '</strong></span>');
+                $(api.column(7).footer()).html(colorValue(totInterest));
+                $(api.column(8).footer()).html(colorValue(totDiscount));
+                $(api.column(9).footer()).html('<span style="color:red"><strong>' + totTopUpCapital.toFixed(2) + '</strong></span>');
+                $(api.column(10).footer()).html('<span style="color:red"><strong>' + totTopUp.toFixed(2) + '</strong></span>');
+                $(api.column(11).footer()).html(colorValue(totRunning));
+                $(api.column(12).footer()).html(colorValue(totDeducted));
+                $(api.column(13).footer()).html(colorValue(totTotalPaid));
+            },
         });
 
         if (savedFrom || savedTo || savedCompany) {

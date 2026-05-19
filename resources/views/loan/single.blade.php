@@ -827,9 +827,9 @@
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_type') }}</label>
                         <select class="form-control" id="add-payment-type" onchange="applyAddPaymentType(this.value)">
-                            <option value="CCM">Payment / CCM</option>
+                            <option value="DEFAULT">Option</option>
+                            <option value="CCM">Payment / CCM / Discount</option>
                             <option value="INTEREST">Pay SKIM A Interest</option>
-                            <option value="DISCOUNT">Discount Amount</option>
                             <option value="LATE">Pay Late</option>
                             <option value="TOPUP">Top Up</option>
                         </select>
@@ -913,9 +913,8 @@
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_type') }}</label>
                         <select class="form-control" id="update-payment-type" onchange="applyUpdatePaymentType(this.value)">
-                            <option value="CCM">Payment / CCM</option>
+                            <option value="CCM">Payment / CCM / Discount</option>
                             <option value="INTEREST">Pay SKIM A Interest</option>
-                            <option value="DISCOUNT">Discount Amount</option>
                             <option value="LATE">Pay Late</option>
                             <option value="TOPUP">Top Up</option>
                         </select>
@@ -1336,7 +1335,7 @@
 
         // Detect type from existing record
         let type = 'CCM';
-        if (data.top_up > 0)                                                   type = 'TOPUP';
+        if (data.top_up > 0 || data.top_up_capital > 0)  type = 'TOPUP';
         else if (data.interest_paid_amount > 0 && data.payment_amount == 0)   type = 'INTEREST';
         else if (data.discount_amount > 0 && data.payment_amount == 0)        type = 'DISCOUNT';
         else if (data.late_paid_amount > 0 && data.payment_amount == 0)       type = 'LATE';
@@ -1416,10 +1415,12 @@
         } else if (type === 'TOPUP') {
             wrapTopup.removeAttribute('style');
             wrapTopupCapital.removeAttribute('style');
+
             inputTopup.disabled = false;
-            inputTopup.required = true;
+            inputTopup.required = false; // not required, either one is enough
+
             inputTopupCapital.disabled = false;
-            inputTopupCapital.required = true;
+            inputTopupCapital.required = false; // not required, either one is enough
         }
     }
 
@@ -1458,12 +1459,6 @@
             inputInterest.disabled = false;
             inputInterest.required = true;
 
-        } else if (type === 'DISCOUNT') {
-            wrapPayment.removeAttribute('style');
-            inputDiscount.disabled = false;
-            inputDiscount.required = true;
-            inputPayment.disabled = true;
-
         } else if (type === 'LATE') {
             wrapLate.removeAttribute('style');
             inputLate.disabled = false;
@@ -1482,7 +1477,7 @@
     }
 
     // init on page load
-    applyAddPaymentType('CCM');
+    applyAddPaymentType('DEFAULT');
 
     function deletePayment(rowIndex) {
         const data = table_payment.row(rowIndex).data();
@@ -1840,22 +1835,19 @@ function updatePaymentTypeOptions() {
     $select.find('option').show();
 
     if (type === 'SKIM B') {
-        // hide TOPUP + INTEREST
         $select.find('option[value="TOPUP"]').hide();
         $select.find('option[value="INTEREST"]').hide();
     }
 
     if (type === 'SKIM A') {
-        // hide LATE
         $select.find('option[value="LATE"]').hide();
     }
 
-    // if current selected is hidden, reset to CCM
+    // if current selected is hidden, reset to DEFAULT
     if ($select.find('option:selected').is(':hidden')) {
-        $select.val('CCM');
+        $select.val('DEFAULT');
     }
 
-    // also trigger change logic (your existing function)
     applyAddPaymentType($select.val());
 }
 
