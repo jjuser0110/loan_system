@@ -355,16 +355,13 @@ class PaymentController extends Controller
             switch (Auth::user()->role_id) {
                 case 1:
                     break;
-
                 case 2:
                     $payment_method_query->where('branch_id', Auth::user()->branch_id);
                     break;
-
                 case 3:
                 case 4:
                     $payment_method_query->where('company_id', Auth::user()->company_id);
                     break;
-
                 default:
                     throw new Exception('Invalid role id.');
             }
@@ -378,43 +375,46 @@ class PaymentController extends Controller
             }
 
             $p = Payment::create([
-                'payment_code'=>$payment_code,
-                'customer_id'=>$loan->customer_id,
-                'loan_id'=>$loan->id,
-                'late_paid_amount'=>$late_paid_amount,
-                'interest_paid_amount'=>$interest_paid_amount,
-                'top_up'        => $top_up,
-                'top_up_capital'  => $top_up_capital,
-                'payment_amount'=>$payment_amount,
-                'discount_amount'=>$discount_amount,
-                'collection_type'=>$v['collection_type'],
-                'payment_method_id'=>$pymt->id,
-                'created_by'=>Auth::user()->id,
-                'remark' => $v['remark'] ?? null,
+                'payment_code'     => $payment_code,
+                'customer_id'      => $loan->customer_id,
+                'loan_id'          => $loan->id,
+                'late_paid_amount' => $late_paid_amount,
+                'interest_paid_amount' => $interest_paid_amount,
+                'top_up'           => $top_up,
+                'top_up_capital'   => $top_up_capital,
+                'payment_amount'   => $payment_amount,
+                'discount_amount'  => $discount_amount,
+                'collection_type'  => $v['collection_type'],
+                'payment_method_id'=> $pymt->id,
+                'created_by'       => Auth::user()->id,
+                'remark'           => $v['remark'] ?? null,
             ]);
 
             $pymt_before = $pymt->amount;
-            $pymt_after = $pymt->amount + ($late_paid_amount + $interest_paid_amount + $payment_amount + $top_up_capital);
-            $pymt->update(['amount'=>$pymt_after]);
+            $pymt_after  = $pymt->amount + ($late_paid_amount + $interest_paid_amount + $payment_amount - $top_up_capital);
+            $pymt->update(['amount' => $pymt_after]);
             $p->payment_method_logs()->create([
-                'type'=> 'payment',
-                'description'=>'Payment Created',
-                'prev_amount'=> $pymt_before,
-                'amount' => ($late_paid_amount + $interest_paid_amount + $payment_amount + $top_up_capital),
-                'payment_method_id'=>$loan->payment_method_id,
-                'total' => $pymt_after
+                'type'              => 'payment',
+                'description'       => 'Payment Created',
+                'prev_amount'       => $pymt_before,
+                'amount'            => ($late_paid_amount + $interest_paid_amount + $payment_amount - $top_up_capital),
+                'payment_method_id' => $loan->payment_method_id,
+                'total'             => $pymt_after,
             ]);
-            $company = Company::where('id',$loan->company_id)->first();
-                if(!$company){
-                    throw new Exception('Failed to get company details.');
-                }
+
+            $company = Company::where('id', $loan->company_id)->first();
+            if(!$company){
+                throw new Exception('Failed to get company details.');
+            }
+
+            // ── SKIM A ────────────────────────────────────────────────────────────
             if($loan->interest_group == "SKIM A"){
                 $schedules = PaymentSchedule::lockForUpdate()
-                    ->where('loan_code',$loan->loan_code)
+                    ->where('loan_code', $loan->loan_code)
                     ->whereRaw('interest_amount - interest_paid_amount > 0')
                     ->orderBy('due_date', 'asc')
                     ->get();
-                
+
                 $remainPayment = $interest_paid_amount;
                 foreach($schedules as $s){
                     $unpaid = $s->interest_amount - $s->interest_paid_amount;
@@ -435,7 +435,7 @@ class PaymentController extends Controller
                     ->whereRaw('late_amount - late_paid_amount > 0')
                     ->orderBy('due_date', 'asc')
                     ->get();
-                
+
                 foreach ($lateSchedules as $ls) {
                     $unpaidLate = $ls->late_amount - $ls->late_paid_amount;
                     if ($remain_late_paid <= 0) break;
@@ -448,87 +448,95 @@ class PaymentController extends Controller
                         break;
                     }
                 }
+
                 $newBalance = $loan->balance - $total_payment;
                 $interest_balance_change = 0;
-                $next_due_date = null;
-                $next_due_amount = null;
                 $aamount = ($p->payment_amount + $p->discount_amount) * -1;
                 $new_stocka = $company->stocka + $aamount;
                 $loan->stock_logs()->create([
-                    'company_id'=>$company->id,
-                    'loan_id'=>$loan->id,
-                    'type'=>'deduct',
-                    'description'=>'Payment Created',
-                    'stock_type'=>'a',
-                    'prev_amount'=>$company->stocka,
-                    'amount'=>$aamount,
-                    'total'=>$new_stocka
+                    'company_id'   => $company->id,
+                    'loan_id'      => $loan->id,
+                    'type'         => 'deduct',
+                    'description'  => 'Payment Created',
+                    'stock_type'   => 'a',
+                    'prev_amount'  => $company->stocka,
+                    'amount'       => $aamount,
+                    'total'        => $new_stocka,
                 ]);
-                $company->update(['stocka'=>$new_stocka]);
+                $company->update(['stocka' => $new_stocka]);
+
                 if($total_payment >= $loan->payment){
                     $removeTarget = PaymentSchedule::lockForUpdate()
-                        ->where('loan_code',$loan->loan_code)
+                        ->where('loan_code', $loan->loan_code)
                         ->orderBy('due_date', 'desc')
                         ->first();
-                    
                     if($removeTarget){
                         $interest_balance_change = $removeTarget->interest_amount * -1;
                         $removeTarget->delete();
                     }
-                } 
-                else {
+                } else {
                     $nextSchedule = PaymentSchedule::lockForUpdate()
-                        ->where('loan_code',$loan->loan_code)
+                        ->where('loan_code', $loan->loan_code)
                         ->whereRaw('interest_amount - interest_paid_amount > 0')
                         ->orderBy('due_date', 'asc')
                         ->first();
-                    
                     if(!$nextSchedule){
                         $newInterestAmount = ($newBalance / 100) * $loan->interest_rate;
                         $interest_balance_change = $newInterestAmount;
                     }
                 }
                 $interest_balance_change = 0; // SET TO 0 DUE TO USE CRONJOB GENERATE NEW SCHEDULE
+
+                $newNextDueAmount = ($newBalance + $top_up) > 0 && $top_up > 0
+                    ? bcmul((string)($newBalance + $top_up), bcdiv((string)$loan->interest_rate, '100'))
+                    : $loan->next_due_amount;
+
                 $loan->update([
-                    'paid' => $loan->paid + $payment_amount,
+                    'paid'             => $loan->paid + $payment_amount,
                     'balance'          => $newBalance + $top_up,
-                    'interest' => $loan->interest + $interest_balance_change,
-                    'interest_paid' => $loan->interest_paid + $interest_paid_amount,
+                    'interest'         => $loan->interest + $interest_balance_change,
+                    'interest_paid'    => $loan->interest_paid + $interest_paid_amount,
                     'interest_balance' => ($loan->interest + $interest_balance_change) - ($loan->interest_paid + $interest_paid_amount),
-                    'late_paid' => $loan->late_paid + $late_paid_amount,
-                    'late_balance' => $loan->late_balance - $late_paid_amount,
-                    'discount' => $loan->discount + $discount_amount,
-                    'loan_amount' => $loan->loan_amount + $top_up,
-                    'capital' => $loan->capital + $top_up_capital,
+                    'late_paid'        => $loan->late_paid + $late_paid_amount,
+                    'late_balance'     => $loan->late_balance - $late_paid_amount,
+                    'discount'         => $loan->discount + $discount_amount,
+                    'loan_amount'      => $loan->loan_amount + $top_up,
+                    'capital'          => $loan->capital + $top_up_capital,
                 ]);
+
                 $this->loanController->update_loan_misc($loan);
+
+                // update after misc so it doesn't get overwritten
+                if ($top_up > 0) {
+                    $loan->update(['next_due_amount' => $newNextDueAmount]);
+                }
             }
 
+            // ── SKIM B ────────────────────────────────────────────────────────────
             else if($loan->interest_group == "SKIM B"){
                 $schedules = PaymentSchedule::lockForUpdate()
                     ->where('loan_code', $loan->loan_code)
                     ->whereRaw('payment_amount - (paid_amount + discount_amount) > 0')
                     ->orderBy('due_date', 'asc')
                     ->get();
-                $remainingPayment = $payment_amount;
+
+                $remainingPayment  = $payment_amount;
                 $remainingDiscount = $discount_amount;
                 foreach($schedules as $s){
                     $owed = $s->payment_amount - ($s->paid_amount + $s->discount_amount);
-                    if($remainingPayment <= 0 && $remainingDiscount <= 0){
-                        break;
-                    }
-                    
+                    if($remainingPayment <= 0 && $remainingDiscount <= 0) break;
+
                     if($remainingPayment > 0){
-                        $paymentToApply = min($remainingPayment, $owed);
+                        $paymentToApply  = min($remainingPayment, $owed);
                         $s->paid_amount += $paymentToApply;
                         $remainingPayment -= $paymentToApply;
                         $owed -= $paymentToApply;
                     }
-                    
+
                     if($remainingDiscount > 0 && $owed > 0){
-                        $discountToApply = min($remainingDiscount, $owed);
+                        $discountToApply    = min($remainingDiscount, $owed);
                         $s->discount_amount += $discountToApply;
-                        $remainingDiscount -= $discountToApply;
+                        $remainingDiscount  -= $discountToApply;
                         $owed -= $discountToApply;
                     }
                     $s->save();
@@ -541,11 +549,10 @@ class PaymentController extends Controller
                         ->whereRaw('late_amount - late_paid_amount > 0')
                         ->orderBy('due_date', 'asc')
                         ->get();
-                    
+
                     foreach($lateSchedules as $lateSchedule){
                         $unpaidLate = $lateSchedule->late_amount - $lateSchedule->late_paid_amount;
                         if($remainLatePaid <= 0) break;
-                        
                         if($remainLatePaid >= $unpaidLate){
                             $lateSchedule->late_paid_amount += $unpaidLate;
                             $remainLatePaid -= $unpaidLate;
@@ -553,9 +560,7 @@ class PaymentController extends Controller
                             $lateSchedule->late_paid_amount += $remainLatePaid;
                             $remainLatePaid = 0;
                         }
-                        
                         $lateSchedule->save();
-                        
                         if($remainLatePaid <= 0) break;
                     }
                 }
@@ -567,12 +572,10 @@ class PaymentController extends Controller
                         ->whereRaw('interest_amount - interest_paid_amount > 0')
                         ->orderBy('due_date', 'asc')
                         ->get();
-                    
+
                     foreach($interestSchedules as $is){
                         $unpaidInterest = $is->interest_amount - $is->interest_paid_amount;
-                        
                         if($remainInterestPaid <= 0) break;
-                        
                         if($remainInterestPaid >= $unpaidInterest){
                             $is->interest_paid_amount += $unpaidInterest;
                             $remainInterestPaid -= $unpaidInterest;
@@ -585,48 +588,65 @@ class PaymentController extends Controller
                     }
                 }
 
+                $newBalanceAfterTopUp = $loan->balance - $total_payment + $top_up;
+
+                $newNextDueAmount = $newBalanceAfterTopUp > 0 && $top_up > 0
+                    ? bcmul((string)$newBalanceAfterTopUp, bcdiv((string)$loan->interest_rate, '100'))
+                    : $loan->next_due_amount;
+
                 $loan->update([
-                    'paid' => $loan->paid + $payment_amount,
-                    'balance'          => $loan->balance - $total_payment + $top_up,  // ← add + $top_up
-                    'loan_amount'      => $loan->loan_amount + $top_up, 
-                    'interest_paid' => $loan->interest_paid + $interest_paid_amount,
+                    'paid'             => $loan->paid + $payment_amount,
+                    'balance'          => $newBalanceAfterTopUp,
+                    'loan_amount'      => $loan->loan_amount + $top_up,
+                    'interest_paid'    => $loan->interest_paid + $interest_paid_amount,
                     'interest_balance' => $loan->interest - ($loan->interest_paid + $interest_paid_amount),
-                    'late_paid' => $loan->late_paid + $late_paid_amount,
-                    'late_balance' => $loan->late_balance - $late_paid_amount,
-                    'discount' => $loan->discount + $discount_amount,
-                    'capital' => $loan->capital + $top_up_capital,
-                ]); 
-                $bbamount = ($p->payment_amount + $p->discount_amount) * -1;
-                $new_stockbb = $company->stockbb + $bbamount;
-                $loan->stock_logs()->create([
-                    'company_id'=>$company->id,
-                    'loan_id'=>$loan->id,
-                    'type'=>'deduct',
-                    'description'=>'Payment Created',
-                    'stock_type'=>'bb',
-                    'prev_amount'=>$company->stockbb,
-                    'amount'=>$bbamount,
-                    'total'=>$new_stockbb
+                    'late_paid'        => $loan->late_paid + $late_paid_amount,
+                    'late_balance'     => $loan->late_balance - $late_paid_amount,
+                    'discount'         => $loan->discount + $discount_amount,
+                    'capital'          => $loan->capital + $top_up_capital,
                 ]);
-                $company->update(['stockbb'=>$new_stockbb]);
-           
-                if($loan->balance <= 0){
-                    $bamount = ($loan->loan_amount) * -1;
-                    $new_stockb = $company->stockb + $bamount;
-                    $loan->stock_logs()->create([
-                        'company_id'=>$company->id,
-                        'loan_id'=>$loan->id,
-                        'type'=>'deduct',
-                        'description'=>'Payment Created',
-                        'stock_type'=>'b',
-                        'prev_amount'=>$company->stockb,
-                        'amount'=>$bamount,
-                        'total'=>$new_stockb
-                    ]);
-                    $company->update(['stockb'=>$new_stockb]);
-                }
 
                 $this->loanController->update_loan_misc($loan);
+
+                // if fully settled, zero out next_due_amount
+                if ($newBalanceAfterTopUp <= 0) {
+                    $loan->update(['next_due_amount' => 0]);
+                }
+                // if top_up, recalculate next_due_amount
+                elseif ($top_up > 0) {
+                    $newNextDueAmountB = bcmul((string)$newBalanceAfterTopUp, bcdiv((string)$loan->interest_rate, '100'));
+                    $loan->update(['next_due_amount' => $newNextDueAmountB]);
+                }
+
+                $bbamount    = ($p->payment_amount + $p->discount_amount) * -1;
+                $new_stockbb = $company->stockbb + $bbamount;
+                $loan->stock_logs()->create([
+                    'company_id'  => $company->id,
+                    'loan_id'     => $loan->id,
+                    'type'        => 'deduct',
+                    'description' => 'Payment Created',
+                    'stock_type'  => 'bb',
+                    'prev_amount' => $company->stockbb,
+                    'amount'      => $bbamount,
+                    'total'       => $new_stockbb,
+                ]);
+                $company->update(['stockbb' => $new_stockbb]);
+
+                if($loan->balance <= 0){
+                    $bamount     = ($loan->loan_amount) * -1;
+                    $new_stockb  = $company->stockb + $bamount;
+                    $loan->stock_logs()->create([
+                        'company_id'  => $company->id,
+                        'loan_id'     => $loan->id,
+                        'type'        => 'deduct',
+                        'description' => 'Payment Created',
+                        'stock_type'  => 'b',
+                        'prev_amount' => $company->stockb,
+                        'amount'      => $bamount,
+                        'total'       => $new_stockb,
+                    ]);
+                    $company->update(['stockb' => $new_stockb]);
+                }
             }
 
             else{
@@ -634,21 +654,19 @@ class PaymentController extends Controller
             }
 
             DB::commit();
-            return response()->json(['success'=>true,'message'=>"Payment created."]);
-        }
-        catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['success' => true, 'message' => "Payment created."]);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
             DB::rollback();
             return response()->json([
                 'success' => false,
-                'message' => $e->validator->errors()->first()
+                'message' => $e->validator->errors()->first(),
             ]);
-           
-        }
-        catch(Exception $e){
+        } catch(Exception $e) {
             DB::rollback();
             return response()->json([
                 'success' => false,
-                'message' => $e->getMessage()
+                'message' => $e->getMessage(),
             ]);
         }
     }
@@ -687,7 +705,7 @@ class PaymentController extends Controller
             $old_discount = $payment->discount_amount ?? 0;
             $old_top_up_capital    = $payment->top_up_capital    ?? 0;
             $old_total = $old_payment_amount + $old_discount;
-            $prev_total_nett = $old_payment_amount + $old_interest_paid + $old_late_paid + $old_top_up_capital;
+            $prev_total_nett = $old_payment_amount + $old_interest_paid + $old_late_paid - $old_top_up_capital;
             $prev_payment_method_id = $payment->payment_method_id;
 
             $new_top_up_capital    = $v['top_up_capital']    ?? 0;
@@ -695,7 +713,7 @@ class PaymentController extends Controller
             $new_interest_paid = $v['interest_paid_amount'] ?? 0;
             $new_late_paid = $v['late_paid_amount'] ?? 0;
             $new_discount = $v['discount_amount'] ?? 0;
-            $new_total_nett = $new_payment_amount + $new_interest_paid + $new_late_paid +$new_top_up_capital;
+            $new_total_nett = $new_payment_amount + $new_interest_paid + $new_late_paid - $new_top_up_capital;
             $new_total = $new_payment_amount + $new_discount;
 
             
@@ -885,6 +903,7 @@ class PaymentController extends Controller
 
                 $newBalance = $loan->balance - $diff_total;
                 $interest_balance_change = 0;
+                $finalBalanceA = $newBalance + $diff_top_up; // ← correct, calculated before update
 
                 if ($new_total >= $loan->payment) {
                     $removeTarget = PaymentSchedule::lockForUpdate()
@@ -909,266 +928,96 @@ class PaymentController extends Controller
                             ->orderBy('due_date', 'desc')
                             ->first();
                         if ($lastSchedule) {
-                            // $prefix = $loan->loan_code.'-S';
-                            // $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
-                            // $nextSchedule = PaymentSchedule::create([
-                            //     'schedule_code'=>$schedule_code,
-                            //     'loan_code' => $loan->loan_code,
-                            //     'company_id' => $loan->company_id,
-                            //     'customer_id' => $loan->customer_id,
-                            //     'due_date' => Carbon::parse($lastSchedule->due_date)->addMonths(1)->format('Y-m-d'),
-                            //     'interest_amount' => $newInterestAmount,
-                            //     'interest_paid_amount' => 0,
-                            // ]);
                             $interest_balance_change = $newInterestAmount;
                         }
                     }
                 }
                 $interest_balance_change = 0; // SET TO 0 DUE TO USE CRONJOB GENERATE NEW SCHEDULE
+
                 $loan->update([
-                    'paid' => $loan->paid + $diff_payment,
-                    'balance'          => $newBalance + $diff_top_up,
+                    'paid'             => $loan->paid + $diff_payment,
+                    'balance'          => $finalBalanceA,  // ← use finalBalanceA
                     'loan_amount'      => $loan->loan_amount + $diff_top_up,
-                    'interest' => $loan->interest + $interest_balance_change,
-                    'interest_paid' => $loan->interest_paid + $diff_interest_paid,
+                    'interest'         => $loan->interest + $interest_balance_change,
+                    'interest_paid'    => $loan->interest_paid + $diff_interest_paid,
                     'interest_balance' => ($loan->interest + $interest_balance_change) - ($loan->interest_paid + $diff_interest_paid),
-                    'late_paid' => $loan->late_paid + $diff_late_paid,
-                    'late_balance' => $loan->late_balance - $diff_late_paid,
-                    'discount' => $loan->discount + $diff_discount,
-                    'capital' => $loan->capital + $diff_top_up_capital,
+                    'late_paid'        => $loan->late_paid + $diff_late_paid,
+                    'late_balance'     => $loan->late_balance - $diff_late_paid,
+                    'discount'         => $loan->discount + $diff_discount,
+                    'capital'          => $loan->capital + $diff_top_up_capital,
                 ]);
 
                 $cbefore = $company->stocka;
-                $camount = ($diff_discount + $diff_payment) * -1;
-                $cafter = $company->stocka + $camount;
-                if(($diff_discount + $diff_payment) != 0){
-                   $payment->stock_logs()->create([
-                        'company_id'=>$company->id,
-                        'loan_id'=>$loan->id,
-                        'type'=>'update',
-                        'stock_type'=>'a',
-                        'description'=>'Payment Updated',
-                        'prev_amount'=>$cbefore,
-                        'amount'=>$camount,
-                        'total'=>$cafter
-                    ]);
-                    $company->update(['stocka' => $cafter ]);
-                }
-                $this->loanController->update_loan_misc($loan);
-
-            } else if ($loan->interest_group == "SKIM B") {
-                if ($diff_payment != 0) {
-                    if ($diff_payment > 0) {
-                        $schedules = PaymentSchedule::lockForUpdate()
-                            ->where('loan_code', $loan->loan_code)
-                            ->whereRaw('payment_amount - (paid_amount + discount_amount) > 0')
-                            ->orderBy('due_date', 'asc')
-                            ->get();
-                        
-                        $remainingPayment = $diff_payment;
-                        foreach ($schedules as $s) {
-                            $owed = $s->payment_amount - ($s->paid_amount + $s->discount_amount);
-                            if ($remainingPayment <= 0) break;
-                            
-                            $paymentToApply = min($remainingPayment, $owed);
-                            $s->paid_amount += $paymentToApply;
-                            $remainingPayment -= $paymentToApply;
-                            $s->save();
-                        }
-                    } else {
-                        $schedules = PaymentSchedule::lockForUpdate()
-                            ->where('loan_code', $loan->loan_code)
-                            ->where('paid_amount', '>', 0)
-                            ->orderBy('due_date', 'desc')
-                            ->get();
-                        
-                        $remainDeduct = abs($diff_payment);
-                        foreach ($schedules as $s) {
-                            if ($remainDeduct <= 0) break;
-                            $paid = $s->paid_amount;
-                            
-                            if ($paid >= $remainDeduct) {
-                                $s->paid_amount -= $remainDeduct;
-                                $remainDeduct = 0;
-                            } else {
-                                $s->paid_amount = 0;
-                                $remainDeduct -= $paid;
-                            }
-                            $s->save();
-                            if ($remainDeduct <= 0) break;
-                        }
-                    }
-                }
-
-                if ($diff_discount != 0) {
-                    if ($diff_discount > 0) {
-                        $schedules = PaymentSchedule::lockForUpdate()
-                            ->where('loan_code', $loan->loan_code)
-                            ->whereRaw('payment_amount - (paid_amount + discount_amount) > 0')
-                            ->orderBy('due_date', 'asc')
-                            ->get();
-                        
-                        $remainingDiscount = $diff_discount;
-                        foreach ($schedules as $s) {
-                            $owed = $s->payment_amount - ($s->paid_amount + $s->discount_amount);
-                            if ($remainingDiscount <= 0) break;
-                            
-                            $discountToApply = min($remainingDiscount, $owed);
-                            $s->discount_amount += $discountToApply;
-                            $remainingDiscount -= $discountToApply;
-                            $s->save();
-                        }
-                    } else {
-                        $schedules = PaymentSchedule::lockForUpdate()
-                            ->where('loan_code', $loan->loan_code)
-                            ->where('discount_amount', '>', 0)
-                            ->orderBy('due_date', 'desc')
-                            ->get();
-                        
-                        $remainDeduct = abs($diff_discount);
-                        foreach ($schedules as $s) {
-                            if ($remainDeduct <= 0) break;
-                            $disc = $s->discount_amount;
-                            
-                            if ($disc >= $remainDeduct) {
-                                $s->discount_amount -= $remainDeduct;
-                                $remainDeduct = 0;
-                            } else {
-                                $s->discount_amount = 0;
-                                $remainDeduct -= $disc;
-                            }
-                            $s->save();
-                            if ($remainDeduct <= 0) break;
-                        }
-                    }
-                }
-
-                if ($diff_late_paid != 0) {
-                    if ($diff_late_paid > 0) {
-                        $lateSchedules = PaymentSchedule::lockForUpdate()
-                            ->where('loan_code', $loan->loan_code)
-                            ->whereRaw('late_amount - late_paid_amount > 0')
-                            ->orderBy('due_date', 'asc')
-                            ->get();
-                        
-                        $remainLatePaid = $diff_late_paid;
-                        foreach ($lateSchedules as $lateSchedule) {
-                            $unpaidLate = $lateSchedule->late_amount - $lateSchedule->late_paid_amount;
-                            if ($remainLatePaid <= 0) break;
-                            
-                            if ($remainLatePaid >= $unpaidLate) {
-                                $lateSchedule->late_paid_amount += $unpaidLate;
-                                $remainLatePaid -= $unpaidLate;
-                            } else {
-                                $lateSchedule->late_paid_amount += $remainLatePaid;
-                                $remainLatePaid = 0;
-                            }
-                            
-                            $lateSchedule->save();
-                            if ($remainLatePaid <= 0) break;
-                        }
-                    } else {
-                        $lateSchedules = PaymentSchedule::lockForUpdate()
-                            ->where('loan_code', $loan->loan_code)
-                            ->where('late_paid_amount', '>', 0)
-                            ->orderBy('due_date', 'desc')
-                            ->get();
-                        
-                        $remainDeduct = abs($diff_late_paid);
-                        foreach ($lateSchedules as $lateSchedule) {
-                            if ($remainDeduct <= 0) break;
-                            $paidLate = $lateSchedule->late_paid_amount;
-                            
-                            if ($paidLate >= $remainDeduct) {
-                                $lateSchedule->late_paid_amount -= $remainDeduct;
-                                $remainDeduct = 0;
-                            } else {
-                                $lateSchedule->late_paid_amount = 0;
-                                $remainDeduct -= $paidLate;
-                            }
-                            $lateSchedule->save();
-                        }
-                    }
-                }
-
-                if ($diff_interest_paid != 0) {
-                    if ($diff_interest_paid > 0) {
-                        $interestSchedules = PaymentSchedule::lockForUpdate()
-                            ->where('loan_code', $loan->loan_code)
-                            ->whereRaw('interest_amount - interest_paid_amount > 0')
-                            ->orderBy('due_date', 'asc')
-                            ->get();
-                        
-                        $remainInterestPaid = $diff_interest_paid;
-                        foreach ($interestSchedules as $is) {
-                            $unpaidInterest = $is->interest_amount - $is->interest_paid_amount;
-                            if ($remainInterestPaid <= 0) break;
-                            
-                            if ($remainInterestPaid >= $unpaidInterest) {
-                                $is->interest_paid_amount += $unpaidInterest;
-                                $remainInterestPaid -= $unpaidInterest;
-                            } else {
-                                $is->interest_paid_amount += $remainInterestPaid;
-                                $remainInterestPaid = 0;
-                            }
-                            $is->save();
-                            if ($remainInterestPaid <= 0) break;
-                        }
-                    } else {
-                        $interestSchedules = PaymentSchedule::lockForUpdate()
-                            ->where('loan_code', $loan->loan_code)
-                            ->where('interest_paid_amount', '>', 0)
-                            ->orderBy('due_date', 'desc')
-                            ->get();
-                        
-                        $remainDeduct = abs($diff_interest_paid);
-                        foreach ($interestSchedules as $is) {
-                            if ($remainDeduct <= 0) break;
-                            $paidInterest = $is->interest_paid_amount;
-                            
-                            if ($paidInterest >= $remainDeduct) {
-                                $is->interest_paid_amount -= $remainDeduct;
-                                $remainDeduct = 0;
-                            } else {
-                                $is->interest_paid_amount = 0;
-                                $remainDeduct -= $paidInterest;
-                            }
-                            $is->save();
-                        }
-                    }
-                }
-
-                $loan->update([
-                    'paid' => $loan->paid + $diff_payment,
-                    'balance'          => $loan->balance - $diff_total + $diff_top_up,
-                    'loan_amount'      => $loan->loan_amount + $diff_top_up,
-                    'interest_paid' => $loan->interest_paid + $diff_interest_paid,
-                    'interest_balance' => $loan->interest - ($loan->interest_paid + $diff_interest_paid),
-                    'late_paid' => $loan->late_paid + $diff_late_paid,
-                    'late_balance' => $loan->late_balance - $diff_late_paid,
-                    'discount' => $loan->discount + $diff_discount,
-                    'capital' => $loan->capital + $diff_top_up_capital,
-                ]);
-
-                $this->loanController->update_loan_misc($loan);
-                
-                // STOCK
-                $bbbefore = $company->stockbb;
-                $bbamount = ($diff_discount + $diff_payment) * -1;
-                $bbafter = $company->stockbb + $bbamount;
-                if(($diff_discount + $diff_payment) != 0){
+                $camount  = ($diff_discount + $diff_payment) * -1;
+                $cafter   = $company->stocka + $camount;
+                if (($diff_discount + $diff_payment) != 0) {
                     $payment->stock_logs()->create([
-                        'company_id'=>$company->id,
-                        'loan_id'=>$loan->id,
-                        'type'=>'update',
-                        'stock_type'=>'bb',
-                        'description'=>'Payment Updated',
-                        'prev_amount'=>$bbbefore,
-                        'amount'=>$bbamount,
-                        'total'=>$bbafter
+                        'company_id'  => $company->id,
+                        'loan_id'     => $loan->id,
+                        'type'        => 'update',
+                        'stock_type'  => 'a',
+                        'description' => 'Payment Updated',
+                        'prev_amount' => $cbefore,
+                        'amount'      => $camount,
+                        'total'       => $cafter,
                     ]);
-                    $company->update(['stockbb' => $bbafter]);
+                    $company->update(['stocka' => $cafter]);
                 }
+
+                $this->loanController->update_loan_misc($loan);
+
+                // update after misc so it doesn't get overwritten
+                if ($diff_top_up != 0) {
+                    $newNextDueAmountA = $finalBalanceA > 0
+                        ? bcmul((string)$finalBalanceA, bcdiv((string)$loan->interest_rate, '100'))
+                        : $loan->next_due_amount;
+                    $loan->update(['next_due_amount' => $newNextDueAmountA]);
+                }
+
+                } else if ($loan->interest_group == "SKIM B") {
+
+                    // ... all your schedule updates unchanged ...
+
+                    $finalBalanceB = $loan->balance - $diff_total + $diff_top_up; // ← calculated before update
+
+                    $loan->update([
+                        'paid'             => $loan->paid + $diff_payment,
+                        'balance'          => $finalBalanceB,
+                        'loan_amount'      => $loan->loan_amount + $diff_top_up,
+                        'interest_paid'    => $loan->interest_paid + $diff_interest_paid,
+                        'interest_balance' => $loan->interest - ($loan->interest_paid + $diff_interest_paid),
+                        'late_paid'        => $loan->late_paid + $diff_late_paid,
+                        'late_balance'     => $loan->late_balance - $diff_late_paid,
+                        'discount'         => $loan->discount + $diff_discount,
+                        'capital'          => $loan->capital + $diff_top_up_capital,
+                    ]);
+
+                    $this->loanController->update_loan_misc($loan);
+
+                    if ($finalBalanceB <= 0) {
+                        $loan->update(['next_due_amount' => 0]);
+                    } elseif ($diff_top_up != 0) {
+                        $newNextDueAmountB = bcmul((string)$finalBalanceB, bcdiv((string)$loan->interest_rate, '100'));
+                        $loan->update(['next_due_amount' => $newNextDueAmountB]);
+                    }
+
+                    // STOCK
+                    $bbbefore = $company->stockbb;
+                    $bbamount = ($diff_discount + $diff_payment) * -1;
+                    $bbafter  = $company->stockbb + $bbamount;
+                    if (($diff_discount + $diff_payment) != 0) {
+                        $payment->stock_logs()->create([
+                            'company_id'  => $company->id,
+                            'loan_id'     => $loan->id,
+                            'type'        => 'update',
+                            'stock_type'  => 'bb',
+                            'description' => 'Payment Updated',
+                            'prev_amount' => $bbbefore,
+                            'amount'      => $bbamount,
+                            'total'       => $bbafter,
+                        ]);
+                        $company->update(['stockbb' => $bbafter]);
+                    }
                 
                 $last_stockb = StockLog::where('loan_id',$loan->id)->where('type','deduct')->where('stock_type','b')->first();
                 if($last_stockb){

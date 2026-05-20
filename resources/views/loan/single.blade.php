@@ -920,6 +920,12 @@
                         </select>
                     </div>
 
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">{{ __('table.calendar') }}</label>
+                        <select class="form-control" id="update-payment-switcher" onchange="switchPayment(this.value)">
+                        </select>
+                    </div>
+
                     {{-- CCM only --}}
                     <div class="row mb-3" id="update-wrap-payment">
                         <div class="col-md-6">
@@ -1329,16 +1335,25 @@
     function updatePayment(rowIndex) {
         const data = table_payment.row(rowIndex).data();
 
+        // populate switcher from already-loaded table data
+        const switcher = $('#update-payment-switcher');
+        switcher.empty();
+        table_payment.rows().every(function() {
+            const row  = this.data();
+            const date = row.created_at ? row.created_at.substring(0, 10) : '-';
+            switcher.append(`<option value="${this.index()}" ${this.index() == rowIndex ? 'selected' : ''}>${row.payment_code} — ${date}</option>`);
+        });
+
         document.getElementById('update-payment-id').value         = data.id;
         document.getElementById('update-payment-collection').value = data.collection_type;
         document.getElementById('update-payment-remark').value     = data.remark;
 
         // Detect type from existing record
         let type = 'CCM';
-        if (data.top_up > 0 || data.top_up_capital > 0)  type = 'TOPUP';
-        else if (data.interest_paid_amount > 0 && data.payment_amount == 0)   type = 'INTEREST';
-        else if (data.discount_amount > 0 && data.payment_amount == 0)        type = 'DISCOUNT';
-        else if (data.late_paid_amount > 0 && data.payment_amount == 0)       type = 'LATE';
+        if (data.top_up > 0 || data.top_up_capital > 0)                        type = 'TOPUP';
+        else if (data.interest_paid_amount > 0 && data.payment_amount == 0)    type = 'INTEREST';
+        else if (data.discount_amount > 0 && data.payment_amount == 0)         type = 'DISCOUNT';
+        else if (data.late_paid_amount > 0 && data.payment_amount == 0)        type = 'LATE';
 
         document.getElementById('update-payment-type').value = type;
 
@@ -1346,15 +1361,42 @@
         applyUpdatePaymentType(type);
 
         // Fill values AFTER applyUpdatePaymentType so they don't get cleared
-        document.getElementById('update-payment-paid').value     = data.payment_amount      ?? '';
-        document.getElementById('update-payment-interest').value = data.interest_paid_amount ?? '';
-        document.getElementById('update-payment-late').value     = data.late_paid_amount    ?? '';
-        document.getElementById('update-payment-discount').value = data.discount_amount     ?? '';
-        document.getElementById('update-payment-topup').value    = data.top_up              ?? '';
-        document.getElementById('update-payment-topup-capital').value    = data.top_up_capital         ?? '';
+        document.getElementById('update-payment-paid').value             = data.payment_amount       ?? '';
+        document.getElementById('update-payment-interest').value         = data.interest_paid_amount ?? '';
+        document.getElementById('update-payment-late').value             = data.late_paid_amount     ?? '';
+        document.getElementById('update-payment-discount').value         = data.discount_amount      ?? '';
+        document.getElementById('update-payment-topup').value            = data.top_up               ?? '';
+        document.getElementById('update-payment-topup-capital').value    = data.top_up_capital       ?? '';
 
         setupUpdatePaymentMethod(data.company_code, data.payment_method_id);
         $('#modal-update-payment').modal('show');
+    }
+
+    function switchPayment(rowIndex) {
+        const data = table_payment.row(rowIndex).data();
+        if (!data) return;
+
+        document.getElementById('update-payment-id').value         = data.id;
+        document.getElementById('update-payment-collection').value = data.collection_type;
+        document.getElementById('update-payment-remark').value     = data.remark ?? '';
+
+        let type = 'CCM';
+        if (data.top_up > 0 || data.top_up_capital > 0)                        type = 'TOPUP';
+        else if (data.interest_paid_amount > 0 && data.payment_amount == 0)    type = 'INTEREST';
+        else if (data.discount_amount > 0 && data.payment_amount == 0)         type = 'DISCOUNT';
+        else if (data.late_paid_amount > 0 && data.payment_amount == 0)        type = 'LATE';
+
+        document.getElementById('update-payment-type').value = type;
+        applyUpdatePaymentType(type);
+
+        document.getElementById('update-payment-paid').value             = data.payment_amount       ?? '';
+        document.getElementById('update-payment-interest').value         = data.interest_paid_amount ?? '';
+        document.getElementById('update-payment-late').value             = data.late_paid_amount     ?? '';
+        document.getElementById('update-payment-discount').value         = data.discount_amount      ?? '';
+        document.getElementById('update-payment-topup').value            = data.top_up               ?? '';
+        document.getElementById('update-payment-topup-capital').value    = data.top_up_capital       ?? '';
+
+        setupUpdatePaymentMethod(data.company_code, data.payment_method_id);
     }
 
     @if($loan?->company->company_code)
@@ -1369,31 +1411,31 @@
     const GREY = 'opacity:0.45; pointer-events:none; user-select:none;';
 
     function applyUpdatePaymentType(type) {
-        const wrapPayment  = document.getElementById('update-wrap-payment');
-        const wrapLate     = document.getElementById('update-wrap-late');
-        const wrapInterest = document.getElementById('update-wrap-interest');
-        const wrapTopup    = document.getElementById('update-wrap-topup');
-        const wrapTopupCapital    = document.getElementById('update-wrap-topup-capital');
+        const wrapPayment      = document.getElementById('update-wrap-payment');
+        const wrapLate         = document.getElementById('update-wrap-late');
+        const wrapInterest     = document.getElementById('update-wrap-interest');
+        const wrapTopup        = document.getElementById('update-wrap-topup');
+        const wrapTopupCapital = document.getElementById('update-wrap-topup-capital');
 
-        const inputPaid     = document.getElementById('update-payment-paid');
-        const inputDiscount = document.getElementById('update-payment-discount');
-        const inputLate     = document.getElementById('update-payment-late');
-        const inputInterest = document.getElementById('update-payment-interest');
-        const inputTopup    = document.getElementById('update-payment-topup');
-        const inputTopupCapital    = document.getElementById('update-payment-topup-capital');
+        const inputPaid         = document.getElementById('update-payment-paid');
+        const inputDiscount     = document.getElementById('update-payment-discount');
+        const inputLate         = document.getElementById('update-payment-late');
+        const inputInterest     = document.getElementById('update-payment-interest');
+        const inputTopup        = document.getElementById('update-payment-topup');
+        const inputTopupCapital = document.getElementById('update-payment-topup-capital');
 
         // Reset — grey everything first
         [wrapPayment, wrapLate, wrapInterest, wrapTopup, wrapTopupCapital].forEach(w => w.setAttribute('style', GREY));
         [inputPaid, inputDiscount, inputLate, inputInterest, inputTopup, inputTopupCapital].forEach(i => {
             i.disabled = true;
             i.required = false;
-            i.value = '';
+            i.value    = '';
         });
 
         if (type === 'CCM') {
             wrapPayment.removeAttribute('style');
-            inputPaid.disabled = false;
-            inputPaid.required = true;
+            inputPaid.disabled    = false;
+            inputPaid.required    = true;
             inputDiscount.disabled = false;
 
         } else if (type === 'INTEREST') {
@@ -1405,7 +1447,7 @@
             wrapPayment.removeAttribute('style');
             inputDiscount.disabled = false;
             inputDiscount.required = true;
-            inputPaid.disabled = true;
+            inputPaid.disabled     = true;
 
         } else if (type === 'LATE') {
             wrapLate.removeAttribute('style');
@@ -1415,12 +1457,10 @@
         } else if (type === 'TOPUP') {
             wrapTopup.removeAttribute('style');
             wrapTopupCapital.removeAttribute('style');
-
-            inputTopup.disabled = false;
-            inputTopup.required = false; // not required, either one is enough
-
+            inputTopup.disabled        = false;
+            inputTopup.required        = false;
             inputTopupCapital.disabled = false;
-            inputTopupCapital.required = false; // not required, either one is enough
+            inputTopupCapital.required = false;
         }
     }
 

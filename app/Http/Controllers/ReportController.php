@@ -198,7 +198,17 @@ class ReportController extends Controller
                     'payments.payment_amount as customer_payment',
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
-                    \DB::raw("payment_method_logs.total as account_total_amount"),
+                    \DB::raw("
+                        (
+                            SELECT pml_latest.total
+                            FROM payment_method_logs pml_latest
+                            WHERE pml_latest.content_id = payment_method_logs.content_id
+                            AND pml_latest.type = payment_method_logs.type
+                            AND pml_latest.payment_method_id = payment_method_logs.payment_method_id
+                            ORDER BY pml_latest.created_at DESC, pml_latest.id DESC
+                            LIMIT 1
+                        ) as account_total_amount
+                    "),
                     \DB::raw("DATE(payment_method_logs.created_at) as date"),
                     \DB::raw("
                         CASE
@@ -221,6 +231,50 @@ class ReportController extends Controller
                             WHEN payment_method_logs.type = 'payment' THEN (SELECT p.top_up_capital FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
                             ELSE NULL
                         END as top_up_capital
+                    "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'payment' THEN (
+                                SELECT 
+                                    (
+                                        l.capital
+                                        - COALESCE((
+                                            SELECT SUM(p_all.top_up_capital)
+                                            FROM payments p_all
+                                            WHERE p_all.loan_id = p.loan_id
+                                            AND p_all.top_up_capital IS NOT NULL
+                                            AND p_all.top_up_capital > 0
+                                        ), 0)
+                                    )
+                                    + COALESCE((
+                                        SELECT SUM(p2.top_up_capital)
+                                        FROM payments p2
+                                        WHERE p2.loan_id = p.loan_id
+                                        AND p2.top_up_capital IS NOT NULL
+                                        AND p2.top_up_capital > 0
+                                        AND p2.id <= payment_method_logs.content_id
+                                    ), 0)
+                                FROM loans l
+                                JOIN payments p ON p.loan_id = l.id
+                                WHERE p.id = payment_method_logs.content_id
+                                LIMIT 1
+                            )
+                            WHEN payment_method_logs.type = 'loan' THEN (
+                                SELECT 
+                                    l.capital
+                                    - COALESCE((
+                                        SELECT SUM(p_all.top_up_capital)
+                                        FROM payments p_all
+                                        WHERE p_all.loan_id = l.id
+                                        AND p_all.top_up_capital IS NOT NULL
+                                        AND p_all.top_up_capital > 0
+                                    ), 0)
+                                FROM loans l
+                                WHERE l.id = payment_method_logs.content_id
+                                LIMIT 1
+                            )
+                            ELSE NULL
+                        END as new_capital_loan
                     "),
                 ])
                 ->join('payment_methods', 'payment_method_logs.payment_method_id', '=', 'payment_methods.id')
@@ -363,7 +417,6 @@ class ReportController extends Controller
                     'payments.payment_amount as customer_payment',
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
-                    \DB::raw("payment_method_logs.total as account_total_amount"),
                     \DB::raw("DATE(payment_method_logs.created_at) as date"),
                     \DB::raw("
                         CASE
@@ -387,6 +440,61 @@ class ReportController extends Controller
                             WHEN payment_method_logs.type = 'payment' THEN (SELECT p.top_up_capital FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
                             ELSE NULL
                         END as top_up_capital
+                    "),
+                    \DB::raw("
+                        (
+                            SELECT pml_latest.total
+                            FROM payment_method_logs pml_latest
+                            WHERE pml_latest.content_id = payment_method_logs.content_id
+                            AND pml_latest.type = payment_method_logs.type
+                            AND pml_latest.payment_method_id = payment_method_logs.payment_method_id
+                            ORDER BY pml_latest.created_at DESC, pml_latest.id DESC
+                            LIMIT 1
+                        ) as account_total_amount
+                    "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'payment' THEN (
+                                SELECT 
+                                    (
+                                        l.capital
+                                        - COALESCE((
+                                            SELECT SUM(p_all.top_up_capital)
+                                            FROM payments p_all
+                                            WHERE p_all.loan_id = p.loan_id
+                                            AND p_all.top_up_capital IS NOT NULL
+                                            AND p_all.top_up_capital > 0
+                                        ), 0)
+                                    )
+                                    + COALESCE((
+                                        SELECT SUM(p2.top_up_capital)
+                                        FROM payments p2
+                                        WHERE p2.loan_id = p.loan_id
+                                        AND p2.top_up_capital IS NOT NULL
+                                        AND p2.top_up_capital > 0
+                                        AND p2.id <= payment_method_logs.content_id
+                                    ), 0)
+                                FROM loans l
+                                JOIN payments p ON p.loan_id = l.id
+                                WHERE p.id = payment_method_logs.content_id
+                                LIMIT 1
+                            )
+                            WHEN payment_method_logs.type = 'loan' THEN (
+                                SELECT 
+                                    l.capital
+                                    - COALESCE((
+                                        SELECT SUM(p_all.top_up_capital)
+                                        FROM payments p_all
+                                        WHERE p_all.loan_id = l.id
+                                        AND p_all.top_up_capital IS NOT NULL
+                                        AND p_all.top_up_capital > 0
+                                    ), 0)
+                                FROM loans l
+                                WHERE l.id = payment_method_logs.content_id
+                                LIMIT 1
+                            )
+                            ELSE NULL
+                        END as new_capital_loan
                     "),
                 ])
                 ->join('payment_methods', 'payment_method_logs.payment_method_id', '=', 'payment_methods.id')
@@ -529,6 +637,20 @@ class ReportController extends Controller
                     'customers.customer_name as customer_name',
                     'customers.id as customer_id',
                     'companies.id as company_id',
+                    \DB::raw("
+                        loans.payment - COALESCE((
+                            SELECT SUM(
+                                p2.payment_amount
+                                + COALESCE(p2.late_paid_amount, 0)
+                                + COALESCE(p2.interest_paid_amount, 0)
+                                + COALESCE(p2.discount_amount, 0)
+                                - COALESCE(p2.top_up, 0)
+                            )
+                            FROM payments p2
+                            WHERE p2.loan_id = payments.loan_id
+                            AND p2.id <= payments.id
+                        ), 0) as outstanding_balance
+                    "),
                 ])
                 ->join('customers', 'customers.id', '=', 'payments.customer_id')
                 ->join('loans',     'loans.id',     '=', 'payments.loan_id')
@@ -608,7 +730,6 @@ class ReportController extends Controller
             if ($orderColIdx !== null && isset($columnMap[$orderColIdx])) {
                 $orderCol = $columnMap[$orderColIdx];
             } else {
-                // default order
                 $orderCol = 'payments.created_at';
                 $orderDir = 'desc';
             }
@@ -640,7 +761,7 @@ class ReportController extends Controller
                 // accumulate paid amount
                 $totalPayment[$loanId] += $row->running_payment;
 
-                // deducted balance
+                // deducted balance (kept as-is)
                 $row->deducted_balance = (float) ($row->payment ?? 0) - $totalPayment[$loanId];
 
                 // this is what you want

@@ -191,10 +191,11 @@ $(document).ready(function () {
                 }
             },
             {
-                data: "top_up", name: "top_up", width: "80px",
+                data: "new_capital_loan", name: "new_capital_loan", width: "80px",
                 render: function (data) {
-                    let v = parseFloat(data || 0);
-                    return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
+                    if (!data) return '-';
+                    let v = parseFloat(data);
+                    return '<span style="color:red">-' + Math.abs(v).toFixed(2) + '</span>';
                 }
             },
             {
@@ -250,7 +251,7 @@ $(document).ready(function () {
             $(api.column(8).footer()).html(colorValue(totIP));
             $(api.column(9).footer()).html(colorValue(totCP));
             $(api.column(10).footer()).html(colorValue(totTUC));
-            $(api.column(11).footer()).html(colorValue(totLTU));
+            // $(api.column(11).footer()).html(colorValue(totLTU));
             $(api.column(12).footer()).html(colorValue(totEXP));
             $(api.column(13).footer()).html(colorValue(lastAT));
         },
