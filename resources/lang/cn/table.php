@@ -339,6 +339,7 @@ return [
 'exp_amount' => '支出金额',
 'non_exp_amount' => '非支出金额',
 'outstd' => '未结余额',
+'calendar' => '日历',
 
 ];
 
