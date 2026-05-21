@@ -191,11 +191,17 @@ class ReportController extends Controller
                     'customers.id as customer_id',
                     'customers.customer_name',
                     'payments.remark as remark',
-                    'payments.collection_type as collection_type',
                     'expenses.expense_title as expenses_name',
                     'expenses.expense_description as expenses_description',
                     'payments.top_up as top_up',
                     'payments.payment_amount as customer_payment',
+                    \DB::raw("
+                        COALESCE(
+                            CASE WHEN payment_method_logs.type = 'payment' THEN payments.collection_type END,
+                            CASE WHEN payment_method_logs.type = 'loan'    THEN loans.interest_group END,
+                            CASE WHEN payment_method_logs.type = 'payment' THEN payment_loans.interest_group END
+                        ) as collection_type
+                    "),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
                     \DB::raw("
@@ -287,6 +293,10 @@ class ReportController extends Controller
                 ->leftJoin('loans', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'loans.id')
                         ->where('payment_method_logs.type', '=', 'loan');
+                })
+                ->leftJoin('loans as payment_loans', function ($join) {
+                    $join->on('payments.loan_id', '=', 'payment_loans.id')
+                        ->where('payment_method_logs.type', '=', 'payment');
                 })
                 ->leftJoin('expenses', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'expenses.id')

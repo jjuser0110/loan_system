@@ -222,7 +222,7 @@
                     }
                 },
                 {
-                    data: "outstanding_balance",
+                    data: "deducted_balance",
                     render: function (data) {
                         let v = data !== null ? parseFloat(data) : 0;
                         return `<span style="color:${v < 0 ? 'red' : 'green'}">${v.toFixed(2)}</span>`;

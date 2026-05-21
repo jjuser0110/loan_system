@@ -502,18 +502,14 @@ class PaymentController extends Controller
                     'capital'          => $loan->capital + $top_up_capital,
                 ]);
 
-                $savedNextDueAmount = $loan->next_due_amount; // save before misc overwrites it
-
                 $this->loanController->update_loan_misc($loan);
 
                 if ($finalBalanceA <= 0) {
                     $loan->update(['next_due_amount' => 0]);
-                } elseif ($top_up > 0) {
+                } else {
+                    // always recalculate for SKIM A based on new balance
                     $newNextDueAmount = bcmul((string)$finalBalanceA, bcdiv((string)$loan->interest_rate, '100'));
                     $loan->update(['next_due_amount' => $newNextDueAmount]);
-                } else {
-                    // no top_up — restore original value that misc may have overwritten
-                    $loan->update(['next_due_amount' => $savedNextDueAmount]);
                 }
             }
 
@@ -594,6 +590,7 @@ class PaymentController extends Controller
                 }
 
                 $newBalanceAfterTopUp = $loan->balance - $total_payment + $top_up;
+                $savedNextDueAmount   = $loan->next_due_amount; // ← save BEFORE loan update
 
                 $loan->update([
                     'paid'             => $loan->paid + $payment_amount,
@@ -607,26 +604,17 @@ class PaymentController extends Controller
                     'capital'          => $loan->capital + $top_up_capital,
                 ]);
 
-                $savedNextDueAmount = $loan->next_due_amount; // save before misc overwrites it
-
                 $this->loanController->update_loan_misc($loan);
 
-                // fully settled
                 if ($newBalanceAfterTopUp <= 0) {
                     $loan->update(['next_due_amount' => 0]);
-                }
-                // recalculate only if top up exists
-                elseif ($top_up > 0) {
-                    $newNextDueAmountB = bcmul(
-                        (string)$newBalanceAfterTopUp,
-                        bcdiv((string)$loan->interest_rate, '100')
-                    );
-
-                    $loan->update(['next_due_amount' => $newNextDueAmountB]);
-                }
-                // keep old next_due_amount if no top up
-                else {
-                    $loan->update(['next_due_amount' => $savedNextDueAmount]);
+                } else {
+                    $remainingDue = $savedNextDueAmount - $payment_amount - $discount_amount;
+                    if ($remainingDue <= 0) {
+                        $loan->update(['next_due_amount' => $loan->installment]);
+                    } else {
+                        $loan->update(['next_due_amount' => $remainingDue]);
+                    }
                 }
 
                 $bbamount    = ($p->payment_amount + $p->discount_amount) * -1;
@@ -975,23 +963,20 @@ class PaymentController extends Controller
                     $company->update(['stocka' => $cafter]);
                 }
 
-                $savedNextDueAmount = $loan->next_due_amount; // save before misc overwrites it
-
                 $this->loanController->update_loan_misc($loan);
 
                 if ($finalBalanceA <= 0) {
                     $loan->update(['next_due_amount' => 0]);
-                } elseif ($diff_top_up != 0) {
+                } else {
+                    // always recalculate for SKIM A based on new balance
                     $newNextDueAmountA = bcmul((string)$finalBalanceA, bcdiv((string)$loan->interest_rate, '100'));
                     $loan->update(['next_due_amount' => $newNextDueAmountA]);
-                } else {
-                    // no top_up — restore original value that misc may have overwritten
-                    $loan->update(['next_due_amount' => $savedNextDueAmount]);
                 }
 
                 } else if ($loan->interest_group == "SKIM B") {
 
                     $finalBalanceB = $loan->balance - $diff_total + $diff_top_up;
+                    $savedNextDueAmount = $loan->next_due_amount; // save before misc overwrites it
 
                     $loan->update([
                         'paid'             => $loan->paid + $diff_payment,
@@ -1005,17 +990,19 @@ class PaymentController extends Controller
                         'capital'          => $loan->capital + $diff_top_up_capital,
                     ]);
 
-                    $savedNextDueAmount = $loan->next_due_amount; // save before misc overwrites it
-
                     $this->loanController->update_loan_misc($loan);
 
                     if ($finalBalanceB <= 0) {
                         $loan->update(['next_due_amount' => 0]);
-                    } elseif ($diff_top_up != 0) {
-                        $newNextDueAmountB = bcmul((string)$finalBalanceB, bcdiv((string)$loan->interest_rate, '100'));
-                        $loan->update(['next_due_amount' => $newNextDueAmountB]);
                     } else {
-                        $loan->update(['next_due_amount' => $savedNextDueAmount]);
+                        // restore old payment first, then minus new payment
+                        $restoredDue  = $savedNextDueAmount + $old_payment_amount + $old_discount;
+                        $remainingDue = $restoredDue - $new_payment_amount - $new_discount;
+                        if ($remainingDue <= 0) {
+                            $loan->update(['next_due_amount' => $loan->installment]);
+                        } else {
+                            $loan->update(['next_due_amount' => $remainingDue]);
+                        }
                     }
 
                     // STOCK
