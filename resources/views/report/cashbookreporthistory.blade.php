@@ -224,7 +224,7 @@ $(document).ready(function () {
                 totIP  += parseFloat(r.interest_paid    || 0);
                 totCP  += parseFloat(r.customer_payment || 0);
                 totTUC -= parseFloat(r.top_up_capital   || 0);
-                totNCL += parseFloat(r.new_capital_loan      || 0);
+                totNCL -= parseFloat(r.new_capital_loan      || 0);
                 totEXP += parseFloat(r.expenses         || 0);
             });
 
