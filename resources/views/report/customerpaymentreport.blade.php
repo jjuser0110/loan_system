@@ -247,7 +247,7 @@
                 let totTopUpCapital = 0;
                 let totTopUp        = 0;
                 let totRunning      = 0;
-                let totDeducted     = 0;
+                let totOutstanding     = 0;
                 let totTotalPaid    = 0;
 
                 allRows.each(function (r) {
@@ -258,7 +258,7 @@
                     totTopUpCapital += parseFloat(r.top_up_capital      || 0);
                     totTopUp        += parseFloat(r.top_up              || 0);
                     totRunning      += parseFloat(r.running_payment     || 0);
-                    totDeducted     += parseFloat(r.deducted_balance    || 0);
+                    totOutstanding     += parseFloat(r.outstanding_balance    || 0);
                     totTotalPaid    += parseFloat(r.total_paid_amount   || 0);
                 });
 
@@ -274,7 +274,7 @@
                 $(api.column(9).footer()).html('<span style="color:red"><strong>' + totTopUpCapital.toFixed(2) + '</strong></span>');
                 $(api.column(10).footer()).html('<span style="color:red"><strong>' + totTopUp.toFixed(2) + '</strong></span>');
                 $(api.column(11).footer()).html(colorValue(totRunning));
-                $(api.column(12).footer()).html(colorValue(totDeducted));
+                $(api.column(12).footer()).html(colorValue(totOutstanding));
                 $(api.column(13).footer()).html(colorValue(totTotalPaid));
             },
         });

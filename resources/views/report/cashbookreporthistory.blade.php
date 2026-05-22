@@ -106,7 +106,7 @@ $(document).ready(function () {
                 d.company_id = $('#filter_company').val();
             }
         },
-        order: [[2, "asc"]],
+        order: [[2, "desc"]],
         columns: [
             {
                 data: null, name: "id", width: "10px",
