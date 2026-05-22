@@ -274,7 +274,7 @@
                 $(api.column(9).footer()).html('<span style="color:red"><strong>' + totTopUpCapital.toFixed(2) + '</strong></span>');
                 $(api.column(10).footer()).html('<span style="color:red"><strong>' + totTopUp.toFixed(2) + '</strong></span>');
                 $(api.column(11).footer()).html(colorValue(totRunning));
-                $(api.column(12).footer()).html(colorValue(totOutstanding));
+                // $(api.column(12).footer()).html(colorValue(totOutstanding));
                 $(api.column(13).footer()).html(colorValue(totTotalPaid));
             },
         });
