@@ -439,31 +439,6 @@ class ReportController extends Controller
                     "),
                     \DB::raw("
                         CASE
-                            WHEN payment_method_logs.type = 'payment' THEN (
-                                SELECT 
-                                    (
-                                        l.capital
-                                        - COALESCE((
-                                            SELECT SUM(p_all.top_up_capital)
-                                            FROM payments p_all
-                                            WHERE p_all.loan_id = p.loan_id
-                                            AND p_all.top_up_capital IS NOT NULL
-                                            AND p_all.top_up_capital > 0
-                                        ), 0)
-                                    )
-                                    + COALESCE((
-                                        SELECT SUM(p2.top_up_capital)
-                                        FROM payments p2
-                                        WHERE p2.loan_id = p.loan_id
-                                        AND p2.top_up_capital IS NOT NULL
-                                        AND p2.top_up_capital > 0
-                                        AND p2.id <= payment_method_logs.content_id
-                                    ), 0)
-                                FROM loans l
-                                JOIN payments p ON p.loan_id = l.id
-                                WHERE p.id = payment_method_logs.content_id
-                                LIMIT 1
-                            )
                             WHEN payment_method_logs.type = 'loan' THEN (
                                 SELECT 
                                     l.capital

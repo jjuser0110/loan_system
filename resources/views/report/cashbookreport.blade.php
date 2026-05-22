@@ -229,7 +229,7 @@ $(document).ready(function () {
                 openingBalance =
                     parseFloat(firstRow.account_total_amount || 0)
                     - parseFloat(firstRow.customer_payment || 0)
-                    - parseFloat(firstRow.new_capital_loan || 0)
+                    - parseFloat(firstRow.top_up || 0)
                     + parseFloat(firstRow.expenses || 0);
             }
 
