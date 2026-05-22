@@ -625,7 +625,7 @@ class ReportController extends Controller
                     'customers.id as customer_id',
                     'companies.id as company_id',
                     \DB::raw("
-                        (loans.payment + COALESCE(loans.interest, 0) + COALESCE(loans.installment, 0))
+                        (loans.payment + COALESCE(loans.interest, 0))
                         - COALESCE((
                             SELECT SUM(
                                 p2.payment_amount
