@@ -222,7 +222,7 @@
                     }
                 },
                 {
-                    data: "deducted_balance",
+                    data: "outstanding_balance",
                     render: function (data) {
                         let v = data !== null ? parseFloat(data) : 0;
                         return `<span style="color:${v < 0 ? 'red' : 'green'}">${v.toFixed(2)}</span>`;
@@ -274,7 +274,7 @@
                 $(api.column(9).footer()).html('<span style="color:red"><strong>' + totTopUpCapital.toFixed(2) + '</strong></span>');
                 $(api.column(10).footer()).html('<span style="color:red"><strong>' + totTopUp.toFixed(2) + '</strong></span>');
                 $(api.column(11).footer()).html(colorValue(totRunning));
-                // $(api.column(12).footer()).html(colorValue(totDeducted));
+                $(api.column(12).footer()).html(colorValue(totDeducted));
                 $(api.column(13).footer()).html(colorValue(totTotalPaid));
             },
         });

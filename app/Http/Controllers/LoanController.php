@@ -888,10 +888,28 @@ class LoanController extends Controller
                     throw new Exception('No loan found.');
                 }
             }
-            return view('loan.single')->with('success',true)->with('loan',$loan);
+
+            $scheduleCount = \App\Models\PaymentSchedule::where('loan_code', $loan->loan_code)
+                ->where(function($q) {
+                    $q->whereNull('paid_amount')
+                    ->orWhere('paid_amount', 0);
+                })
+                ->count();
+
+            $paidScheduleCount = \App\Models\PaymentSchedule::where('loan_code', $loan->loan_code)
+                ->where('paid_amount', '>', 0)
+                ->count();
+
+            return view('loan.single')
+                ->with('success', true)
+                ->with('loan', $loan)
+                ->with('scheduleCount', $scheduleCount)
+                ->with('paidScheduleCount', $paidScheduleCount);
         }
         catch(Exception $e){
-            return view('loan.single')->with('success',false)->with('error',$e->getMessage());
+            return view('loan.single')
+                ->with('success', false)
+                ->with('error', $e->getMessage());
         }
     }
 

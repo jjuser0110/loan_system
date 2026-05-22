@@ -838,6 +838,18 @@
                     {{-- Payment / capital --}}
                     <div class="row mb-3" id="add-wrap-payment">
                         <div class="col-md-6">
+
+                            {{-- Schedule dropdown (above payment amount) --}}
+                            <div class="mb-2">
+                                <label class="col-form-label">Schedule</label>
+                                <select class="form-control" id="add-input-schedule" onchange="applyScheduleMultiplier(this.value)">
+                                    <option value="0">-- Select Schedule --</option>
+                                    @for ($i = 1; $i <= $scheduleCount; $i++)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                            </div>
+
                             <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" id="add-input-payment-amount" name="payment_amount" value="0">
                             <p class="p-note">{{ $loan->interest_group ?? 'No SKIM' }} <br> {{ __('table.outstanding') }}: {{ $loan->balance ?? '0.00' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->next_due_amount ?? '' }} <br> {{ __('table.date') }}: {{ now()->format('Y-n-j') }} &nbsp;&nbsp;&nbsp; {{ __('table.due_date') }}: {{ $loan?->next_due_date ?? '' }}</p>
@@ -1355,18 +1367,49 @@
         else if (data.discount_amount > 0 && data.payment_amount == 0)         type = 'DISCOUNT';
         else if (data.late_paid_amount > 0 && data.payment_amount == 0)        type = 'LATE';
 
+        // Hide options based on collection type
+        if (data.collection_type === 'SKIM B') {
+            $('#update-payment-type option[value="TOPUP"]').hide();
+            $('#update-payment-type option[value="INTEREST"]').hide();
+            $('#update-payment-type option[value="LATE"]').show();
+            if (type === 'TOPUP' || type === 'INTEREST') {
+                type = 'CCM';
+            }
+        } else if (data.collection_type === 'SKIM A') {
+            $('#update-payment-type option[value="LATE"]').hide();
+            $('#update-payment-type option[value="TOPUP"]').show();
+            $('#update-payment-type option[value="INTEREST"]').show();
+            if (type === 'LATE') {
+                type = 'CCM';
+            }
+        } else {
+            $('#update-payment-type option[value="TOPUP"]').show();
+            $('#update-payment-type option[value="INTEREST"]').show();
+            $('#update-payment-type option[value="LATE"]').show();
+        }
+
         document.getElementById('update-payment-type').value = type;
 
         // Apply type first (locks/unlocks fields)
         applyUpdatePaymentType(type);
 
         // Fill values AFTER applyUpdatePaymentType so they don't get cleared
-        document.getElementById('update-payment-paid').value             = data.payment_amount       ?? '';
-        document.getElementById('update-payment-interest').value         = data.interest_paid_amount ?? '';
-        document.getElementById('update-payment-late').value             = data.late_paid_amount     ?? '';
-        document.getElementById('update-payment-discount').value         = data.discount_amount      ?? '';
-        document.getElementById('update-payment-topup').value            = data.top_up               ?? '';
-        document.getElementById('update-payment-topup-capital').value    = data.top_up_capital       ?? '';
+        document.getElementById('update-payment-paid').value          = data.payment_amount       ?? '';
+        document.getElementById('update-payment-interest').value      = data.interest_paid_amount ?? '';
+        document.getElementById('update-payment-late').value          = data.late_paid_amount     ?? '';
+        document.getElementById('update-payment-discount').value      = data.discount_amount      ?? '';
+        document.getElementById('update-payment-topup').value         = data.top_up               ?? '';
+        document.getElementById('update-payment-topup-capital').value = data.top_up_capital       ?? '';
+
+        // Pre-select current schedule
+        if (type === 'CCM') {
+            const currentSchedules = loanFirstPayment > 0
+                ? Math.round((data.payment_amount ?? 0) / loanFirstPayment)
+                : 0;
+            $('#update-input-schedule').val(currentSchedules);
+        } else {
+            $('#update-input-schedule').val('0');
+        }
 
         setupUpdatePaymentMethod(data.company_code, data.payment_method_id);
         $('#modal-update-payment').modal('show');
@@ -1386,15 +1429,46 @@
         else if (data.discount_amount > 0 && data.payment_amount == 0)         type = 'DISCOUNT';
         else if (data.late_paid_amount > 0 && data.payment_amount == 0)        type = 'LATE';
 
+        // Hide options based on collection type
+        if (data.collection_type === 'SKIM B') {
+            $('#update-payment-type option[value="TOPUP"]').hide();
+            $('#update-payment-type option[value="INTEREST"]').hide();
+            $('#update-payment-type option[value="LATE"]').show();
+            if (type === 'TOPUP' || type === 'INTEREST') {
+                type = 'CCM';
+            }
+        } else if (data.collection_type === 'SKIM A') {
+            $('#update-payment-type option[value="LATE"]').hide();
+            $('#update-payment-type option[value="TOPUP"]').show();
+            $('#update-payment-type option[value="INTEREST"]').show();
+            if (type === 'LATE') {
+                type = 'CCM';
+            }
+        } else {
+            $('#update-payment-type option[value="TOPUP"]').show();
+            $('#update-payment-type option[value="INTEREST"]').show();
+            $('#update-payment-type option[value="LATE"]').show();
+        }
+
         document.getElementById('update-payment-type').value = type;
         applyUpdatePaymentType(type);
 
-        document.getElementById('update-payment-paid').value             = data.payment_amount       ?? '';
-        document.getElementById('update-payment-interest').value         = data.interest_paid_amount ?? '';
-        document.getElementById('update-payment-late').value             = data.late_paid_amount     ?? '';
-        document.getElementById('update-payment-discount').value         = data.discount_amount      ?? '';
-        document.getElementById('update-payment-topup').value            = data.top_up               ?? '';
-        document.getElementById('update-payment-topup-capital').value    = data.top_up_capital       ?? '';
+        document.getElementById('update-payment-paid').value          = data.payment_amount       ?? '';
+        document.getElementById('update-payment-interest').value      = data.interest_paid_amount ?? '';
+        document.getElementById('update-payment-late').value          = data.late_paid_amount     ?? '';
+        document.getElementById('update-payment-discount').value      = data.discount_amount      ?? '';
+        document.getElementById('update-payment-topup').value         = data.top_up               ?? '';
+        document.getElementById('update-payment-topup-capital').value = data.top_up_capital       ?? '';
+
+        // Pre-select current schedule
+        if (type === 'CCM') {
+            const currentSchedules = loanFirstPayment > 0
+                ? Math.round((data.payment_amount ?? 0) / loanFirstPayment)
+                : 0;
+            $('#update-input-schedule').val(currentSchedules);
+        } else {
+            $('#update-input-schedule').val('0');
+        }
 
         setupUpdatePaymentMethod(data.company_code, data.payment_method_id);
     }
@@ -1443,12 +1517,6 @@
             inputInterest.disabled = false;
             inputInterest.required = true;
 
-        } else if (type === 'DISCOUNT') {
-            wrapPayment.removeAttribute('style');
-            inputDiscount.disabled = false;
-            inputDiscount.required = true;
-            inputPaid.disabled     = true;
-
         } else if (type === 'LATE') {
             wrapLate.removeAttribute('style');
             inputLate.disabled = false;
@@ -1465,6 +1533,20 @@
     }
 
     const GREY_STYLE_ADD = 'opacity:0.45; pointer-events:none; user-select:none;';
+
+    const loanFirstPayment  = {{ $loan->first_payment ?? 0 }};
+    const loanInterest      = {{ $loan->interest ?? 0 }};
+    const loanInterestPaid  = {{ $loan->interest_paid ?? 0 }};
+    const interestRemaining = loanInterest - loanInterestPaid;
+
+    function applyScheduleMultiplier(schedule) {
+        const multiplier = parseInt(schedule) || 0;
+        if (multiplier > 0) {
+            $('#add-input-payment-amount').val((loanFirstPayment * multiplier).toFixed(2));
+        } else {
+            $('#add-input-payment-amount').val('0');
+        }
+    }
 
     function applyAddPaymentType(type) {
         const wrapPayment  = document.getElementById('add-wrap-payment');

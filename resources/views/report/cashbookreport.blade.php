@@ -182,7 +182,7 @@ $(document).ready(function () {
                 }
             },
             {
-                data: "top_up", name: "top_up", width: "80px",
+                data: "new_capital_loan", name: "new_capital_loan", width: "80px",
                 render: function (data) {
                     if (!data) return '-';
                     let v = parseFloat(data);
@@ -209,13 +209,13 @@ $(document).ready(function () {
             let allRows = api.rows({ search: 'applied' }).data();
             let openingBalance = 0;
 
-            let totIP = 0, totCP = 0, totTUC = 0, totLTU = 0, totEXP = 0, lastAT = 0;
+            let totIP = 0, totCP = 0, totTUC = 0, totNCL = 0, totEXP = 0, lastAT = 0;
 
             allRows.each(function (r) {
                 totIP  += parseFloat(r.interest_paid    || 0);
                 totCP  += parseFloat(r.customer_payment || 0);
                 totTUC -= parseFloat(r.top_up_capital   || 0);
-                totLTU -= parseFloat(r.top_up      || 0);
+                totNCL -= parseFloat(r.new_capital_loan      || 0);
                 totEXP += parseFloat(r.expenses         || 0);
             });
 
@@ -229,7 +229,7 @@ $(document).ready(function () {
                 openingBalance =
                     parseFloat(firstRow.account_total_amount || 0)
                     - parseFloat(firstRow.customer_payment || 0)
-                    - parseFloat(firstRow.top_up || 0)
+                    - parseFloat(firstRow.new_capital_loan || 0)
                     + parseFloat(firstRow.expenses || 0);
             }
 
@@ -242,7 +242,7 @@ $(document).ready(function () {
             $(api.column(8).footer()).html(colorValue(totIP));
             $(api.column(9).footer()).html(colorValue(totCP));
             $(api.column(10).footer()).html(colorValue(totTUC));
-            $(api.column(11).footer()).html(colorValue(totLTU));
+            $(api.column(11).footer()).html(colorValue(totNCL));
             $(api.column(12).footer()).html(colorValue(totEXP));
             $(api.column(13).footer()).html(colorValue(lastAT));
         },
