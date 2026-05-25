@@ -1251,6 +1251,19 @@ class PaymentController extends Controller
 
                 $this->loanController->update_loan_misc($loan);
 
+                // Set AFTER update_loan_misc so it doesn't get overwritten
+                $loan->refresh();
+
+                $nextDueAmount = bcmul(
+                    bcdiv($loan->balance, '100', 10),
+                    (string) $loan->interest_rate,
+                    10
+                );
+
+                $loan->update([
+                    'next_due_amount' => $nextDueAmount,
+                ]);
+
             } 
             else if ($loan->interest_group == "SKIM B") {
                 if ($payment_amount > 0) {

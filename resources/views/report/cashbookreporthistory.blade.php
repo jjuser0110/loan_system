@@ -4,6 +4,12 @@
     <h2>{{ __('sidebar.cash_book_report_history') }}</h2>
 </header>
 @include('layouts.flash-message')
+<style>
+    .row-invalid td {
+    background-color: #ffe6e6 !important;
+}
+</style>
+
 <div class="row mb-3">
     <div class="col-md-3">
         <label>{{ __('table.from_date') }}</label>
@@ -107,6 +113,12 @@ $(document).ready(function () {
             }
         },
         order: [[2, "desc"]],
+        rowCallback: function(row, data) {
+            let desc = data.description || '';
+            if (desc.includes('Payment Created') || desc.includes('Payment Deleted')) {
+                $(row).addClass('row-invalid');
+            }
+        },
         columns: [
             {
                 data: null, name: "id", width: "10px",

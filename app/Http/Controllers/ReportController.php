@@ -282,6 +282,10 @@ class ReportController extends Controller
                         $q->on('payments.customer_id', '=', 'customers.id')
                         ->orOn('loans.customer_id',  '=', 'customers.id');
                     });
+                })
+                ->where(function ($q) {
+                    $q->where('payment_method_logs.type', '!=', 'payment')
+                    ->orWhereNotNull('payments.payment_code');
                 });
 
             switch (Auth::user()->role_id) {
