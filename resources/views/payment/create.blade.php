@@ -268,6 +268,8 @@
     }
 
     document.getElementById('existing-payment-selector').addEventListener('change', function() {
+        e.preventDefault();
+        e.stopPropagation();
         const id = this.value;
         if (!id) { resetFormToStore(); return; }
 
