@@ -75,27 +75,9 @@
     </div>
 
 <script>
-    function validateNricSearch(e) {
-        const val = document.getElementById('q').value.trim();
-        if (!val) {
-            e.preventDefault();
-            return false;
-        }
-        return true;
-    }
-
     function submitNricSearch() {
         const val = document.getElementById('q').value.trim();
         if (!val) return;
         window.location.href = "{{ route('customer.single_customer') }}?nric_number=" + encodeURIComponent(val);
     }
-
-    document.addEventListener('DOMContentLoaded', function() {
-        const q = document.getElementById('q');
-        if (q) {
-            q.addEventListener('keydown', function(e) {
-                if (e.key === 'Enter') e.preventDefault();
-            });
-        }
-    });
 </script>
