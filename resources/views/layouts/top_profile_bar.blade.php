@@ -17,10 +17,10 @@
 
     <div class="header-right">
 
-        <form action="{{ route('customer.single_customer') }}" method="get" class="search nav-form">
+        <form action="{{ route('customer.single_customer') }}" method="get" class="search nav-form" onsubmit="return false;">
             <div class="input-group">
                 <input type="text" class="form-control" name="nric_number" id="q" placeholder="Customer NRIC...">
-                <button class="btn btn-default" type="submit"><i class="bx bx-search"></i></button>
+                <button class="btn btn-default" type="button" onclick="submitNricSearch()"><i class="bx bx-search"></i></button>
             </div>
         </form>
 
@@ -73,3 +73,29 @@
             </div>
         </div>
     </div>
+
+<script>
+    function validateNricSearch(e) {
+        const val = document.getElementById('q').value.trim();
+        if (!val) {
+            e.preventDefault();
+            return false;
+        }
+        return true;
+    }
+
+    function submitNricSearch() {
+        const val = document.getElementById('q').value.trim();
+        if (!val) return;
+        window.location.href = "{{ route('customer.single_customer') }}?nric_number=" + encodeURIComponent(val);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const q = document.getElementById('q');
+        if (q) {
+            q.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter') e.preventDefault();
+            });
+        }
+    });
+</script>
