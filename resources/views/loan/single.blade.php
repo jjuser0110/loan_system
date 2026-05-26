@@ -840,27 +840,21 @@
                         <label class="col-form-label">Schedule</label>
                         <select class="form-control" id="add-input-schedule" onchange="applyScheduleMultiplier(this.value)">
                             <option value="0">-- Select Schedule --</option>
-                            @for ($i = 1; $i <= $scheduleCount; $i++)
-                                <option value="{{ $i }}">{{ $i }}</option>
-                            @endfor
+                            @if(($loan->interest_group ?? '') === 'SKIM A')
+                                @for ($i = 1; $i <= 12; $i++)
+                                    <option value="{{ $i }}">{{ $i }}</option>
+                                @endfor
+                            @else
+                                @for ($i = 1; $i <= $scheduleCount; $i++)
+                                    <option value="{{ $i }}">{{ $i }}</option>
+                                @endfor
+                            @endif
                         </select>
                     </div>
 
                     {{-- Payment / capital --}}
                     <div class="row mb-3" id="add-wrap-payment">
                         <div class="col-md-6">
-
-                            {{-- Schedule dropdown --}}
-                            <div class="col-md-12 mb-3" id="add-wrap-schedule" style="display:none">
-                                <label class="col-form-label">Schedule</label>
-                                <select class="form-control" id="add-input-schedule" onchange="applyScheduleMultiplier(this.value)">
-                                    <option value="0">-- Select Schedule --</option>
-                                    @for ($i = 1; $i <= $scheduleCount; $i++)
-                                        <option value="{{ $i }}">{{ $i }}</option>
-                                    @endfor
-                                </select>
-                            </div>
-
                             <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" id="add-input-payment-amount" name="payment_amount" value="0">
                             <p class="p-note">{{ $loan->interest_group ?? 'No SKIM' }} <br> {{ __('table.outstanding') }}: {{ $loan->balance ?? '0.00' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->next_due_amount ?? '' }} <br> {{ __('table.date') }}: {{ now()->format('Y-n-j') }} &nbsp;&nbsp;&nbsp; {{ __('table.due_date') }}: {{ $loan?->next_due_date ?? '' }}</p>
@@ -1417,6 +1411,7 @@
             const currentSchedules = loanFirstPayment > 0
                 ? Math.round((data.payment_amount ?? 0) / loanFirstPayment)
                 : 0;
+            const loanInterestAmount = {{ $loan->next_due_amount ?? 0 }};
             $('#update-input-schedule').val(currentSchedules);
         } else {
             $('#update-input-schedule').val('0');
@@ -1545,10 +1540,11 @@
 
     const GREY_STYLE_ADD = 'opacity:0.45; pointer-events:none; user-select:none;';
 
-    const loanFirstPayment  = {{ $loan->first_payment ?? 0 }};
-    const loanInterest      = {{ $loan->interest ?? 0 }};
-    const loanInterestPaid  = {{ $loan->interest_paid ?? 0 }};
-    const interestRemaining = loanInterest - loanInterestPaid;
+    const loanFirstPayment   = {{ $loan->first_payment ?? 0 }};
+    const loanInterest       = {{ $loan->interest ?? 0 }};
+    const loanInterestPaid   = {{ $loan->interest_paid ?? 0 }};
+    const interestRemaining  = loanInterest - loanInterestPaid;
+    const loanInterestAmount = {{ $loan->interest ?? 0 }};
 
     function applyScheduleMultiplier(schedule) {
         const multiplier     = parseInt(schedule) || 0;
