@@ -835,12 +835,23 @@
                         </select>
                     </div>
 
+                    {{-- Schedule dropdown — OUTSIDE add-wrap-payment --}}
+                    <div class="col-md-12 mb-3" id="add-wrap-schedule" style="display:none">
+                        <label class="col-form-label">Schedule</label>
+                        <select class="form-control" id="add-input-schedule" onchange="applyScheduleMultiplier(this.value)">
+                            <option value="0">-- Select Schedule --</option>
+                            @for ($i = 1; $i <= $scheduleCount; $i++)
+                                <option value="{{ $i }}">{{ $i }}</option>
+                            @endfor
+                        </select>
+                    </div>
+
                     {{-- Payment / capital --}}
                     <div class="row mb-3" id="add-wrap-payment">
                         <div class="col-md-6">
 
-                            {{-- Schedule dropdown (above payment amount) --}}
-                            <div class="mb-2">
+                            {{-- Schedule dropdown --}}
+                            <div class="col-md-12 mb-3" id="add-wrap-schedule" style="display:none">
                                 <label class="col-form-label">Schedule</label>
                                 <select class="form-control" id="add-input-schedule" onchange="applyScheduleMultiplier(this.value)">
                                     <option value="0">-- Select Schedule --</option>
@@ -1540,61 +1551,87 @@
     const interestRemaining = loanInterest - loanInterestPaid;
 
     function applyScheduleMultiplier(schedule) {
-        const multiplier = parseInt(schedule) || 0;
-        if (multiplier > 0) {
-            $('#add-input-payment-amount').val((loanFirstPayment * multiplier).toFixed(2));
+        const multiplier     = parseInt(schedule) || 0;
+        const collectionType = document.getElementById('add-collection-type').value ?? '';
+        const type           = document.getElementById('add-payment-type').value;
+
+        if (multiplier <= 0) {
+            if (type === 'INTEREST') {
+                $('#add-input-payment-interest').val('0');
+            } else {
+                $('#add-input-payment-amount').val('0');
+            }
+            return;
+        }
+
+        if (collectionType === 'SKIM A' && type === 'INTEREST') {
+            // For SKIM A interest, multiply by interest installment amount
+            $('#add-input-payment-interest').val((loanInterestAmount * multiplier).toFixed(2));
         } else {
-            $('#add-input-payment-amount').val('0');
+            // For SKIM B CCM, multiply by payment installment
+            $('#add-input-payment-amount').val((loanFirstPayment * multiplier).toFixed(2));
         }
     }
 
     function applyAddPaymentType(type) {
-        const wrapPayment  = document.getElementById('add-wrap-payment');
-        const wrapLate     = document.getElementById('add-wrap-late');
-        const wrapInterest = document.getElementById('add-wrap-interest');
+        const wrapPayment      = document.getElementById('add-wrap-payment');
+        const wrapLate         = document.getElementById('add-wrap-late');
+        const wrapInterest     = document.getElementById('add-wrap-interest');
         const wrapTopupCapital = document.getElementById('add-wrap-topup-capital');
-        const wrapTopup    = document.getElementById('add-wrap-topup');
+        const wrapTopup        = document.getElementById('add-wrap-topup');
+        const wrapSchedule     = document.getElementById('add-wrap-schedule');
 
-        const inputPayment  = document.getElementById('add-input-payment-amount');
-        const inputLate     = document.getElementById('add-input-payment-late');
-        const inputInterest = document.getElementById('add-input-payment-interest');
+        const inputPayment      = document.getElementById('add-input-payment-amount');
+        const inputLate         = document.getElementById('add-input-payment-late');
+        const inputInterest     = document.getElementById('add-input-payment-interest');
         const inputTopupCapital = document.getElementById('add-input-topup-capital');
-        const inputTopup    = document.getElementById('add-input-topup');
-        const inputDiscount = document.querySelector('#add-wrap-payment [name="discount_amount"]');
+        const inputTopup        = document.getElementById('add-input-topup');
+        const inputDiscount     = document.querySelector('#add-wrap-payment [name="discount_amount"]');
+        const inputSchedule     = document.getElementById('add-input-schedule');
 
-        // Reset — grey everything first
+        const collectionType = document.getElementById('add-collection-type').value ?? '';
+        const isSkimA = collectionType === 'SKIM A';
+        const isSkimB = collectionType === 'SKIM B';
+
+        // Reset
         [wrapPayment, wrapLate, wrapInterest, wrapTopup, wrapTopupCapital].forEach(w => w.setAttribute('style', GREY_STYLE_ADD));
         [inputPayment, inputLate, inputInterest, inputTopup, inputTopupCapital, inputDiscount].forEach(i => {
             i.disabled = true;
             i.required = false;
             i.value = 0;
         });
+        inputSchedule.value = '0';
 
         if (type === 'CCM') {
             wrapPayment.removeAttribute('style');
             inputPayment.disabled = false;
             inputPayment.required = true;
             inputDiscount.disabled = false;
+            wrapSchedule.style.display = isSkimB ? 'block' : 'none';
 
         } else if (type === 'INTEREST') {
             wrapInterest.removeAttribute('style');
             inputInterest.disabled = false;
             inputInterest.required = true;
+            wrapSchedule.style.display = 'block'; // always show for INTEREST regardless of skim
 
         } else if (type === 'LATE') {
             wrapLate.removeAttribute('style');
             inputLate.disabled = false;
             inputLate.required = true;
+            wrapSchedule.style.display = 'none';
 
         } else if (type === 'TOPUP') {
             wrapTopup.removeAttribute('style');
             wrapTopupCapital.removeAttribute('style');
-
             inputTopup.disabled = false;
-            inputTopup.required = true;
-
+            inputTopup.required = false;
             inputTopupCapital.disabled = false;
-            inputTopupCapital.required = true;
+            inputTopupCapital.required = false;
+            wrapSchedule.style.display = 'none';
+
+        } else {
+            wrapSchedule.style.display = 'none';
         }
     }
 

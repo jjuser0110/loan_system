@@ -26,11 +26,21 @@
                         </div>
                     </div>
 
+                    <div class="col-md-12 mb-3" id="wrap-existing-payment" style="display:none">
+                        <label class="col-form-label">{{ __('table.calendar') }}</label>
+                        <select class="form-control" id="existing-payment-selector">
+                            <option value="">-- {{ __('table.new_payment') }} --</option>
+                        </select>
+                    </div>
+
+                    <input type="hidden" id="form-mode" value="store">
+                    <input type="hidden" id="edit-payment-id" name="payment_id" value="">
+
                     {{-- Payment type selector --}}
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_type') }}</label>
                         <select class="form-control" id="payment_type" name="payment_type" required>
-                            <option value="DEFAULT">Option</option>
+                            <option value="DEFAULT">{{ __('table.option') }}</option>
                             <option value="CCM">Payment / CCM</option>
                             <option value="INTEREST">Pay SKIM A Interest</option>
                             <option value="LATE">Pay Late</option>
@@ -162,6 +172,8 @@
                         document.getElementById('collection_type').value = loan.interest_group ?? 'SKIM A';
 
                         setupPaymentMethod(loan.company_code);
+
+                        loadExistingPayments(loan.loan_code);
                     });
                     dropdown.appendChild(item);
                 });
@@ -236,17 +248,79 @@
     // Init on page load
     applyPaymentType('CCM');
 
+    let allPayments = [];
+
+    function loadExistingPayments(loanCode) {
+        document.getElementById('wrap-existing-payment').style.display = 'block';
+        const sel = document.getElementById('existing-payment-selector');
+        sel.innerHTML = '<option value="">-- {{ __("table.new_payment") }} --</option>';
+
+        fetch(`{{ route('payment.get_by_loan') }}?loan_code=${encodeURIComponent(loanCode)}`, {
+            headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+        })
+        .then(r => r.json())
+        .then(payments => {
+            allPayments = payments;
+            payments.forEach(p => {
+                sel.innerHTML += `<option value="${p.id}">${p.payment_code} — ${p.created_at.substring(0,10)}</option>`;
+            });
+        });
+    }
+
+    document.getElementById('existing-payment-selector').addEventListener('change', function() {
+        const id = this.value;
+        if (!id) { resetFormToStore(); return; }
+
+        const p = allPayments.find(x => x.id == id);
+        if (!p) return;
+
+        document.getElementById('form-mode').value       = 'update';
+        document.getElementById('edit-payment-id').value = p.id;
+
+        let type = 'CCM';
+        if (p.top_up > 0 || p.top_up_capital > 0)                     type = 'TOPUP';
+        else if (p.interest_paid_amount > 0 && p.payment_amount == 0)  type = 'INTEREST';
+        else if (p.late_paid_amount > 0 && p.payment_amount == 0)      type = 'LATE';
+
+        document.getElementById('payment_type').value = type;
+        applyPaymentType(type);
+
+        document.getElementById('input-payment-amount').value   = p.payment_amount        ?? '';
+        document.getElementById('input-discount-amount').value  = p.discount_amount       ?? '';
+        document.getElementById('input-payment-late').value     = p.late_paid_amount      ?? '';
+        document.getElementById('input-payment-interest').value = p.interest_paid_amount  ?? '';
+        document.getElementById('input-topup-amount').value     = p.top_up                ?? '';
+        document.getElementById('input-topup-capital').value    = p.top_up_capital        ?? '';
+        document.getElementById('remark').value                 = p.remark                ?? '';
+
+        document.querySelector('button[type=submit]').textContent = 'Update Payment';
+    });
+
+    function resetFormToStore() {
+        document.getElementById('form-mode').value       = 'store';
+        document.getElementById('edit-payment-id').value = '';
+        const paymentType = document.getElementById('payment_type');
+        if (paymentType) {
+            paymentType.value = 'DEFAULT';
+            applyPaymentType('DEFAULT');
+        }
+        const submitBtn = document.querySelector('button[type=submit]');
+        if (submitBtn) submitBtn.textContent = 'Submit';
+    }
+
     // ─── Form submit ─────────────────────────────────────────────────
     $('#form-create-payment').on('submit', function (e) {
         e.preventDefault();
+        const mode   = document.getElementById('form-mode').value;
+        const url    = mode === 'update' ? "{{ route('payment.update') }}" : "{{ route('payment.store') }}";
         let formData = new FormData(this);
         $.ajax({
-            url: "{{ route('payment.store') }}",
-            type: "POST",
-            data: formData,
+            url:         url,
+            type:        "POST",
+            data:        formData,
             processData: false,
             contentType: false,
-            headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+            headers:     { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
             success: function (response) {
                 if (response.success === true) {
                     setRedirectSwal("success", '', response.message, "{{ route('payment.index') }}");

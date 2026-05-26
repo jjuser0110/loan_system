@@ -1093,6 +1093,21 @@ class PaymentController extends Controller
         }
     }
 
+    public function getByLoan(Request $request)
+    {
+        $loan_code = $request->loan_code;
+        
+        $loan = \App\Models\Loan::where('loan_code', $loan_code)->first();
+        if (!$loan) return response()->json([]);
+
+        $payments = Payment::where('loan_id', $loan->id)
+            ->get(['id','payment_code','payment_amount','discount_amount',
+                'late_paid_amount','interest_paid_amount','top_up',
+                'top_up_capital','collection_type','remark','payment_method_id','created_at']);
+
+        return response()->json($payments);
+    }
+
     public function delete(Request $request)
     {
         try {

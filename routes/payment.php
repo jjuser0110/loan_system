@@ -14,4 +14,5 @@ Route::prefix('/payment')->as('payment.')->middleware(['auth'])->group(function(
     Route::post('/update', 'PaymentController@update')->name('update');
     Route::post('/delete', 'PaymentController@delete')->name('delete');
     Route::get('/search_customer', 'PaymentController@search_customer')->name('search_customer');
+    Route::get('/get_by_loan', 'PaymentController@getByLoan')->name('get_by_loan');
 });
