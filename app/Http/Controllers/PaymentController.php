@@ -347,10 +347,6 @@ class PaymentController extends Controller
                 throw new Exception('Payment exceeds remaining loan balance.');
             }
 
-            if ($interest_paid_amount > $loan->interest_balance) {
-                throw new Exception('Interest payment exceeds remaining interest balance.');
-            }
-
             $payment_method_query = PaymentMethod::where('id',$request->payment_method_id);
             switch (Auth::user()->role_id) {
                 case 1:
@@ -417,15 +413,54 @@ class PaymentController extends Controller
 
                 $remainPayment = $interest_paid_amount;
                 foreach($schedules as $s){
+                    if($remainPayment <= 0) break;
                     $unpaid = $s->interest_amount - $s->interest_paid_amount;
-                    if ($remainPayment <= 0) break;
-                    if ($remainPayment >= $unpaid) {
+                    if($remainPayment >= $unpaid){
                         $s->update(['interest_paid_amount' => $s->interest_paid_amount + $unpaid]);
                         $remainPayment -= $unpaid;
                     } else {
                         $s->update(['interest_paid_amount' => $s->interest_paid_amount + $remainPayment]);
                         $remainPayment = 0;
                         break;
+                    }
+                }
+
+                // ADD THIS overflow block right after the foreach, before $remain_late_paid:
+                if($remainPayment > 0){
+                    $lastSchedule       = PaymentSchedule::where('loan_code', $loan->loan_code)
+                        ->orderByDesc('due_date')
+                        ->first();
+                    $totalInterestAdded = 0;
+
+                    while($remainPayment > 0){
+                        $nextDueDate     = Carbon::parse($lastSchedule->due_date)->addMonth();
+                        $newScheduleCode = $this->incrementScheduleCode($lastSchedule->schedule_code, $loan->loan_code);
+                        $newInterestAmt  = $lastSchedule->interest_amount;
+                        $absorb          = min($remainPayment, $newInterestAmt);
+
+                        $lastSchedule = PaymentSchedule::create([
+                            'schedule_code'        => $newScheduleCode,
+                            'loan_code'            => $loan->loan_code,
+                            'company_id'           => $loan->company_id,
+                            'customer_id'          => $loan->customer_id,
+                            'due_date'             => $nextDueDate->toDateString(),
+                            'payment_amount'       => 0,
+                            'paid_amount'          => 0,
+                            'discount_amount'      => 0,
+                            'interest_amount'      => $newInterestAmt,
+                            'interest_paid_amount' => $absorb,
+                            'late_amount'          => 0,
+                            'late_paid_amount'     => 0,
+                            'closed'               => 0,
+                        ]);
+
+                        $totalInterestAdded += $newInterestAmt;
+                        $remainPayment      -= $absorb;
+                    }
+
+                    // Increment interest in loans — interest_balance is derived from interest - interest_paid
+                    if($totalInterestAdded > 0){
+                        $loan->interest += $totalInterestAdded;
                     }
                 }
 
@@ -805,10 +840,6 @@ class PaymentController extends Controller
                 throw new Exception('Payment exceeds remaining loan balance.');
             }
 
-            if ($diff_interest_paid > $loan->interest_balance) {
-                throw new Exception('Interest payment exceeds remaining interest balance.');
-            }
-
             if ($loan->interest_group == "SKIM A") {
                 if ($diff_interest_paid != 0) {
                     if ($diff_interest_paid > 0) {
@@ -817,11 +848,11 @@ class PaymentController extends Controller
                             ->whereRaw('interest_amount - interest_paid_amount > 0')
                             ->orderBy('due_date', 'asc')
                             ->get();
-                        
+
                         $remainPayment = $diff_interest_paid;
                         foreach ($schedules as $s) {
+                            if($remainPayment <= 0) break;
                             $unpaid = $s->interest_amount - $s->interest_paid_amount;
-                            if ($remainPayment <= 0) break;
                             if ($remainPayment >= $unpaid) {
                                 $s->update(['interest_paid_amount' => $s->interest_paid_amount + $unpaid]);
                                 $remainPayment -= $unpaid;
@@ -831,19 +862,59 @@ class PaymentController extends Controller
                                 break;
                             }
                         }
+
+                        // Overflow — create new schedules to absorb the remainder
+                        if($remainPayment > 0){
+                            $lastSchedule       = PaymentSchedule::where('loan_code', $loan->loan_code)
+                                ->orderByDesc('due_date')
+                                ->first();
+                            $totalInterestAdded = 0;
+
+                            while($remainPayment > 0){
+                                $nextDueDate     = Carbon::parse($lastSchedule->due_date)->addMonth();
+                                $newScheduleCode = $this->incrementScheduleCode($lastSchedule->schedule_code, $loan->loan_code);
+                                $newInterestAmt  = $lastSchedule->interest_amount;
+                                $absorb          = min($remainPayment, $newInterestAmt);
+
+                                $lastSchedule = PaymentSchedule::create([
+                                    'schedule_code'        => $newScheduleCode,
+                                    'loan_code'            => $loan->loan_code,
+                                    'company_id'           => $loan->company_id,
+                                    'customer_id'          => $loan->customer_id,
+                                    'due_date'             => $nextDueDate->toDateString(),
+                                    'payment_amount'       => 0,
+                                    'paid_amount'          => 0,
+                                    'discount_amount'      => 0,
+                                    'interest_amount'      => $newInterestAmt,
+                                    'interest_paid_amount' => $absorb,
+                                    'late_amount'          => 0,
+                                    'late_paid_amount'     => 0,
+                                    'closed'               => 0,
+                                ]);
+
+                                $totalInterestAdded += $newInterestAmt;
+                                $remainPayment      -= $absorb;
+                            }
+
+                            if($totalInterestAdded > 0){
+                                $loan->interest += $totalInterestAdded;
+                            }
+                        }
+
                     } else {
+                        // diff_interest_paid < 0 — deduct from latest schedules first
                         $schedules = PaymentSchedule::lockForUpdate()
                             ->where('loan_code', $loan->loan_code)
                             ->where('interest_paid_amount', '>', 0)
                             ->orderBy('due_date', 'desc')
                             ->get();
-                        
+
                         $remainDeduct = abs($diff_interest_paid);
                         foreach ($schedules as $s) {
-                            if ($remainDeduct <= 0) break;
+                            if($remainDeduct <= 0) break;
                             $paid = $s->interest_paid_amount;
-                            
-                            if ($paid >= $remainDeduct) {
+
+                            if($paid >= $remainDeduct){
                                 $s->update(['interest_paid_amount' => $s->interest_paid_amount - $remainDeduct]);
                                 $remainDeduct = 0;
                                 break;
@@ -862,11 +933,11 @@ class PaymentController extends Controller
                             ->whereRaw('late_amount - late_paid_amount > 0')
                             ->orderBy('due_date', 'asc')
                             ->get();
-                        
+
                         $remain_late_paid = $diff_late_paid;
                         foreach ($lateSchedules as $ls) {
+                            if($remain_late_paid <= 0) break;
                             $unpaidLate = $ls->late_amount - $ls->late_paid_amount;
-                            if ($remain_late_paid <= 0) break;
                             if ($remain_late_paid >= $unpaidLate) {
                                 $ls->update(['late_paid_amount' => $ls->late_paid_amount + $unpaidLate]);
                                 $remain_late_paid -= $unpaidLate;
@@ -877,18 +948,19 @@ class PaymentController extends Controller
                             }
                         }
                     } else {
+                        // diff_late_paid < 0 — deduct from latest schedules first
                         $lateSchedules = PaymentSchedule::lockForUpdate()
                             ->where('loan_code', $loan->loan_code)
                             ->where('late_paid_amount', '>', 0)
                             ->orderBy('due_date', 'desc')
                             ->get();
-                        
+
                         $remainDeduct = abs($diff_late_paid);
                         foreach ($lateSchedules as $ls) {
-                            if ($remainDeduct <= 0) break;
+                            if($remainDeduct <= 0) break;
                             $paidLate = $ls->late_paid_amount;
-                            
-                            if ($paidLate >= $remainDeduct) {
+
+                            if($paidLate >= $remainDeduct){
                                 $ls->update(['late_paid_amount' => $ls->late_paid_amount - $remainDeduct]);
                                 $remainDeduct = 0;
                                 break;
@@ -1159,12 +1231,13 @@ class PaymentController extends Controller
                         ->where('interest_paid_amount', '>', 0)
                         ->orderBy('due_date', 'desc')
                         ->get();
-                    
+
                     $remainDeduct = $interest_paid_amount;
+
                     foreach ($schedules as $s) {
                         if ($remainDeduct <= 0) break;
                         $paid = $s->interest_paid_amount;
-                        
+
                         if ($paid >= $remainDeduct) {
                             $s->update(['interest_paid_amount' => $s->interest_paid_amount - $remainDeduct]);
                             $remainDeduct = 0;
@@ -1174,7 +1247,6 @@ class PaymentController extends Controller
                             $remainDeduct -= $paid;
                         }
                     }
-
 
                     $abefore = $company->stocka;
                     $aafter = $company->stocka + $total_payment;
@@ -1240,17 +1312,7 @@ class PaymentController extends Controller
                         $interest_balance_change = 0; // SET TO 0 DUE TO USE CRONJOB GENERATE NEW SCHEDULE
                     }
                 } else {
-                    $possiblyCreatedSchedule = PaymentSchedule::lockForUpdate()
-                        ->where('loan_code', $loan->loan_code)
-                        ->where('interest_paid_amount', 0)
-                        ->where('late_paid_amount', 0)
-                        ->orderBy('due_date', 'desc')
-                        ->first();
-                    
-                    if ($possiblyCreatedSchedule) {
-                        $interest_balance_change = $possiblyCreatedSchedule->interest_amount * -1;
-                        $possiblyCreatedSchedule->delete();
-                    }
+                     $interest_balance_change = 0;
                 }
 
                 $loan->update([
@@ -1439,5 +1501,20 @@ class PaymentController extends Controller
                 'message' => $e->getMessage()
             ]);
         }
+    }
+
+    private function incrementScheduleCode(string $code, string $loanCode): string
+    {
+        $suffix = substr($code, strlen($loanCode));
+        $suffix = preg_replace('/-\d+$/', '', $suffix);
+
+        if(preg_match('/^(.*?)(\d+)$/', $suffix, $matches)){
+            $suffixPrefix = $matches[1];
+            $number       = (int) $matches[2];
+            $padded       = str_pad($number + 1, strlen($matches[2]), '0', STR_PAD_LEFT);
+            return $loanCode . $suffixPrefix . $padded;
+        }
+
+        return $loanCode . '-S001';
     }
 }

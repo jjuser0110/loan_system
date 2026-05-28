@@ -1544,7 +1544,7 @@
     const loanInterest       = {{ $loan->interest ?? 0 }};
     const loanInterestPaid   = {{ $loan->interest_paid ?? 0 }};
     const interestRemaining  = loanInterest - loanInterestPaid;
-    const loanInterestAmount = {{ $loan->interest ?? 0 }};
+    const loanInterestAmount = {{ $loan->loan_amount/$loan->interest_rate ?? 0 }};
 
     function applyScheduleMultiplier(schedule) {
         const multiplier     = parseInt(schedule) || 0;

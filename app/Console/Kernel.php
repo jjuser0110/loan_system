@@ -24,7 +24,10 @@ class Kernel extends ConsoleKernel
         $schedule->command('daily:cron')->daily();
         $schedule->command('dailyreport:autosave')->dailyAt('00:00');
         $schedule->command('cashbook:autosave')->dailyAt('00:00');
-        // $schedule->command('inspire')->hourly();
+        $schedule->command('schedule:rollover-skim-a')
+                ->dailyAt('00:00')          // runs every day just after midnight
+                ->withoutOverlapping()
+                ->appendOutputTo(storage_path('logs/skim-a-rollover.log'));
     }
 
     /**
