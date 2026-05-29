@@ -340,7 +340,7 @@ return [
 'non_exp_amount' => 'Non-Exp Amount',
 'outstd' => 'Outstd',
 'calendar' => 'Calendar',
-'' => '',
+'select_payment_record' => 'Select Payment Record',
 '' => '',
     
 ];

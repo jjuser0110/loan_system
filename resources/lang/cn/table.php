@@ -340,6 +340,7 @@ return [
 'non_exp_amount' => '非支出金额',
 'outstd' => '未结余额',
 'calendar' => '日历',
+'select_payment_record' => '选择付款记录',
 
 ];
 

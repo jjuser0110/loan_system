@@ -322,6 +322,7 @@ class PaymentController extends Controller
                 'collection_type' => 'nullable|string',
                 'cheque' => 'nullable|string',
                 'bank'=> 'nullable|string',
+                'created_at' => 'nullable|date',
                 'remark' => 'nullable|string',
             ]);
             bcscale(10);
@@ -385,6 +386,13 @@ class PaymentController extends Controller
                 'created_by'       => Auth::user()->id,
                 'remark'           => $v['remark'] ?? null,
             ]);
+
+            if (!empty($v['created_at'])) {
+                $newCreatedAt = Carbon::now()->setDateFrom(Carbon::parse($v['created_at']));
+                DB::table('payments')
+                    ->where('id', $p->id)
+                    ->update(['created_at' => $newCreatedAt->toDateTimeString()]);
+            }
 
             $pymt_before = $pymt->amount;
             $pymt_after  = $pymt->amount + ($late_paid_amount + $interest_paid_amount + $payment_amount - $top_up_capital);
@@ -720,8 +728,10 @@ class PaymentController extends Controller
                 'top_up' => 'nullable|numeric|min:0',
                 'top_up_capital' => 'nullable|numeric|min:0',
                 'bank'=> 'nullable|string',
+                'created_at' => 'nullable|date',
                 'remark'=> 'nullable|string',
             ]);
+
             bcscale(10);
             $payment = Payment::lockForUpdate()->where('id',$request->payment_id)->first();
             if(!$payment || $this->accesstoPayment($payment) == false){
@@ -1135,18 +1145,28 @@ class PaymentController extends Controller
             } else {
                 throw new Exception('Invalid interest group.');
             }
+            $payment->timestamps = false;
             $payment->update([
-                'payment_amount' => $new_payment_amount,
-                'interest_paid_amount' => $new_interest_paid,
-                'late_paid_amount' => $new_late_paid,
-                'discount_amount' => $new_discount,
-                'top_up'               => $new_top_up,
-                'top_up_capital' => $new_top_up_capital,
-                'collection_type' => $v['collection_type'] ?? $payment->collection_type,
-                'payment_method_id' => $pymt->id,
-                'updated_by' => Auth::user()->id,
-                'remark' => $v['remark'] ?? $payment->remark,
+                'payment_amount'        => $new_payment_amount,
+                'interest_paid_amount'  => $new_interest_paid,
+                'late_paid_amount'      => $new_late_paid,
+                'discount_amount'       => $new_discount,
+                'top_up'                => $new_top_up,
+                'top_up_capital'        => $new_top_up_capital,
+                'collection_type'       => $v['collection_type'] ?? $payment->collection_type,
+                'payment_method_id'     => $pymt->id,
+                'updated_by'            => Auth::user()->id,
+                'remark'                => $v['remark'] ?? $payment->remark,
             ]);
+            $payment->timestamps = true;
+
+            $newCreatedAt = Carbon::parse($payment->created_at)
+                ->setDateFrom(Carbon::parse($v['created_at']));
+
+            DB::table('payments')
+                ->where('id', $payment->id)
+                ->update(['created_at' => $newCreatedAt->toDateTimeString()]);
+
             DB::commit();
             return response()->json(['success' => true, 'message' => 'Payment updated successfully.']);
 

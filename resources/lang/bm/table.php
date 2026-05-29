@@ -340,6 +340,7 @@ return [
 'non_exp_amount' => 'Jumlah Bukan Perbelanjaan',
 'outstd' => 'Baki tertunggak',
 'calendar' => 'Kalendar',
+'select_payment_record_bm' => 'Pilih Rekod Pembayaran',
 
 ];
 

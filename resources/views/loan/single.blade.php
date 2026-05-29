@@ -899,6 +899,11 @@
                     {{-- Hidden payment method --}}
                     <input type="hidden" name="payment_method_id" id="add-payment-method-id" value="">
 
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">{{ __('table.pay_date') }}</label>
+                        <input type="date" class="form-control" id="add-pay-date" name="created_at" value="{{ date('Y-m-d') }}">
+                    </div>
+
                     <div class="col-12">
                         <label class="col-form-label">{{ __('table.remark') }}</label>
                         <textarea class="form-control" name="remark" rows="3" placeholder="Enter remarks..."></textarea>
@@ -938,7 +943,7 @@
                     </div>
 
                     <div class="col-md-12 mb-3">
-                        <label class="col-form-label">{{ __('table.calendar') }}</label>
+                        <label class="col-form-label">{{ __('table.select_payment_record') }}</label>
                         <select class="form-control" id="update-payment-switcher" onchange="switchPayment(this.value)">
                         </select>
                     </div>
@@ -986,6 +991,11 @@
 
                     {{-- Hidden payment method --}}
                     <input type="hidden" name="payment_method_id" id="update_payment_method_id" value="">
+
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">{{ __('table.pay_date') }}</label>
+                        <input type="date" class="form-control" id="update-pay-date" name="created_at" value="{{ date('Y-m-d') }}">
+                    </div>
 
                     <div class="col-12">
                         <label class="col-form-label">{{ __('table.remark') }}</label>
@@ -1358,11 +1368,12 @@
         table_payment.rows().every(function() {
             const row  = this.data();
             const date = row.created_at ? row.created_at.substring(0, 10) : '-';
-            switcher.append(`<option value="${this.index()}" ${this.index() == rowIndex ? 'selected' : ''}>${row.payment_code} — ${date}</option>`);
+            switcher.append(`<option value="${this.index()}" ${this.index() == rowIndex ? 'selected' : ''}>${row.payment_code}</option>`);
         });
 
         document.getElementById('update-payment-id').value         = data.id;
         document.getElementById('update-payment-collection').value = data.collection_type;
+        document.getElementById('update-pay-date').value           = data.created_at ? data.created_at.substring(0, 10) : '';
         document.getElementById('update-payment-remark').value     = data.remark;
 
         // Detect type from existing record
@@ -1427,6 +1438,7 @@
 
         document.getElementById('update-payment-id').value         = data.id;
         document.getElementById('update-payment-collection').value = data.collection_type;
+        document.getElementById('update-pay-date').value           = data.created_at ? data.created_at.substring(0, 10) : '';
         document.getElementById('update-payment-remark').value     = data.remark ?? '';
 
         let type = 'CCM';
