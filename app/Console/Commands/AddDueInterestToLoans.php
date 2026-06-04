@@ -10,12 +10,14 @@ use Carbon\Carbon;
 
 class AddDueInterestToLoans extends Command
 {
-    protected $signature   = 'schedule:add-due-interest';
+    protected $signature   = 'schedule:add-due-interest {--date= : Test with a specific date (Y-m-d)}';
     protected $description = 'Add interest_amount to loans.interest when schedule due_date is today';
 
     public function handle(): void
     {
-        $today = Carbon::today();
+        $today = $this->option('date')
+            ? Carbon::parse($this->option('date'))
+            : Carbon::today();
 
         $this->info("Running due interest addition for: {$today->toDateString()}");
 
@@ -56,16 +58,14 @@ class AddDueInterestToLoans extends Command
                     ->where('loan_code', $schedule->loan_code)
                     ->increment('interest', $interestAmount);
 
-                // Recalculate interest_balance
                 DB::table('loans')
                     ->where('loan_code', $schedule->loan_code)
                     ->update([
                         'interest_balance' => DB::raw('interest - interest_paid'),
                     ]);
-
-                $this->info("Added interest {$interestAmount} to loan {$schedule->loan_code} from schedule {$schedule->schedule_code}");
             });
 
+            $this->info("Added interest {$interestAmount} to loan {$schedule->loan_code} from schedule {$schedule->schedule_code}");
             $processed++;
         }
 

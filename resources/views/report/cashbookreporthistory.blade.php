@@ -112,7 +112,7 @@ $(document).ready(function () {
                 d.company_id = $('#filter_company').val();
             }
         },
-        order: [[2, "desc"]],
+        order: [[2, "asc"]],
         rowCallback: function(row, data) {
             let desc = data.description || '';
             if (desc.includes('Payment Created') || desc.includes('Payment Deleted')) {

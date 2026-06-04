@@ -369,7 +369,8 @@ class LoanController extends Controller
             $totalQuery = clone $query;
             $recordsTotal = $totalQuery->count();
             $total_loan_amount = $totalQuery->sum('loans.loan_amount');
-            $total_balance = $totalQuery->sum('loans.outstanding');
+            $total_balance = $totalQuery->sum('loans.balance');
+            $total_outstanding = $totalQuery->sum('loans.outstanding');
             $total_profit = $totalQuery->sum('loans.paid') - $totalQuery->sum('loans.capital');
 
             // ✅ FIX 1: added loans.status and loans.interest_group to search
@@ -403,11 +404,12 @@ class LoanController extends Controller
             return response()->json([
                 "draw" => intval($draw),
                 "recordsTotal" => $recordsTotal,
-                "recordsFiltered" => $recordsFiltered, // ✅ FIX 2
+                "recordsFiltered" => $recordsFiltered,
                 "data" => $loans,
                 "total_profit" => $total_profit,
                 "total_loan_amount" => $total_loan_amount,
-                "total_balance" => $total_balance
+                "total_balance" => $total_balance,
+                "total_outstanding" => $total_outstanding
             ]);
         }
         catch(Exception $e){

@@ -649,7 +649,7 @@
                             <div class="row" style="padding-top:10px; margin-bottom:10px;">
 
                                 {{-- TOTAL LOAN AMOUNT --}}
-                                <div class="col-xl-4">
+                                <div class="col-xl-3">
                                     <section class="card card-featured-left card-featured-primary mb-0" style="background-color:#cce8f4; border-radius:6px;">
                                         <div class="card-body" style="background-color:transparent;">
                                             <div class="widget-summary">
@@ -670,8 +670,30 @@
                                     </section>
                                 </div>
 
+                                {{-- TOTAL Outstanding --}}
+                                <div class="col-xl-3">
+                                    <section class="card card-featured-left card-featured-primary mb-0" style="background-color:#cce8f4; border-radius:6px;">
+                                        <div class="card-body" style="background-color:transparent;">
+                                            <div class="widget-summary">
+                                                <div class="widget-summary-col" style="vertical-align: middle">
+                                                    <div class="summary" style="min-height:1px">
+                                                        <h4 class="title" style="margin-bottom:5px">
+                                                            {{ __('table.total_outstanding') }}
+                                                        </h4>
+                                                        <div class="info">
+                                                            <strong class="amount">
+                                                                RM <span style="font-size:1.4rem" id="total-outstanding">0.00</span>
+                                                            </strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </section>
+                                </div>
+
                                 {{-- TOTAL BALANCE --}}
-                                <div class="col-xl-4">
+                                <div class="col-xl-3">
                                     <section class="card card-featured-left card-featured-primary mb-0" style="background-color:#cce8f4; border-radius:6px;">
                                         <div class="card-body" style="background-color:transparent;">
                                             <div class="widget-summary">
@@ -693,7 +715,7 @@
                                 </div>
                                 
                                 {{-- TOTAL PROFIT --}}
-                                <div class="col-xl-4">
+                                <div class="col-xl-3">
                                     <section class="card card-featured-left card-featured-primary mb-0">
                                         <div class="card-body">
                                             <div class="widget-summary">
@@ -745,6 +767,7 @@
                                             <th>{{ __('table.capital') }}</th>
                                             <th>{{ __('table.paid') }}</th>
                                             <th>{{ __('table.outstanding') }}</th>
+                                            <th>{{ __('table.balance') }}</th>
                                             <th>{{ __('table.loan_term') }}</th>
                                             <th>{{ __('table.installment') }}</th>
                                             <th>{{ __('table.interest_rate') }}</th>
@@ -1395,6 +1418,8 @@
                     },
                     "dataSrc": function(json){
                         $('#total-profit').text(parseFloat(json.total_profit).toFixed(2));
+                        $('#total-outstanding').text(parseFloat(json.total_outstanding).toFixed(2));
+                        $('#total-loan-amount').text(parseFloat(json.total_loan_amount).toFixed(2));
                         $('#total-loan-amount').text(parseFloat(json.total_loan_amount).toFixed(2));
                         $('#total-balance').text(parseFloat(json.total_balance).toFixed(2));
                         return json.data;
@@ -1447,6 +1472,12 @@
                     },
                     {
                         "data": "outstanding",
+                        "render": function(data, type, row, meta) {
+                            return `<strong>${data}</strong>`;
+                        }
+                    },
+                    {
+                        "data": "balance",
                         "render": function(data, type, row, meta) {
                             return `<strong>${data}</strong>`;
                         }

@@ -115,7 +115,7 @@ return [
 'loan_amount' => 'Loan Amount',
 'outstanding' => 'Outstd',
 'installment' => 'Install',
-'loan_term' => 'Loan Term',
+'loan_term' => 'LT',
 'capital' => 'Capital',
 'add_loan' => 'Add Loan',
 'work_information' => 'Work Information',
