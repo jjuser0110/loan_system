@@ -25,9 +25,13 @@ class Kernel extends ConsoleKernel
         $schedule->command('dailyreport:autosave')->dailyAt('00:00');
         $schedule->command('cashbook:autosave')->dailyAt('00:00');
         $schedule->command('schedule:rollover-skim-a')
-                ->dailyAt('00:00')          // runs every day just after midnight
+                ->dailyAt('00:00')
                 ->withoutOverlapping()
                 ->appendOutputTo(storage_path('logs/skim-a-rollover.log'));
+        $schedule->command('schedule:add-due-interest')
+                ->dailyAt('00:00')
+                ->withoutOverlapping()
+                ->appendOutputTo(storage_path('logs/due-interest.log'));
     }
 
     /**

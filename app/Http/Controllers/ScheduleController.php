@@ -170,7 +170,7 @@ class ScheduleController extends Controller
                 'balance' => $loan->balance + $new->payment_amount,
                 'late' => $loan->late + $new->late_amount,
                 'late_balance' => $loan->late_balance + $new->late_amount,
-                'interest' => $loan->interest + $new->interest_amount,
+                // 'interest' => $loan->interest + $new->interest_amount,
                 'interest_balance' => $loan->interest_balance + $new->interest_amount
             ]);
 
@@ -258,7 +258,7 @@ class ScheduleController extends Controller
                 'payment' => $newPayment,
                 'paid' => $newPaid,
                 'balance' => $newPayment - $newPaid,
-                'interest' => $newInterest,
+                // 'interest' => $newInterest,
                 'interest_paid' => $newInterestPaid,
                 'interest_balance' => $newInterest - $newInterestPaid,
                 'late' => $newLate,

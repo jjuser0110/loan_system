@@ -419,19 +419,53 @@ class PaymentController extends Controller
                     ->orderBy('due_date', 'asc')
                     ->get();
 
+                $newBalance = $loan->balance - $total_payment;
+                
                 $remainPayment = $interest_paid_amount;
-                foreach($schedules as $s){
-                    if($remainPayment <= 0) break;
-                    $unpaid = $s->interest_amount - $s->interest_paid_amount;
-                    if($remainPayment >= $unpaid){
-                        $s->update(['interest_paid_amount' => $s->interest_paid_amount + $unpaid]);
-                        $remainPayment -= $unpaid;
-                    } else {
-                        $s->update(['interest_paid_amount' => $s->interest_paid_amount + $remainPayment]);
-                        $remainPayment = 0;
-                        break;
+                    foreach($schedules as $s){
+                        if($remainPayment <= 0) break;
+                        $unpaid = $s->interest_amount - $s->interest_paid_amount;
+                        if($remainPayment >= $unpaid){
+                            $s->update(['interest_paid_amount' => $s->interest_paid_amount + $unpaid]);
+                            $remainPayment -= $unpaid;
+
+                            // ← ADD THIS: if this was the last unpaid schedule, create next one
+                            $hasMoreUnpaid = PaymentSchedule::where('loan_code', $loan->loan_code)
+                                ->whereRaw('interest_amount - interest_paid_amount > 0')
+                                ->where('due_date', '>', $s->due_date)
+                                ->exists();
+
+                            if (!$hasMoreUnpaid) {
+                                $newInterestAmt  = ($loan->balance / 100) * $loan->interest_rate;
+                                $nextDueDate     = Carbon::parse($s->due_date)->addMonth();
+                                $newScheduleCode = $this->incrementScheduleCode($s->schedule_code, $loan->loan_code);
+                                $absorb          = min($remainPayment, $newInterestAmt);
+
+                                PaymentSchedule::create([
+                                    'schedule_code'        => $newScheduleCode,
+                                    'loan_code'            => $loan->loan_code,
+                                    'company_id'           => $loan->company_id,
+                                    'customer_id'          => $loan->customer_id,
+                                    'due_date'             => $nextDueDate->toDateString(),
+                                    'payment_amount'       => 0,
+                                    'paid_amount'          => 0,
+                                    'discount_amount'      => 0,
+                                    'interest_amount'      => $newInterestAmt,
+                                    'interest_paid_amount' => $absorb,
+                                    'late_amount'          => 0,
+                                    'late_paid_amount'     => 0,
+                                    'closed'               => 0,
+                                ]);
+
+                                $remainPayment -= $absorb;
+                            }
+
+                        } else {
+                            $s->update(['interest_paid_amount' => $s->interest_paid_amount + $remainPayment]);
+                            $remainPayment = 0;
+                            break;
+                        }
                     }
-                }
 
                 // ADD THIS overflow block right after the foreach, before $remain_late_paid:
                 if($remainPayment > 0){
@@ -443,7 +477,7 @@ class PaymentController extends Controller
                     while($remainPayment > 0){
                         $nextDueDate     = Carbon::parse($lastSchedule->due_date)->addMonth();
                         $newScheduleCode = $this->incrementScheduleCode($lastSchedule->schedule_code, $loan->loan_code);
-                        $newInterestAmt  = $lastSchedule->interest_amount;
+                        $newInterestAmt = ($loan->balance / 100) * $loan->interest_rate;
                         $absorb          = min($remainPayment, $newInterestAmt);
 
                         $lastSchedule = PaymentSchedule::create([
@@ -466,10 +500,9 @@ class PaymentController extends Controller
                         $remainPayment      -= $absorb;
                     }
 
-                    // Increment interest in loans — interest_balance is derived from interest - interest_paid
-                    if($totalInterestAdded > 0){
-                        $loan->interest += $totalInterestAdded;
-                    }
+                    // if($totalInterestAdded > 0){
+                    //     $loan->interest += $totalInterestAdded;
+                    // }
                 }
 
                 $remain_late_paid = $late_paid_amount;
@@ -492,7 +525,6 @@ class PaymentController extends Controller
                     }
                 }
 
-                $newBalance = $loan->balance - $total_payment;
                 $interest_balance_change = 0;
                 $aamount = ($p->payment_amount + $p->discount_amount) * -1;
                 $new_stocka = $company->stocka + $aamount;
@@ -535,7 +567,7 @@ class PaymentController extends Controller
                 $loan->update([
                     'paid'             => $loan->paid + $payment_amount,
                     'balance'          => $finalBalanceA,
-                    'interest'         => $loan->interest + $interest_balance_change,
+                    // 'interest'         => $loan->interest + $interest_balance_change,
                     'interest_paid'    => $loan->interest_paid + $interest_paid_amount,
                     'interest_balance' => ($loan->interest + $interest_balance_change) - ($loan->interest_paid + $interest_paid_amount),
                     'late_paid'        => $loan->late_paid + $late_paid_amount,
@@ -906,9 +938,9 @@ class PaymentController extends Controller
                                 $remainPayment      -= $absorb;
                             }
 
-                            if($totalInterestAdded > 0){
-                                $loan->interest += $totalInterestAdded;
-                            }
+                            // if($totalInterestAdded > 0){
+                            //     $loan->interest += $totalInterestAdded;
+                            // }
                         }
 
                     } else {
@@ -1019,7 +1051,7 @@ class PaymentController extends Controller
                     'paid'             => $loan->paid + $diff_payment,
                     'balance'          => $finalBalanceA,
                     'loan_amount'      => $loan->loan_amount + $diff_top_up,
-                    'interest'         => $loan->interest + $interest_balance_change,
+                    // 'interest'         => $loan->interest + $interest_balance_change,
                     'interest_paid'    => $loan->interest_paid + $diff_interest_paid,
                     'interest_balance' => ($loan->interest + $interest_balance_change) - ($loan->interest_paid + $diff_interest_paid),
                     'late_paid'        => $loan->late_paid + $diff_late_paid,

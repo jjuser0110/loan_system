@@ -140,7 +140,7 @@
                                                             {{ $loan->interest_group }} |
                                                             {{ $loan->interest_rate.'%'}}
                                                             {{ $loan->interest_group == "SKIM B" ? '| '.$loan->loan_term.' months' : '' }}
-                                                            {{ $loan->interest_group == "SKIM B" ? '| '.$loan->next_due_amount.'$' : '' }}
+                                                            {{ $loan->interest_group == "SKIM B" ? '| '.$loan->installment.'$' : '' }}
                                                         </a>
                                                     </div>
                                                 </div>
@@ -857,7 +857,7 @@
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
                             <input type="number" class="form-control" id="add-input-payment-amount" name="payment_amount" value="0">
-                            <p class="p-note">{{ $loan->interest_group ?? 'No SKIM' }} <br> {{ __('table.outstanding') }}: {{ $loan->balance ?? '0.00' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->next_due_amount ?? '' }} <br> {{ __('table.date') }}: {{ now()->format('Y-n-j') }} &nbsp;&nbsp;&nbsp; {{ __('table.due_date') }}: {{ $loan?->next_due_date ?? '' }}</p>
+                            <p class="p-note">{{ $loan->interest_group ?? 'No SKIM' }} <br> {{ __('table.outstanding') }}: {{ $loan->balance ?? '0.00' }} &nbsp;&nbsp;&nbsp; {{ __('table.next_payment') }}: {{ $loan?->next_due_amount ?? '' }} <br> <span style="color: blue;">{{ __('table.date') }}: <span id="display-pay-date">{{ now()->format('Y-n-j') }}</span></span> &nbsp;&nbsp;&nbsp; {{ __('table.due_date') }}: <span id="display-due-date">{{ $loan?->next_due_date ?? '' }}</span></p>
                         </div>
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.discount') }}</label>
@@ -890,7 +890,7 @@
                     <div class="col-md-12 mb-3" id="add-wrap-interest">
                         <label class="col-form-label">{{ __('table.interest_amount') }}</label>
                         <input type="number" class="form-control" id="add-input-payment-interest" name="interest_paid_amount" value="0">
-                        <p class="p-note">{{ $loan->interest_balance ?? '0.00' }}</p>
+                        <p class="p-note">{{ ($loan->balance / 100) * $loan->interest_rate ?? '0.00' }}</p>
                     </div>
 
                     {{-- Hidden collection type - auto from loan's interest_group --}}
@@ -1556,7 +1556,8 @@
     const loanInterest       = {{ $loan->interest ?? 0 }};
     const loanInterestPaid   = {{ $loan->interest_paid ?? 0 }};
     const interestRemaining  = loanInterest - loanInterestPaid;
-    const loanInterestAmount = {{ $loan->loan_amount/$loan->interest_rate ?? 0 }};
+    const loanInterestAmount = {{ ($loan->balance / 100) * $loan->interest_rate ?? 0 }};
+    const loanNextDueDate = "{{ $loan->next_due_date ?? '' }}";
 
     function applyScheduleMultiplier(schedule) {
         const multiplier     = parseInt(schedule) || 0;
@@ -1569,15 +1570,25 @@
             } else {
                 $('#add-input-payment-amount').val('0');
             }
+            document.getElementById('display-due-date').textContent = ''; 
             return;
         }
 
         if (collectionType === 'SKIM A' && type === 'INTEREST') {
-            // For SKIM A interest, multiply by interest installment amount
             $('#add-input-payment-interest').val((loanInterestAmount * multiplier).toFixed(2));
         } else {
-            // For SKIM B CCM, multiply by payment installment
             $('#add-input-payment-amount').val((loanFirstPayment * multiplier).toFixed(2));
+        }
+
+        // ← ADD THIS: update due date based on pay date + schedule months
+        const payDate = document.getElementById('add-pay-date').value;
+        if (loanNextDueDate) {
+            const base = new Date(loanNextDueDate);
+            base.setMonth(base.getMonth() + multiplier);
+            const formatted = base.getFullYear() + '-' +
+                            String(base.getMonth() + 1).padStart(2, '0') + '-' +
+                            String(base.getDate()).padStart(2, '0');
+            document.getElementById('display-due-date').textContent = formatted;
         }
     }
 
@@ -2022,6 +2033,18 @@ function updatePaymentTypeOptions() {
 // run when modal opens
 $('#modal-add-payment').on('shown.bs.modal', function () {
     updatePaymentTypeOptions();
+});
+
+document.getElementById('add-pay-date').addEventListener('change', function() {
+    const date = new Date(this.value);
+    // Y-n-j format (no leading zeros)
+    const formatted = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+    document.getElementById('display-pay-date').textContent = formatted;
+
+    const scheduleVal = document.getElementById('add-input-schedule').value;
+    if (scheduleVal && scheduleVal != 0) {
+        applyScheduleMultiplier(scheduleVal);
+    }
 });
 </script>
 

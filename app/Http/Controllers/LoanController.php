@@ -702,8 +702,8 @@ class LoanController extends Controller
                     'capital' => $capital,
                     'payment' => $loan_amount,
                     'balance' => $loan_amount,
-                    'interest' => $installment,
-                    'interest_balance' => $installment,
+                    'interest' => 0,
+                    'interest_balance' => 0,
                     'outstanding' => $loan_amount + $installment,
                     'next_due_date' => Carbon::now()->addMonths(1)->format('Y-m-d'),
                     'next_due_amount' => ($loan_amount/100) * $v['interest_rate'],
@@ -842,7 +842,7 @@ class LoanController extends Controller
                         'company_id'=>$loan->company_id,
                         'customer_id'=>$loan->customer_id,
                         'due_date'=>$start_date->copy()->addMonths(1),
-                        'interest_amount'=>$loan->interest
+                        'interest_amount' => ($loan->balance / 100) * $loan->interest_rate,
                     ]);
                     return true;
                 break;

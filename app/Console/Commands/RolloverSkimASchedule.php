@@ -98,13 +98,13 @@ class RolloverSkimASchedule extends Command
             }
 
             // Update interest in loans for all newly created schedules
-            if ($totalInterestAdded > 0) {
-                DB::table('loans')
-                    ->where('loan_code', $loan->loan_code)
-                    ->increment('interest', $totalInterestAdded);
+            // if ($totalInterestAdded > 0) {
+            //     DB::table('loans')
+            //         ->where('loan_code', $loan->loan_code)
+            //         ->increment('interest', $totalInterestAdded);
 
-                $this->info("Updated interest +{$totalInterestAdded} for {$loan->loan_code}");
-            }
+            //     $this->info("Updated interest +{$totalInterestAdded} for {$loan->loan_code}");
+            // }
         }
 
         $this->info("Done. Created: {$created}, Skipped: {$skipped}");
