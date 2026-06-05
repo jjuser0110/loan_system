@@ -318,7 +318,7 @@ class ReportController extends Controller
 
             $columnMap = [
                 0  => 'payment_method_logs.id',
-                1  => 'payment_method_logs.description',
+                1  => 'payment_method_logs.created_at',
                 2  => 'payment_method_logs.created_at',
                 3  => 'customers.customer_name',
                 4  => 'payments.collection_type',
@@ -337,16 +337,45 @@ class ReportController extends Controller
             $orderDir    = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
             $orderCol    = $columnMap[$orderColIdx] ?? 'payment_method_logs.created_at';
 
-            $data = $query->orderBy($orderCol, $orderDir)
-                        ->skip($start)
-                        ->take($length)
-                        ->get();
+            $baseQuery = clone $query;
+
+            if ($orderCol === 'payment_method_logs.created_at') {
+
+                $query->orderBy(
+                    \DB::raw('(
+                        SELECT MAX(pml2.created_at)
+                        FROM payment_method_logs pml2
+                        WHERE pml2.content_id = payment_method_logs.content_id
+                        AND pml2.type = payment_method_logs.type
+                    )'),
+                    $orderDir
+                );
+
+            } else {
+
+                $query->orderBy($orderCol, $orderDir);
+
+            }
+
+            $data = $query
+                ->skip($start)
+                ->take($length)
+                ->get();
+
+            $firstRow = $baseQuery
+                ->orderBy('payment_method_logs.created_at', 'asc')
+                ->orderBy('payment_method_logs.id', 'asc')
+                ->select('payment_method_logs.total')
+                ->first();
+
+            $openingBalance = (float) ($firstRow->total ?? 0);
 
             return response()->json([
-                "draw"            => intval($draw),
-                "recordsTotal"    => $total,
-                "recordsFiltered" => $total,
-                "data"            => $data,
+                'draw'            => intval($draw),
+                'recordsTotal'    => $total,
+                'recordsFiltered' => $total,
+                'data'            => $data,
+                'opening_balance' => $openingBalance,
             ]);
 
         } catch (\Exception $e) {
@@ -417,30 +446,28 @@ class ReportController extends Controller
                             ELSE CONCAT('Manual # ', COALESCE(payment_method_logs.description, '-'))
                         END as description
                     "),
+                    // interest_paid
                     \DB::raw("
                         CASE
-                            WHEN payment_method_logs.type = 'loan'    THEN (SELECT l.interest_paid        FROM loans    l WHERE l.id = payment_method_logs.content_id LIMIT 1)
-                            WHEN payment_method_logs.type = 'payment' THEN (SELECT p.interest_paid_amount FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            WHEN payment_method_logs.type = 'payment' AND (
+                                SELECT p.interest_paid_amount FROM payments p 
+                                WHERE p.id = payment_method_logs.content_id LIMIT 1
+                            ) > 0 THEN payment_method_logs.amount
                             ELSE NULL
                         END as interest_paid
                     "),
+
+                    // customer_payment
                     \DB::raw("
                         CASE
-                            WHEN payment_method_logs.type = 'payment' THEN (SELECT p.top_up_capital FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            WHEN payment_method_logs.type = 'payment' AND (
+                                SELECT p.payment_amount FROM payments p 
+                                WHERE p.id = payment_method_logs.content_id LIMIT 1
+                            ) > 0 THEN payment_method_logs.amount
                             ELSE NULL
-                        END as top_up_capital
+                        END as customer_payment
                     "),
-                    \DB::raw("
-                        (
-                            SELECT pml_latest.total
-                            FROM payment_method_logs pml_latest
-                            WHERE pml_latest.content_id = payment_method_logs.content_id
-                            AND pml_latest.type = payment_method_logs.type
-                            AND pml_latest.payment_method_id = payment_method_logs.payment_method_id
-                            ORDER BY pml_latest.created_at DESC, pml_latest.id DESC
-                            LIMIT 1
-                        ) as account_total_amount
-                    "),
+                    \DB::raw("payment_method_logs.total as account_total_amount"),
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.type = 'loan' THEN (
@@ -528,16 +555,27 @@ class ReportController extends Controller
             $orderDir    = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
             $orderCol    = $columnMap[$orderColIdx] ?? 'payment_method_logs.created_at';
 
+            $baseQuery = (clone $query); // ← clone BEFORE orderBy/skip/take
+
             $data = $query->orderBy($orderCol, $orderDir)
                         ->skip($start)
                         ->take($length)
                         ->get();
+
+            $firstRow = $baseQuery
+                ->orderBy('payment_method_logs.created_at', 'asc')
+                ->orderBy('payment_method_logs.id', 'asc')
+                ->select('payment_method_logs.total')
+                ->first();
+
+            $openingBalance = (float) ($firstRow->total ?? 0);
 
             return response()->json([
                 "draw"            => intval($draw),
                 "recordsTotal"    => $total,
                 "recordsFiltered" => $total,
                 "data"            => $data,
+                "opening_balance" => $openingBalance,
             ]);
 
         } catch (\Exception $e) {
@@ -603,6 +641,7 @@ class ReportController extends Controller
                     'customers.customer_name as customer_name',
                     'customers.id as customer_id',
                     'companies.id as company_id',
+                    'loans.balance as balance',
                     \DB::raw("
                         (loans.payment + COALESCE(loans.interest, 0))
                         - COALESCE((
@@ -723,7 +762,7 @@ class ReportController extends Controller
                     + (float) $row->late_paid_amount
                     + (float) $row->interest_paid_amount
                     + (float) $row->discount_amount
-                    - (float) ($row->top_up ?? 0);
+                    - (float) ($row->top_up_capital ?? 0);
 
                 // accumulate paid amount
                 $totalPayment[$loanId] += $row->running_payment;

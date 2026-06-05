@@ -72,8 +72,8 @@
                             <th>{{ __('table.top_up_capital') }}</th>
                             <th>{{ __('table.top_up') }}</th>
                             <th>{{ __('table.total_pay') }}</th>
+                            <th>{{ __('table.balance') }}</th>
                             <th>{{ __('table.outstd') }}</th>
-                            <th>{{ __('table.total') }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
@@ -222,14 +222,14 @@
                     }
                 },
                 {
-                    data: "outstanding_balance",
+                    data: "balance",
                     render: function (data) {
                         let v = data !== null ? parseFloat(data) : 0;
                         return `<span style="color:${v < 0 ? 'red' : 'green'}">${v.toFixed(2)}</span>`;
                     }
                 },
                 {
-                    data: "total_paid_amount",
+                    data: "outstanding_balance",
                     render: function (data) {
                         let v = data !== null ? parseFloat(data) : 0;
                         return `<span style="color:${v < 0 ? 'red' : 'green'}">${v.toFixed(2)}</span>`;
@@ -275,7 +275,7 @@
                 $(api.column(10).footer()).html('<span style="color:red"><strong>' + totTopUp.toFixed(2) + '</strong></span>');
                 $(api.column(11).footer()).html(colorValue(totRunning));
                 // $(api.column(12).footer()).html(colorValue(totOutstanding));
-                $(api.column(13).footer()).html(colorValue(totTotalPaid));
+                // $(api.column(13).footer()).html(colorValue(totTotalPaid));
             },
         });
 

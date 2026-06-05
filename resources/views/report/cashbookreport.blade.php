@@ -95,6 +95,10 @@ $(document).ready(function () {
                 d.from_date  = $('#filter_from_date').val();
                 d.to_date    = $('#filter_to_date').val();
                 d.company_id = $('#filter_company').val();
+            },
+            dataSrc: function (json) {
+                window.cashBookOpeningBalance = json.opening_balance || 0;
+                return json.data;
             }
         },
         order: [[2, "asc"]],
@@ -207,7 +211,7 @@ $(document).ready(function () {
         footerCallback: function () {
             let api     = this.api();
             let allRows = api.rows({ search: 'applied' }).data();
-            let openingBalance = 0;
+            let openingBalance = window.cashBookOpeningBalance || 0;
 
             let totIP = 0, totCP = 0, totTUC = 0, totNCL = 0, totEXP = 0, lastAT = 0;
 
@@ -223,16 +227,6 @@ $(document).ready(function () {
                 lastAT = parseFloat(allRows[allRows.length - 1].account_total_amount || 0);
             }
 
-            if (allRows.length > 0) {
-                let firstRow = allRows[0];
-
-                openingBalance =
-                    parseFloat(firstRow.account_total_amount || 0)
-                    - parseFloat(firstRow.customer_payment || 0)
-                    - parseFloat(firstRow.top_up || 0)
-                    + parseFloat(firstRow.expenses || 0);
-            }
-
             function colorValue(v) {
                 return '<span style="color:' + (v >= 0 ? 'green' : 'red') + '">' + v.toFixed(2) + '</span>';
             }
@@ -244,7 +238,7 @@ $(document).ready(function () {
             $(api.column(10).footer()).html(colorValue(totTUC));
             $(api.column(11).footer()).html(colorValue(totNCL));
             $(api.column(12).footer()).html(colorValue(totEXP));
-            $(api.column(13).footer()).html(colorValue(lastAT));
+            // $(api.column(13).footer()).html(colorValue(lastAT));
         },
     });
 
