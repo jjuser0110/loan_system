@@ -211,7 +211,18 @@ $(document).ready(function () {
         footerCallback: function () {
             let api     = this.api();
             let allRows = api.rows({ search: 'applied' }).data();
-            let openingBalance = window.cashBookOpeningBalance || 0;
+            let openingBalance = 0;
+
+            if (allRows.length > 0) {
+                let latest = allRows[0];
+
+                openingBalance =
+                    parseFloat(latest.account_total_amount || 0)
+                    - parseFloat(latest.interest_paid || 0)
+                    - parseFloat(latest.customer_payment || 0)
+                    + parseFloat(latest.top_up_capital || 0)
+                    + parseFloat(latest.new_capital_loan || 0);
+            }
 
             let totIP = 0, totCP = 0, totTUC = 0, totNCL = 0, totEXP = 0, lastAT = 0;
 
@@ -238,7 +249,7 @@ $(document).ready(function () {
             $(api.column(10).footer()).html(colorValue(totTUC));
             $(api.column(11).footer()).html(colorValue(totNCL));
             $(api.column(12).footer()).html(colorValue(totEXP));
-            // $(api.column(13).footer()).html(colorValue(lastAT));
+            $(api.column(13).footer()).html(colorValue(lastAT));
         },
     });
 

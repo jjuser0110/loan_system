@@ -948,7 +948,11 @@ class LoanController extends Controller
 
     public function update_outstanding(Loan $loan){
         $outstanding = $loan->balance + $loan->late_balance + $loan->interest_balance;
-        $loan->update(['outstanding'=>$outstanding, 'status'=>$outstanding > 0 ? 'Active' : 'Fully Paid']);
+        $isFullyPaid = $outstanding <= 0 && $loan->balance <= 0;
+        $loan->update([
+            'outstanding' => $outstanding,
+            'status' => $isFullyPaid ? 'Fully Paid' : 'Active'
+        ]);
     }
 
     public function update_loan_misc(Loan $loan){
@@ -1035,63 +1039,100 @@ class LoanController extends Controller
             $loan = Loan::where('loan_code', $loan_code)->firstOrFail();
 
             $v = $request->validate([
-                'loan_amount'   => 'required|numeric|min:1',
-                'interest_rate' => 'required|numeric|min:0',
-                'installment'   => 'required|numeric|min:0',
-                'capital'       => 'required|numeric|min:0',
-                'first_payment' => 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
-                'last_payment'  => 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
-                'loan_term'     => 'nullable|integer|min:1|required_if:interest_group,SKIM B',
-                'processing_fee'=> 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
-                'processing_fee'=> 'nullable|numeric|min:0|required_if:interest_group,SKIM A',
+                'loan_amount'    => 'required|numeric|min:1',
+                'interest_rate'  => 'required|numeric|min:0',
+                'installment'    => 'required|numeric|min:0',
+                'capital'        => 'required|numeric|min:0',
+                'first_payment'  => 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
+                'last_payment'   => 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
+                'loan_term'      => 'nullable|integer|min:1|required_if:interest_group,SKIM B',
+                'processing_fee' => 'nullable|numeric|min:0',
+                'start_date' => 'nullable|date',
             ]);
 
             bcscale(10);
-            $loan_amount   = $v['loan_amount'];
-            $interest_rate = $v['interest_rate'];
-            $installment   = $v['installment'];
-            $capital = $v['capital'];
+            $loan_amount    = $v['loan_amount'];
+            $interest_rate  = $v['interest_rate'];
+            $installment    = $v['installment'];
+            $capital        = $v['capital'];
             $processing_fee = $v['processing_fee'] ?? 0;
 
             if ($loan->interest_group == 'SKIM A') {
-                // Same logic as store() for SKIM A
-                $interest = bcmul($loan_amount, bcdiv($interest_rate, '100', 10), 10);
+
+                $newInterestAmt = bcmul($loan_amount, bcdiv($interest_rate, '100', 10), 10);
 
                 $loan->update([
-                    'loan_amount'   => $loan_amount,
-                    'interest_rate' => $interest_rate,
-                    'installment'   => $installment,
-                    'capital'       => $capital,
-                    'interest'      => $interest,
-                    'interest_balance' => $interest,
-                    'outstanding'   => bcadd($loan_amount, $interest, 2),
-                    'balance'       => $loan_amount,
-                    'payment'       => $loan_amount,
-                    'processing_fee'=> $processing_fee,
+                    'loan_amount'    => $loan_amount,
+                    'interest_rate'  => $interest_rate,
+                    'installment'    => $installment,
+                    'capital'        => $capital,
+                    'balance'        => $loan_amount,
+                    'payment'        => $loan_amount,
+                    'processing_fee' => $processing_fee,
+                    'year_month' => $v['start_date'] ?? $loan->year_month,
+                    // ← do NOT touch interest, interest_paid, interest_balance here
+                ]);
+
+                // ── Recalculate unpaid schedules only ──
+                // Delete all unpaid (not yet fully paid) schedules
+                PaymentSchedule::where('loan_code', $loan_code)
+                    ->whereRaw('interest_amount - interest_paid_amount > 0')
+                    ->delete();
+
+                // Get the last paid schedule to continue from its due_date
+                $lastPaidSchedule = PaymentSchedule::where('loan_code', $loan_code)
+                    ->whereRaw('interest_amount - interest_paid_amount <= 0')
+                    ->orderByDesc('due_date')
+                    ->first();
+
+                // Create one fresh next schedule based on new interest rate
+                $nextDueDate     = $lastPaidSchedule
+                    ? Carbon::parse($lastPaidSchedule->due_date)->addMonth()
+                    : Carbon::now()->startOfMonth();
+
+                $newScheduleCode = $lastPaidSchedule
+                    ? $this->incrementScheduleCode($lastPaidSchedule->schedule_code, $loan_code)
+                    : $loan_code . '-S001';
+
+                PaymentSchedule::create([
+                    'schedule_code'        => $newScheduleCode,
+                    'loan_code'            => $loan_code,
+                    'company_id'           => $loan->company_id,
+                    'customer_id'          => $loan->customer_id,
+                    'due_date'             => $nextDueDate->toDateString(),
+                    'payment_amount'       => 0,
+                    'paid_amount'          => 0,
+                    'discount_amount'      => 0,
+                    'interest_amount'      => $newInterestAmt,
+                    'interest_paid_amount' => 0,
+                    'late_amount'          => 0,
+                    'late_paid_amount'     => 0,
+                    'closed'               => 0,
                 ]);
 
             } else if ($loan->interest_group == 'SKIM B') {
-                $loan_term     = $v['loan_term'];
-                $first_payment = $v['first_payment'];
-                $last_payment  = $v['last_payment'];
-                $processing_fee= $v['processing_fee'];
 
-                // Same logic as store() for SKIM B
+                $loan_term      = $v['loan_term'];
+                $first_payment  = $v['first_payment'];
+                $last_payment   = $v['last_payment'];
+                $processing_fee = $v['processing_fee'];
+
                 $total_loan = $first_payment + $last_payment + ($installment * ($loan_term - 2));
 
                 $loan->update([
-                    'loan_amount'   => $loan_amount,
-                    'interest_rate' => $interest_rate,
-                    'loan_term'     => $loan_term,
-                    'first_payment' => $first_payment,
-                    'last_payment'  => $last_payment,
-                    'installment'   => $installment,
-                    'capital'       => $capital,
-                    'payment'       => $total_loan,
-                    'balance'       => $total_loan,
-                    'outstanding'   => $total_loan,
-                    'processing_fee'=> $processing_fee,
+                    'loan_amount'     => $loan_amount,
+                    'interest_rate'   => $interest_rate,
+                    'loan_term'       => $loan_term,
+                    'first_payment'   => $first_payment,
+                    'last_payment'    => $last_payment,
+                    'installment'     => $installment,
+                    'capital'         => $capital,
+                    'payment'         => $total_loan,
+                    'balance'         => $total_loan,
+                    'outstanding'     => $total_loan,
+                    'processing_fee'  => $processing_fee,
                     'next_due_amount' => $first_payment,
+                    'year_month' => $v['start_date'] ?? $loan->year_month,
                 ]);
             }
 

@@ -452,9 +452,9 @@
                         <div class="col-xl-3 mb-3">
                             <label>{{ __('table.start_date') }}</label>
                             <input type="text"
-                                class="form-control readonly-field"
-                                value="{{ $loan?->year_month ?? '' }}"
-                                readonly>
+                                name="start_date"
+                                class="form-control datepicker"
+                                value="{{ $loan?->year_month ?? '' }}">
                         </div>
 
                         <div class="col-xl-3 mb-3">

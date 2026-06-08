@@ -103,6 +103,14 @@
     .btn-view { background-color: #28a745; }
     .btn-edit { background-color: #007bff; }
     .btn-delete { background-color: #dc3545; }
+
+    #table-loan th:nth-child(2)  { width: 10px;  min-width: 10px;  } /* Comp */
+    #table-loan th:nth-child(12) { width: 10px;  min-width: 10px;  } /* LT */
+    #table-loan th:nth-child(13) { width: 10px;  min-width: 10px;  } /* Install */
+    #table-loan th:nth-child(14) { width: 10px;  min-width: 10px;  } /* Rate */
+    #table-loan th:nth-child(15) { width: 10px;  min-width: 10px;  } /* Int */
+    #table-loan th:nth-child(16) { width: 10px;  min-width: 10px;  } /* Late */
+    #table-loan th:nth-child(17) { width: 10px;  min-width: 10px;  } /* Status */
 </style>
 
 @section('content')
@@ -1383,206 +1391,194 @@
         }
 
         $(document).ready(function() {
-            // Initialize DataTables for both reference and asset tables
-            $('#datatable-reference').DataTable();
-            $('#datatable-asset').DataTable();
-            
-            // Initialize Magnific Popup for all modals
-            $('a[href="#modalReferenceForm"]').magnificPopup({
-                type: 'inline',
-                preloader: false,
-                modal: true
-            });
-            
-            $('a[href="#modalAssetForm"]').magnificPopup({
-                type: 'inline',
-                preloader: false,
-                modal: true
-            });
-            
-            // Handle modal close
-            $(document).on('click', '.modal-dismiss', function (e) {
-                e.preventDefault();
-                $.magnificPopup.close();
-            });
+        $('#datatable-reference').DataTable();
+        $('#datatable-asset').DataTable();
+        
+        $('a[href="#modalReferenceForm"]').magnificPopup({
+            type: 'inline',
+            preloader: false,
+            modal: true
+        });
+        
+        $('a[href="#modalAssetForm"]').magnificPopup({
+            type: 'inline',
+            preloader: false,
+            modal: true
+        });
+        
+        $(document).on('click', '.modal-dismiss', function (e) {
+            e.preventDefault();
+            $.magnificPopup.close();
+        });
 
-            let table_loan = $('#table-loan').DataTable({
-                "processing": true,
-                "serverSide": true,
-                "fixedHeader": false,
-                "ajax": {
-                    "url": "{{ route('loan.load_loan',['customer_code'=>$customer->customer_code]) }}",
-                    "type": "GET",
-                    "data": function(d) {
-                        d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
-                    },
-                    "dataSrc": function(json){
-                        $('#total-profit').text(parseFloat(json.total_profit).toFixed(2));
-                        $('#total-outstanding').text(parseFloat(json.total_outstanding).toFixed(2));
-                        $('#total-loan-amount').text(parseFloat(json.total_loan_amount).toFixed(2));
-                        $('#total-loan-amount').text(parseFloat(json.total_loan_amount).toFixed(2));
-                        $('#total-balance').text(parseFloat(json.total_balance).toFixed(2));
-                        return json.data;
+        let table_loan = $('#table-loan').DataTable({
+            "processing": true,
+            "serverSide": true,
+            "fixedHeader": false,
+            "ajax": {
+                "url": "{{ route('loan.load_loan',['customer_code'=>$customer->customer_code]) }}",
+                "type": "GET",
+                "data": function(d) {
+                    d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
+                },
+                "dataSrc": function(json){
+                    $('#total-profit').text(parseFloat(json.total_profit).toFixed(2));
+                    $('#total-outstanding').text(parseFloat(json.total_outstanding).toFixed(2));
+                    $('#total-loan-amount').text(parseFloat(json.total_loan_amount).toFixed(2));
+                    $('#total-balance').text(parseFloat(json.total_balance).toFixed(2));
+                    return json.data;
+                }
+            },
+            "order": [[2, "desc"]],
+            "rowCallback": function(row, data) {
+                if (data.status === 'Fully Paid') {
+                    $(row).find('td').css('background-color', 'rgba(255, 0, 0, 0.1)');
+                } else if (data.status === 'Overdue') {
+                    $(row).find('td').css('background-color', 'rgba(255, 220, 50, 0.25)');
+                } else if (data.status === 'Active') {
+                    $(row).find('td').css('background-color', 'rgba(0, 180, 0, 0.08)');
+                } else {
+                    $(row).find('td').css('background-color', '');
+                }
+            },
+            "initComplete": function() {
+                makeLoanTableResizable(table_loan);
+            },
+            "columns": [
+                { "data": "loan_code" },
+                {
+                    "data": "company_code",
+                    "render": function(data, type, row, meta) {
+                        return `<a style="text-decoration:none" onclick="e.preventDefault()">${row.company_code}<br>${row.company_name}</a>`;
                     }
                 },
-                "order": [
-                    [2, "desc"]
-                ],
-                "columns": [
-                    { "data": "loan_code" },
-                    {
-                        "data": "company_code",
-                        "render": function(data, type, row, meta) {
-                            return `<a style="text-decoration:none" onclick="e.preventDefault()">${row.company_code}<br>${row.company_name}</a>`;
-                        }
-                    },
-                    { "data": "interest_group" },
-                    {
-                        "data": "created_at",
-                        "render": function(data, type, row, meta) {
-                            if (!data) return '-';
-                            const parts = data.substring(0, 10).split('-');
-                            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                        }
-                    },
-                    {
-                        "data": "next_due_date",
-                        "render": function(data, type, row, meta) {
-                            if (!data) return '-';
-                            const parts = data.substring(0, 10).split('-');
-                            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                        }
-                    },
-                    {
-                        "data": "updated_at",
-                        "defaultContent": "-",
-                        "render": function(data, type, row, meta) {
-                            if (!data) return '-';
-                            const parts = data.substring(0, 10).split('-');
-                            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                        }
-                    },
-                    { "data": "loan_amount" },
-                    { "data": "capital" },
-                    {
-                        "data": "paid",
-                        "render": function(data, type, row, meta) {
-                            return `<strong>${data}</strong>`;
-                        }
-                    },
-                    {
-                        "data": "outstanding",
-                        "render": function(data, type, row, meta) {
-                            return `<strong>${data}</strong>`;
-                        }
-                    },
-                    {
-                        "data": "balance",
-                        "render": function(data, type, row, meta) {
-                            return `<strong>${data}</strong>`;
-                        }
-                    },
-                    {
-                        "data": "loan_term",
-                        "render": function(data, type, row, meta) {
-                            return row.interest_group == 'SKIM B' ? row.loan_term : '-';
-                        }
-                    },
-                    {
-                        "data": "installment",
-                        "render": function(data, type, row, meta) {
-                            let installment = `${row.installment}`;
-                            return `<strong>${installment}</strong>`;
-                        }
-                    },
-                    {
-                        "data": "interest_rate",
-                        "render": function(data, type, row, meta) {
-                            return parseFloat(data).toFixed(2);
-                        }
-                    },
-                    { "data": "interest_paid" },
-                    { "data": "late_paid" },
-                    {
-                        "data": "status",
-                        "render": function(data, type, row, meta) {
-                            const green = ['Active'];
-                            const red = ['Fully Paid'];
-                            const yellow = ['Overdue', 'Bad Debt', 'Blacklist'];
-                            let clr = green.includes(data) ? 'green' : red.includes(data) ? 'red' : (yellow.includes(data) ? '#7a6800' : '#7a6800');
-                            return `<span style="color:${clr}">${data}</span>`;
-                        }
-                    },
-                    {
-                        "data": null,
-                        "render": function(data, type, row, meta) {
-                            let url = `
-                            <div class="cus-action-wrapper">
-                                <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}"
-                                class="cus-action-icon"
-                                style="background-color: #17a2b8; color: white;"
-                                title="View Detail">
-                                <i class="fas fa-eye"></i>
-                                </a>
-                                <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}"
-                                class="cus-action-icon"
-                                style="background-color: #6c757d; color: white;"
-                                title="Create Schedule">
-                                <i class="fas fa-calendar-alt"></i>
-                                </a>
-                                <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}"
-                                class="cus-action-icon"
-                                style="background-color: #28a745; color: white;"
-                                title="Create Payment">
-                                <i class="fas fa-money-check-alt"></i>
-                                </a>
-                                @if(Auth::user()->role_id == 1)
-                                <a class="cus-action-icon danger" 
-                                title="Delete Loan" 
-                                onclick="deleteLoan(${row.id})">
-                                <i class="fas fa-trash-alt"></i>
-                                </a>
-                                @endif
-                            </div>
-                            `;
-                            url = url.replaceAll(':loan_code', row.loan_code);
-                            return url;
-                        }
+                { "data": "interest_group" },
+                {
+                    "data": "year_month",
+                    "render": function(data, type, row, meta) {
+                        if (!data) return '-';
+                        const parts = data.substring(0, 10).split('-');
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
                     }
-                ],
-                "drawCallback": function() {
-                    $('#table-loan tbody tr').each(function(index) {
-                        const statusCell = $(this).find('td:nth-child(16)').text().trim();
-
-                        if (statusCell === 'Fully Paid') {
-                            $(this).find('td').attr('style', 'background-color: rgba(255, 0, 0, 0.15) !important');
-                        } else if (statusCell === 'Overdue') {
-                            $(this).find('td').attr('style', 'background-color: rgba(255, 220, 50, 0.35) !important');
-                        } else if (statusCell === 'Active') {
-                            $(this).find('td').attr('style', 'background-color: rgba(0, 180, 0, 0.1) !important');
-                        } else {
-                            // Manual stripe for other statuses
-                            if (index % 2 !== 0) {
-                                $(this).find('td').attr('style', 'background-color: rgba(0,0,0,0.05) !important');
-                            } else {
-                                $(this).find('td').attr('style', 'background-color: white !important');
-                            }
-                        }
-                    });
-
-                    makeLoanTableResizable(table_loan);
+                },
+                {
+                    "data": "next_due_date",
+                    "render": function(data, type, row, meta) {
+                        if (!data) return '-';
+                        const parts = data.substring(0, 10).split('-');
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                },
+                {
+                    "data": "updated_at",
+                    "defaultContent": "-",
+                    "render": function(data, type, row, meta) {
+                        if (!data) return '-';
+                        const parts = data.substring(0, 10).split('-');
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                },
+                { "data": "loan_amount" },
+                { "data": "capital" },
+                {
+                    "data": "paid",
+                    "render": function(data, type, row, meta) {
+                        return `<strong>${data}</strong>`;
+                    }
+                },
+                {
+                    "data": "outstanding",
+                    "render": function(data, type, row, meta) {
+                        return `<strong>${data}</strong>`;
+                    }
+                },
+                {
+                    "data": "balance",
+                    "render": function(data, type, row, meta) {
+                        return `<strong>${data}</strong>`;
+                    }
+                },
+                {
+                    "data": "loan_term",
+                    "render": function(data, type, row, meta) {
+                        return row.interest_group == 'SKIM B' ? row.loan_term : '-';
+                    }
+                },
+                {
+                    "data": "installment",
+                    "render": function(data, type, row, meta) {
+                        return `<strong>${row.installment}</strong>`;
+                    }
+                },
+                {
+                    "data": "interest_rate",
+                    "render": function(data, type, row, meta) {
+                        return parseFloat(data).toFixed(2);
+                    }
+                },
+                { "data": "interest_paid" },
+                { "data": "late_paid" },
+                {
+                    "data": "status",
+                    "render": function(data, type, row, meta) {
+                        const colors = {
+                            'Active':     '#1a7a36',
+                            'Fully Paid': '#a32d2d',
+                            'Overdue':    '#7a6800',
+                            'Bad Debt':   '#7a6800',
+                            'Blacklist':  '#7a6800',
+                        };
+                        let clr = colors[data] || '#7a6800';
+                        return `<span style="color:${clr}; font-weight:500">${data}</span>`;
+                    }
+                },
+                {
+                    "data": null,
+                    "render": function(data, type, row, meta) {
+                        let url = `
+                        <div class="cus-action-wrapper">
+                            <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}"
+                            class="cus-action-icon"
+                            style="background-color: #17a2b8; color: white;"
+                            title="View Detail">
+                            <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="{{ route('schedule.create', ['loan_code' => ':loan_code']) }}"
+                            class="cus-action-icon"
+                            style="background-color: #6c757d; color: white;"
+                            title="Create Schedule">
+                            <i class="fas fa-calendar-alt"></i>
+                            </a>
+                            <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}"
+                            class="cus-action-icon"
+                            style="background-color: #28a745; color: white;"
+                            title="Create Payment">
+                            <i class="fas fa-money-check-alt"></i>
+                            </a>
+                            @if(Auth::user()->role_id == 1)
+                            <a class="cus-action-icon danger" 
+                            title="Delete Loan" 
+                            onclick="deleteLoan(${row.id})">
+                            <i class="fas fa-trash-alt"></i>
+                            </a>
+                            @endif
+                        </div>
+                        `;
+                        url = url.replaceAll(':loan_code', row.loan_code);
+                        return url;
+                    }
                 }
-            });
-
-            // Redraw table when checkbox changes
-            $('#hide-fully-paid').on('change', function() {
-                table_loan.draw();
-            });
-
-            makeLoanTableResizable(table_loan);
-            makeReferenceTableResizable();
-            makeAssetTableResizable();
+            ],
         });
+
+        $('#hide-fully-paid').on('change', function() {
+            table_loan.draw();
+        });
+
+        makeLoanTableResizable(table_loan);
+        makeReferenceTableResizable();
+        makeAssetTableResizable();
+    });
         
         function previewPhoto(event) {
             const input = event.target;
