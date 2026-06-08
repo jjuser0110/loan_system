@@ -1470,7 +1470,7 @@
                     }
                 },
                 {
-                    "data": "updated_at",
+                    "data": "latest_payment_date",
                     "defaultContent": "-",
                     "render": function(data, type, row, meta) {
                         if (!data) return '-';
