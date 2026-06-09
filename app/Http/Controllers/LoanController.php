@@ -988,7 +988,7 @@ class LoanController extends Controller
                 $pm->update(['amount'=>$pm_after]);
                 $pm->payment_method_logs()->create([
                     'type'=> 'loan',
-                    'description'=>'Loan Deleted',
+                    'description'=>'Loan Deleted - ' . $loan->loan_code,
                     'prev_amount'=> $pm_before,
                     'amount' => ($total_amount * -1),
                     'payment_method_id'=>$pm->id,
@@ -1008,7 +1008,7 @@ class LoanController extends Controller
             $pm->save();
             $pm->payment_method_logs()->create([
                 'type'=> 'loan',
-                'description'=>'Loan Deleted',
+                'description'=>'Loan Deleted - ' . $loan->loan_code,
                 'prev_amount'=> $pm_before,
                 'amount' => $loan->capital,
                 'payment_method_id'=>$pm->id,
@@ -1036,6 +1036,8 @@ class LoanController extends Controller
     public function update(Request $request, $loan_code)
     {
         try {
+            DB::beginTransaction();
+
             $loan = Loan::where('loan_code', $loan_code)->firstOrFail();
 
             $v = $request->validate([
@@ -1047,7 +1049,7 @@ class LoanController extends Controller
                 'last_payment'   => 'nullable|numeric|min:0|required_if:interest_group,SKIM B',
                 'loan_term'      => 'nullable|integer|min:1|required_if:interest_group,SKIM B',
                 'processing_fee' => 'nullable|numeric|min:0',
-                'start_date' => 'nullable|date',
+                'start_date'     => 'nullable|date',
             ]);
 
             bcscale(10);
@@ -1056,6 +1058,14 @@ class LoanController extends Controller
             $installment    = $v['installment'];
             $capital        = $v['capital'];
             $processing_fee = $v['processing_fee'] ?? 0;
+
+            // Store old capital before update to calculate diff
+            $old_capital = $loan->capital;
+
+            $pym = PaymentMethod::where('id', $loan->payment_method_id)->first();
+            if (!$pym) {
+                throw new Exception('Payment method not found.');
+            }
 
             if ($loan->interest_group == 'SKIM A') {
 
@@ -1069,24 +1079,19 @@ class LoanController extends Controller
                     'balance'        => $loan_amount,
                     'payment'        => $loan_amount,
                     'processing_fee' => $processing_fee,
-                    'year_month' => $v['start_date'] ?? $loan->year_month,
-                    // ← do NOT touch interest, interest_paid, interest_balance here
+                    'year_month'     => $v['start_date'] ?? $loan->year_month,
                 ]);
 
-                // ── Recalculate unpaid schedules only ──
-                // Delete all unpaid (not yet fully paid) schedules
                 PaymentSchedule::where('loan_code', $loan_code)
                     ->whereRaw('interest_amount - interest_paid_amount > 0')
                     ->delete();
 
-                // Get the last paid schedule to continue from its due_date
                 $lastPaidSchedule = PaymentSchedule::where('loan_code', $loan_code)
                     ->whereRaw('interest_amount - interest_paid_amount <= 0')
                     ->orderByDesc('due_date')
                     ->first();
 
-                // Create one fresh next schedule based on new interest rate
-                $nextDueDate     = $lastPaidSchedule
+                $nextDueDate = $lastPaidSchedule
                     ? Carbon::parse($lastPaidSchedule->due_date)->addMonth()
                     : Carbon::now()->startOfMonth();
 
@@ -1112,9 +1117,9 @@ class LoanController extends Controller
 
             } else if ($loan->interest_group == 'SKIM B') {
 
-                $loan_term      = $v['loan_term'];
-                $first_payment  = $v['first_payment'];
-                $last_payment   = $v['last_payment'];
+                $loan_term     = $v['loan_term'];
+                $first_payment = $v['first_payment'];
+                $last_payment  = $v['last_payment'];
                 $processing_fee = $v['processing_fee'];
 
                 $total_loan = $first_payment + $last_payment + ($installment * ($loan_term - 2));
@@ -1132,15 +1137,56 @@ class LoanController extends Controller
                     'outstanding'     => $total_loan,
                     'processing_fee'  => $processing_fee,
                     'next_due_amount' => $first_payment,
-                    'year_month' => $v['start_date'] ?? $loan->year_month,
+                    'year_month'      => $v['start_date'] ?? $loan->year_month,
                 ]);
             }
 
+            // Save payment_method_logs entries to reflect the capital change
+            // Same logic as store: pym_amount = capital * -1
+            // We reverse the old capital (+old_capital) then apply new capital (-new_capital)
+            $new_capital = $loan->capital;
+
+            if (bccomp((string)$old_capital, (string)$new_capital, 2) !== 0) {
+
+                // Step 1: reverse old capital entry
+                $reverse_amount = $old_capital; // positive = adding back
+                $pym_before     = $pym->amount;
+                $pym_after      = bcadd((string)$pym->amount, (string)$reverse_amount, 2);
+                $pym->update(['amount' => $pym_after]);
+
+                $loan->payment_method_logs()->create([
+                    'payment_method_id' => $pym->id,
+                    'type'              => 'loan',
+                    'description'       => 'Loan Updated',
+                    'prev_amount'       => $pym_before,
+                    'amount'            => $reverse_amount,
+                    'total'             => $pym_after,
+                ]);
+
+                // Step 2: apply new capital entry
+                $new_pym_amount = $new_capital * -1;
+                $pym_before2    = $pym->amount;
+                $pym_after2     = bcadd((string)$pym->amount, (string)$new_pym_amount, 2);
+                $pym->update(['amount' => $pym_after2]);
+
+                $loan->payment_method_logs()->create([
+                    'payment_method_id' => $pym->id,
+                    'type'              => 'loan',
+                    'description'       => 'Loan Updated',
+                    'prev_amount'       => $pym_before2,
+                    'amount'            => $new_pym_amount,
+                    'total'             => $pym_after2,
+                ]);
+            }
+
+            DB::commit();
             return redirect()->back()->with('success', 'Updated successfully');
 
         } catch (\Illuminate\Validation\ValidationException $e) {
+            DB::rollback();
             return redirect()->back()->with('error', $e->validator->errors()->first());
         } catch (Exception $e) {
+            DB::rollback();
             return redirect()->back()->with('error', $e->getMessage());
         }
     }

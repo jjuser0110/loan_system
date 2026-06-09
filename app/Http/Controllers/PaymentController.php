@@ -436,8 +436,6 @@ class PaymentController extends Controller
                     }
                 }
 
-                // ── After filling all existing schedules in order,
-                //    check if the very last one is fully paid → create a fresh empty next schedule ──
                 while ($remainPayment > 0) {
                     $lastSchedule    = PaymentSchedule::where('loan_code', $loan->loan_code)
                         ->orderByDesc('due_date')
@@ -892,42 +890,60 @@ class PaymentController extends Controller
                             }
                         }
 
-                        // Overflow — create new schedules to absorb the remainder
-                        if($remainPayment > 0){
-                            $lastSchedule       = PaymentSchedule::where('loan_code', $loan->loan_code)
+                        // fill remainder into new schedules
+                        while ($remainPayment > 0) {
+                            $lastSchedule    = PaymentSchedule::where('loan_code', $loan->loan_code)
                                 ->orderByDesc('due_date')
                                 ->first();
-                            $totalInterestAdded = 0;
+                            $newInterestAmt  = ($loan->balance / 100) * $loan->interest_rate;
+                            $nextDueDate     = Carbon::parse($lastSchedule->due_date)->addMonth();
+                            $newScheduleCode = $this->incrementScheduleCode($lastSchedule->schedule_code, $loan->loan_code);
+                            $absorb          = min($remainPayment, $newInterestAmt);
 
-                            while($remainPayment > 0){
-                                $nextDueDate     = Carbon::parse($lastSchedule->due_date)->addMonth();
-                                $newScheduleCode = $this->incrementScheduleCode($lastSchedule->schedule_code, $loan->loan_code);
-                                $newInterestAmt  = $lastSchedule->interest_amount;
-                                $absorb          = min($remainPayment, $newInterestAmt);
+                            $lastSchedule = PaymentSchedule::create([
+                                'schedule_code'        => $newScheduleCode,
+                                'loan_code'            => $loan->loan_code,
+                                'company_id'           => $loan->company_id,
+                                'customer_id'          => $loan->customer_id,
+                                'due_date'             => $nextDueDate->toDateString(),
+                                'payment_amount'       => 0,
+                                'paid_amount'          => 0,
+                                'discount_amount'      => 0,
+                                'interest_amount'      => $newInterestAmt,
+                                'interest_paid_amount' => $absorb,
+                                'late_amount'          => 0,
+                                'late_paid_amount'     => 0,
+                                'closed'               => 0,
+                            ]);
 
-                                $lastSchedule = PaymentSchedule::create([
-                                    'schedule_code'        => $newScheduleCode,
-                                    'loan_code'            => $loan->loan_code,
-                                    'company_id'           => $loan->company_id,
-                                    'customer_id'          => $loan->customer_id,
-                                    'due_date'             => $nextDueDate->toDateString(),
-                                    'payment_amount'       => 0,
-                                    'paid_amount'          => 0,
-                                    'discount_amount'      => 0,
-                                    'interest_amount'      => $newInterestAmt,
-                                    'interest_paid_amount' => $absorb,
-                                    'late_amount'          => 0,
-                                    'late_paid_amount'     => 0,
-                                    'closed'               => 0,
-                                ]);
+                            $remainPayment -= $absorb;
+                        }
 
-                                $totalInterestAdded += $newInterestAmt;
-                                $remainPayment      -= $absorb;
-                            }
+                        // always create one final empty schedule after everything is filled
+                        $veryLastSchedule = PaymentSchedule::where('loan_code', $loan->loan_code)
+                            ->orderByDesc('due_date')
+                            ->first();
 
-                            // if($totalInterestAdded > 0){
-                            //     $loan->interest += $totalInterestAdded;
-                            // }
+                        if ($veryLastSchedule && $veryLastSchedule->interest_paid_amount >= $veryLastSchedule->interest_amount) {
+                            $newInterestAmt  = ($loan->balance / 100) * $loan->interest_rate;
+                            $nextDueDate     = Carbon::parse($veryLastSchedule->due_date)->addMonth();
+                            $newScheduleCode = $this->incrementScheduleCode($veryLastSchedule->schedule_code, $loan->loan_code);
+
+                            PaymentSchedule::create([
+                                'schedule_code'        => $newScheduleCode,
+                                'loan_code'            => $loan->loan_code,
+                                'company_id'           => $loan->company_id,
+                                'customer_id'          => $loan->customer_id,
+                                'due_date'             => $nextDueDate->toDateString(),
+                                'payment_amount'       => 0,
+                                'paid_amount'          => 0,
+                                'discount_amount'      => 0,
+                                'interest_amount'      => $newInterestAmt,
+                                'interest_paid_amount' => 0,
+                                'late_amount'          => 0,
+                                'late_paid_amount'     => 0,
+                                'closed'               => 0,
+                            ]);
                         }
 
                     } else {

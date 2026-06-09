@@ -1,5 +1,11 @@
 @extends('layouts.app')
 @section('content')
+<style>
+    tr.row-loan-deleted td {
+        background-color: #fdecea !important;
+    }
+</style>
+
 <header class="page-header">
     <h2>{{ __('table.cash_book_report') }}</h2>
 </header>
@@ -208,6 +214,13 @@ $(document).ready(function () {
                 }
             },
         ],
+        
+        createdRow: function (row, data) {
+            if (data.is_deleted_row == 1) {
+                $(row).addClass('row-loan-deleted');
+            }
+        },
+
         footerCallback: function () {
             let api     = this.api();
             let allRows = api.rows({ search: 'applied' }).data();

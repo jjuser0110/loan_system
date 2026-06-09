@@ -227,7 +227,12 @@ class ReportController extends Controller
                     "),
                     \DB::raw("
                         CASE
-                            WHEN payment_method_logs.type = 'loan'    THEN (SELECT l.interest_paid        FROM loans    l WHERE l.id = payment_method_logs.content_id LIMIT 1)
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN 1
+                            ELSE 0
+                        END as is_deleted_row
+                    "),
+                    \DB::raw("
+                        CASE
                             WHEN payment_method_logs.type = 'payment' THEN (SELECT p.interest_paid_amount FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
                             ELSE NULL
                         END as interest_paid
@@ -299,6 +304,26 @@ class ReportController extends Controller
             $query->where(function ($q) {
                 $q->where('payment_method_logs.description', '!=', 'Expense Updated')
                 ->where('payment_method_logs.description', '!=', 'Payment Updated')
+                ->where('payment_method_logs.description', '!=', 'Loan Updated')
+                ->where(function ($q2) {
+                    $q2->where('payment_method_logs.description', 'NOT LIKE', 'Loan Deleted%')
+                    ->orWhere('payment_method_logs.id', '=', \DB::raw("(
+                        SELECT MAX(pml_del.id)
+                        FROM payment_method_logs pml_del
+                        WHERE pml_del.content_id = payment_method_logs.content_id
+                        AND pml_del.type = payment_method_logs.type
+                        AND pml_del.description LIKE 'Loan Deleted%'
+                    )"));
+                })
+                ->where(function ($q3) {
+                    // Hide Loan Created rows where loan no longer exists (hard deleted)
+                    $q3->where('payment_method_logs.description', '!=', 'Loan Created')
+                    ->orWhereExists(function ($sub) {
+                        $sub->select(\DB::raw(1))
+                            ->from('loans')
+                            ->whereColumn('loans.id', 'payment_method_logs.content_id');
+                    });
+                })
                 ->orWhereNull('payment_method_logs.description');
             });
 
@@ -509,6 +534,16 @@ class ReportController extends Controller
                         ->orOn('loans.customer_id',  '=', 'customers.id');
                     });
                 });
+
+            // Hide Loan Created rows where loan has been hard deleted
+            $query->where(function ($q) {
+                $q->where('payment_method_logs.description', '!=', 'Loan Created')
+                ->orWhereExists(function ($sub) {
+                    $sub->select(\DB::raw(1))
+                        ->from('loans')
+                        ->whereColumn('loans.id', 'payment_method_logs.content_id');
+                });
+            });
 
             switch (Auth::user()->role_id) {
                 case 1: break;
