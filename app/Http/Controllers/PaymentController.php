@@ -655,6 +655,7 @@ class PaymentController extends Controller
                 $loan->update([
                     'paid'             => $loan->paid + $payment_amount,
                     'balance'          => $newBalanceAfterTopUp,
+                    'outstanding'      => $loan->outstanding - ($payment_amount + $late_paid_amount + $interest_paid_amount + $discount_amount) + $top_up,
                     'loan_amount'      => $loan->loan_amount + $top_up,
                     'interest_paid'    => $loan->interest_paid + $interest_paid_amount,
                     'interest_balance' => $loan->interest - ($loan->interest_paid + $interest_paid_amount),

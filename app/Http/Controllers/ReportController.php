@@ -343,7 +343,7 @@ class ReportController extends Controller
 
             $columnMap = [
                 0  => 'payment_method_logs.id',
-                1  => 'payment_method_logs.created_at',
+                1  => 'customers.customer_name',
                 2  => 'payment_method_logs.created_at',
                 3  => 'customers.customer_name',
                 4  => 'payments.collection_type',
@@ -571,7 +571,7 @@ class ReportController extends Controller
 
             $columnMap = [
                 0  => 'payment_method_logs.id',
-                1  => 'payment_method_logs.description',
+                1  => 'customers.customer_name',
                 2  => 'payment_method_logs.created_at',
                 3  => 'customers.customer_name',
                 4  => 'payments.collection_type',
@@ -678,7 +678,7 @@ class ReportController extends Controller
                     'companies.id as company_id',
                     'loans.balance as balance',
                     \DB::raw("
-                        (loans.payment + COALESCE(loans.interest, 0))
+                        (loans.payment + COALESCE(loans.interest, 0) + COALESCE(loans.installment, 0))
                         - COALESCE((
                             SELECT SUM(
                                 p2.payment_amount
@@ -691,6 +691,21 @@ class ReportController extends Controller
                             WHERE p2.loan_id = payments.loan_id
                             AND p2.id <= payments.id
                         ), 0) as outstanding_balance
+                    "),
+                    \DB::raw("
+                        loans.loan_amount
+                        - COALESCE((
+                            SELECT SUM(
+                                p2.payment_amount
+                                + COALESCE(p2.late_paid_amount, 0)
+                                + COALESCE(p2.interest_paid_amount, 0)
+                                + COALESCE(p2.discount_amount, 0)
+                                - COALESCE(p2.top_up, 0)
+                            )
+                            FROM payments p2
+                            WHERE p2.loan_id = payments.loan_id
+                            AND p2.id <= payments.id
+                        ), 0) as balance
                     "),
                 ])
                 ->join('customers', 'customers.id', '=', 'payments.customer_id')
@@ -751,7 +766,7 @@ class ReportController extends Controller
 
             $columnMap = [
                 0  => 'payments.id',
-                1  => 'payments.payment_code',
+                1  => 'payments.customer_id',
                 2  => 'payments.customer_id',
                 3  => 'payments.collection_type',
                 4  => 'payments.created_at',

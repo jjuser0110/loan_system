@@ -204,6 +204,7 @@
                     data: "top_up_capital",
                     render: function (data) {
                         let v = data ? parseFloat(data) : 0;
+                        if (!v) return '-';
                         return v > 0 ? `<span style="color:red">${v.toFixed(2)}</span>` : '-';
                     }
                 },
@@ -211,6 +212,7 @@
                     data: "top_up",
                     render: function (data) {
                         let v = data ? parseFloat(data) : 0;
+                        if (!v) return '-';
                         return v > 0 ? `<span style="color:red">${v.toFixed(2)}</span>` : '-';
                     }
                 },

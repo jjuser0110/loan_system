@@ -173,6 +173,7 @@ $(document).ready(function () {
                 data: "interest_paid", name: "interest_paid", width: "100px",
                 render: function (data) {
                     let v = parseFloat(data || 0);
+                    if (!v) return '-';
                     return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
                 }
             },
@@ -180,22 +181,23 @@ $(document).ready(function () {
                 data: "customer_payment", name: "customer_payment", width: "80px",
                 render: function (data) {
                     let v = parseFloat(data || 0);
+                    if (!v) return '-';
                     return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
                 }
             },
             {
                 data: "top_up_capital", name: "top_up_capital", width: "100px",
                 render: function (data) {
-                    if (!data) return '-';
-                    let v = parseFloat(data);
+                    let v = parseFloat(data || 0);
+                    if (!v) return '-';
                     return '<span style="color:red">-' + Math.abs(v).toFixed(2) + '</span>';
                 }
             },
             {
                 data: "new_capital_loan", name: "new_capital_loan", width: "80px",
                 render: function (data) {
-                    if (!data) return '-';
-                    let v = parseFloat(data);
+                    let v = parseFloat(data || 0);
+                    if (!v) return '-';
                     return '<span style="color:red">-' + Math.abs(v).toFixed(2) + '</span>';
                 }
             },
@@ -203,6 +205,7 @@ $(document).ready(function () {
                 data: "expenses", name: "expenses", width: "80px",
                 render: function (data) {
                     let v = parseFloat(data || 0);
+                    if (!v) return '-';
                     return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
                 }
             },
@@ -210,6 +213,7 @@ $(document).ready(function () {
                 data: "account_total_amount", name: "account_total_amount", width: "80px",
                 render: function (data) {
                     let v = parseFloat(data || 0);
+                    if (!v) return '-';
                     return '<span style="color:' + (v < 0 ? 'red' : 'green') + '">' + v.toFixed(2) + '</span>';
                 }
             },

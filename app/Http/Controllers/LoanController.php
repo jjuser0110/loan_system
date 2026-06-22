@@ -342,6 +342,9 @@ class LoanController extends Controller
                     'companies.company_code as company_code',
                     'branches.branch_name as branch_name',
                     'branches.branch_code as branch_code',
+                    DB::raw('(SELECT MAX(payments.created_at) 
+                        FROM payments 
+                        WHERE payments.loan_id = loans.id) as latest_payment_date'),
                 ])
                 ->join('customers', 'customers.id', '=', 'loans.customer_id')
                 ->join('companies', 'companies.id', '=', 'loans.company_id')
@@ -373,7 +376,6 @@ class LoanController extends Controller
             $total_outstanding = $totalQuery->sum('loans.outstanding');
             $total_profit = $totalQuery->sum('loans.paid') - $totalQuery->sum('loans.capital');
 
-            // ✅ FIX 1: added loans.status and loans.interest_group to search
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('loans.loan_code', 'like', "%{$search}%")
@@ -384,8 +386,8 @@ class LoanController extends Controller
                     ->orWhere('companies.company_code', 'like', "%{$search}%")
                     ->orWhere('branches.branch_code', 'like', "%{$search}%")
                     ->orWhere('branches.branch_name', 'like', "%{$search}%")
-                    ->orWhere('loans.status', 'like', "%{$search}%")          // ✅ FIX 1
-                    ->orWhere('loans.interest_group', 'like', "%{$search}%"); // ✅ FIX 1
+                    ->orWhere('loans.status', 'like', "%{$search}%")          
+                    ->orWhere('loans.interest_group', 'like', "%{$search}%");
                 });
             }
 
@@ -393,7 +395,6 @@ class LoanController extends Controller
                 $query->where('loans.status', '!=', 'Fully Paid');
             }
 
-            // ✅ FIX 2: recordsFiltered must count AFTER search is applied, not reuse recordsTotal
             $recordsFiltered = $query->count();
 
             $loans = $query->orderBy($orderByColumn, $orderByDirection)
@@ -699,6 +700,7 @@ class LoanController extends Controller
                     'loan_term' => $v['loan_term'],
                     'loan_amount' => $loan_amount,
                     'interest_rate' => $v['interest_rate'],
+                    'installment' => $v['installment'],
                     'processing_fee' => $processing_fee,
                     'stamp_fee' => $stamp_fee,
                     'capital' => $capital,
@@ -947,7 +949,7 @@ class LoanController extends Controller
     }
 
     public function update_outstanding(Loan $loan){
-        $outstanding = $loan->balance + $loan->late_balance + $loan->interest_balance;
+        $outstanding = $loan->balance + $loan->late_balance + $loan->interest_balance + $loan->installment;
         $isFullyPaid = $outstanding <= 0 && $loan->balance <= 0;
         $loan->update([
             'outstanding' => $outstanding,
