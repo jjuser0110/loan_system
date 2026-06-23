@@ -128,11 +128,8 @@ $(document).ready(function () {
             if (desc.includes('Payment Created') || desc.includes('Payment Deleted')) {
                 $(row).addClass('row-invalid');
             }
-            if (desc.endsWith('Edit')) {
+            if (desc.endsWith('Edit') || desc.includes('Loan Deleted')) {
                 $(row).addClass('row-edit');
-            }
-            if (desc.includes('Loan Deleted')) {
-                $(row).addClass('row-deleted');
             }
         },
         columns: [

@@ -477,7 +477,8 @@ class ReportController extends Controller
                                 THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description),
                                     IF(payment_method_logs.description = 'Payment Updated', ' Edit', ''))
                             WHEN payment_method_logs.type = 'loan'
-                                THEN CONCAT('Loan #', COALESCE(loans.loan_code, payment_method_logs.description))
+                                THEN CONCAT('Loan #', COALESCE(loans.loan_code, payment_method_logs.description),
+                                    IF(payment_method_logs.description = 'Loan Updated', ' Edit', ''))
                             WHEN payment_method_logs.type = 'expense'
                                 THEN CONCAT('Expense #', COALESCE(expenses.expense_code, payment_method_logs.description))
                             ELSE CONCAT('Manual # ', COALESCE(payment_method_logs.description, '-'))
@@ -532,6 +533,7 @@ class ReportController extends Controller
                                 WHERE p.id = payment_method_logs.content_id LIMIT 1
                             ) > 0 THEN payment_method_logs.amount
                             WHEN payment_method_logs.description LIKE 'Loan Deleted%' AND payment_method_logs.amount != 0 THEN payment_method_logs.amount
+                            WHEN payment_method_logs.description = 'Loan Updated' AND payment_method_logs.amount != 0 THEN payment_method_logs.amount
                             ELSE NULL
                         END as top_up_capital
                     "),
