@@ -990,6 +990,8 @@ class LoanController extends Controller
                 $pm->update(['amount'=>$pm_after]);
                 $pm->payment_method_logs()->create([
                     'type'=> 'loan',
+                    'content_id'=> $loan->id, 
+                    'content_type'=> \App\Models\Loan::class,
                     'description'=>'Loan Deleted - ' . $loan->loan_code,
                     'prev_amount'=> $pm_before,
                     'amount' => ($total_amount * -1),
@@ -1010,6 +1012,8 @@ class LoanController extends Controller
             $pm->save();
             $pm->payment_method_logs()->create([
                 'type'=> 'loan',
+                'content_id'=> $loan->id, 
+                'content_type'=> \App\Models\Loan::class,  
                 'description'=>'Loan Deleted - ' . $loan->loan_code,
                 'prev_amount'=> $pm_before,
                 'amount' => $loan->capital,

@@ -6,8 +6,14 @@
 @include('layouts.flash-message')
 <style>
     .row-invalid td {
-    background-color: #ffe6e6 !important;
-}
+        background-color: #ffe6e6 !important;
+    }
+    .row-edit td {
+        background-color: rgba(255, 0, 0, 0.1) !important;
+    }
+    .row-deleted td {
+        background-color: rgba(255, 0, 0, 0.1) !important;
+    }
 </style>
 
 <div class="row mb-3">
@@ -122,6 +128,12 @@ $(document).ready(function () {
             if (desc.includes('Payment Created') || desc.includes('Payment Deleted')) {
                 $(row).addClass('row-invalid');
             }
+            if (desc.endsWith('Edit')) {
+                $(row).addClass('row-edit');
+            }
+            if (desc.includes('Loan Deleted')) {
+                $(row).addClass('row-deleted');
+            }
         },
         columns: [
             {
@@ -201,9 +213,11 @@ $(document).ready(function () {
             {
                 data: "top_up_capital", name: "top_up_capital", width: "100px",
                 render: function (data) {
-                    if (!data) return '-';
+                    if (data === null || data === undefined) return '-';
                     let v = parseFloat(data);
-                    return '<span style="color:red">-' + Math.abs(v).toFixed(2) + '</span>';
+                    if (isNaN(v)) return '-';
+                    let color = v < 0 ? 'red' : 'green';
+                    return '<span style="color:' + color + '">' + v.toFixed(2) + '</span>';
                 }
             },
             {

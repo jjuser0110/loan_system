@@ -239,6 +239,7 @@ $(document).ready(function () {
                     - parseFloat(latest.customer_payment || 0)
                     + parseFloat(latest.top_up_capital || 0)
                     + parseFloat(latest.new_capital_loan || 0);
+                    + parseFloat(latest.expenses || 0)
             }
 
             let totIP = 0, totCP = 0, totTUC = 0, totNCL = 0, totEXP = 0, lastAT = 0;

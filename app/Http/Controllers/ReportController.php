@@ -239,7 +239,14 @@ class ReportController extends Controller
                     "),
                     \DB::raw("
                         CASE
-                            WHEN payment_method_logs.type = 'payment' THEN (SELECT p.top_up_capital FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            WHEN payment_method_logs.type = 'payment' THEN (
+                                SELECT p.top_up_capital FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1
+                            )
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN (
+                                SELECT SUM(pml_del.amount)
+                                FROM payment_method_logs pml_del
+                                WHERE pml_del.description = payment_method_logs.description
+                            )
                             ELSE NULL
                         END as top_up_capital
                     "),
@@ -464,10 +471,15 @@ class ReportController extends Controller
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.type = 'payment' AND payments.top_up IS NOT NULL AND payments.top_up > 0
-                                                                    THEN CONCAT('Loan TopUp - Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
-                            WHEN payment_method_logs.type = 'payment' THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
-                            WHEN payment_method_logs.type = 'loan'    THEN CONCAT('Loan #',    COALESCE(loans.loan_code,       payment_method_logs.description))
-                            WHEN payment_method_logs.type = 'expense' THEN CONCAT('Expense #', COALESCE(expenses.expense_code, payment_method_logs.description))
+                                THEN CONCAT('Loan TopUp - Payment #', COALESCE(payments.payment_code, payment_method_logs.description),
+                                    IF(payment_method_logs.description = 'Payment Updated', ' Edit', ''))
+                            WHEN payment_method_logs.type = 'payment'
+                                THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description),
+                                    IF(payment_method_logs.description = 'Payment Updated', ' Edit', ''))
+                            WHEN payment_method_logs.type = 'loan'
+                                THEN CONCAT('Loan #', COALESCE(loans.loan_code, payment_method_logs.description))
+                            WHEN payment_method_logs.type = 'expense'
+                                THEN CONCAT('Expense #', COALESCE(expenses.expense_code, payment_method_logs.description))
                             ELSE CONCAT('Manual # ', COALESCE(payment_method_logs.description, '-'))
                         END as description
                     "),
@@ -512,6 +524,17 @@ class ReportController extends Controller
                             ELSE NULL
                         END as new_capital_loan
                     "),
+                    // top_up_capital
+                    \DB::raw("
+    CASE
+        WHEN payment_method_logs.type = 'payment' AND (
+            SELECT p.top_up_capital FROM payments p 
+            WHERE p.id = payment_method_logs.content_id LIMIT 1
+        ) > 0 THEN payment_method_logs.amount
+        WHEN payment_method_logs.description LIKE 'Loan Deleted%' AND payment_method_logs.amount != 0 THEN payment_method_logs.amount
+        ELSE NULL
+    END as top_up_capital
+"),
                 ])
                 ->join('payment_methods', 'payment_method_logs.payment_method_id', '=', 'payment_methods.id')
                 ->join('companies',       'payment_methods.company_id',            '=', 'companies.id')
@@ -572,7 +595,7 @@ class ReportController extends Controller
             $columnMap = [
                 0  => 'payment_method_logs.id',
                 1  => 'customers.customer_name',
-                2  => 'payment_method_logs.created_at',
+                2  => 'payment_method_logs.id',
                 3  => 'customers.customer_name',
                 4  => 'payments.collection_type',
                 5  => 'expenses.expense_title',
