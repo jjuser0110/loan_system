@@ -526,15 +526,15 @@ class ReportController extends Controller
                     "),
                     // top_up_capital
                     \DB::raw("
-    CASE
-        WHEN payment_method_logs.type = 'payment' AND (
-            SELECT p.top_up_capital FROM payments p 
-            WHERE p.id = payment_method_logs.content_id LIMIT 1
-        ) > 0 THEN payment_method_logs.amount
-        WHEN payment_method_logs.description LIKE 'Loan Deleted%' AND payment_method_logs.amount != 0 THEN payment_method_logs.amount
-        ELSE NULL
-    END as top_up_capital
-"),
+                        CASE
+                            WHEN payment_method_logs.type = 'payment' AND (
+                                SELECT p.top_up_capital FROM payments p 
+                                WHERE p.id = payment_method_logs.content_id LIMIT 1
+                            ) > 0 THEN payment_method_logs.amount
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' AND payment_method_logs.amount != 0 THEN payment_method_logs.amount
+                            ELSE NULL
+                        END as top_up_capital
+                    "),
                 ])
                 ->join('payment_methods', 'payment_method_logs.payment_method_id', '=', 'payment_methods.id')
                 ->join('companies',       'payment_methods.company_id',            '=', 'companies.id')

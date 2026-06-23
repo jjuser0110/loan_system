@@ -146,6 +146,9 @@ $(document).ready(function () {
                 data: "description", name: "description", width: "200px",
                 render: function (data) {
                     if (!data || data === '-') return '-';
+                    if (data.startsWith('Loan #Loan Deleted')) {
+                        return data; // plain text, no link
+                    }
                     if (data.startsWith('Loan #')) {
                         let loanCode = data.replace('Loan #', '').trim();
                         return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '#loan">' + data + '</a>';
