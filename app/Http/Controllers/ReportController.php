@@ -507,27 +507,30 @@ class ReportController extends Controller
                     "),
                     \DB::raw("payment_method_logs.total as account_total_amount"),
                     // new_capital_loan
-                    \DB::raw("
-                        CASE
-                            WHEN payment_method_logs.description = 'Loan Updated' AND payment_method_logs.amount != 0
-                                THEN payment_method_logs.amount
-                            WHEN payment_method_logs.type = 'loan' THEN (
-                                SELECT 
-                                    l.capital
-                                    - COALESCE((
-                                        SELECT SUM(p_all.top_up_capital)
-                                        FROM payments p_all
-                                        WHERE p_all.loan_id = l.id
-                                        AND p_all.top_up_capital IS NOT NULL
-                                        AND p_all.top_up_capital > 0
-                                    ), 0)
-                                FROM loans l
-                                WHERE l.id = payment_method_logs.content_id
-                                LIMIT 1
-                            )
-                            ELSE NULL
-                        END as new_capital_loan
-                    "),
+                    // new_capital_loan
+\DB::raw("
+    CASE
+        WHEN payment_method_logs.description = 'Loan Updated' AND payment_method_logs.amount != 0
+            THEN payment_method_logs.amount
+        WHEN payment_method_logs.description = 'Loan Created' AND payment_method_logs.amount != 0
+            THEN payment_method_logs.amount
+        WHEN payment_method_logs.type = 'loan' THEN (
+            SELECT 
+                l.capital
+                - COALESCE((
+                    SELECT SUM(p_all.top_up_capital)
+                    FROM payments p_all
+                    WHERE p_all.loan_id = l.id
+                    AND p_all.top_up_capital IS NOT NULL
+                    AND p_all.top_up_capital > 0
+                ), 0)
+            FROM loans l
+            WHERE l.id = payment_method_logs.content_id
+            LIMIT 1
+        )
+        ELSE NULL
+    END as new_capital_loan
+"),
                     // top_up_capital
                     \DB::raw("
                         CASE
