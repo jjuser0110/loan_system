@@ -312,16 +312,7 @@ class ReportController extends Controller
                 $q->where('payment_method_logs.description', '!=', 'Expense Updated')
                 ->where('payment_method_logs.description', '!=', 'Payment Updated')
                 ->where('payment_method_logs.description', '!=', 'Loan Updated')
-                ->where(function ($q2) {
-                    $q2->where('payment_method_logs.description', 'NOT LIKE', 'Loan Deleted%')
-                    ->orWhere('payment_method_logs.id', '=', \DB::raw("(
-                        SELECT MAX(pml_del.id)
-                        FROM payment_method_logs pml_del
-                        WHERE pml_del.content_id = payment_method_logs.content_id
-                        AND pml_del.type = payment_method_logs.type
-                        AND pml_del.description LIKE 'Loan Deleted%'
-                    )"));
-                })
+                ->where('payment_method_logs.description', 'NOT LIKE', 'Loan Deleted%')
                 ->where(function ($q3) {
                     // Hide Loan Created rows where loan no longer exists (hard deleted)
                     $q3->where('payment_method_logs.description', '!=', 'Loan Created')
@@ -476,6 +467,8 @@ class ReportController extends Controller
                             WHEN payment_method_logs.type = 'payment'
                                 THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description),
                                     IF(payment_method_logs.description = 'Payment Updated', ' Edit', ''))
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%'
+                                THEN payment_method_logs.description
                             WHEN payment_method_logs.type = 'loan'
                                 THEN CONCAT('Loan #', COALESCE(loans.loan_code, payment_method_logs.description),
                                     IF(payment_method_logs.description = 'Loan Updated', ' Edit', ''))
@@ -507,30 +500,29 @@ class ReportController extends Controller
                     "),
                     \DB::raw("payment_method_logs.total as account_total_amount"),
                     // new_capital_loan
-                    // new_capital_loan
-\DB::raw("
-    CASE
-        WHEN payment_method_logs.description = 'Loan Updated' AND payment_method_logs.amount != 0
-            THEN payment_method_logs.amount
-        WHEN payment_method_logs.description = 'Loan Created' AND payment_method_logs.amount != 0
-            THEN payment_method_logs.amount
-        WHEN payment_method_logs.type = 'loan' THEN (
-            SELECT 
-                l.capital
-                - COALESCE((
-                    SELECT SUM(p_all.top_up_capital)
-                    FROM payments p_all
-                    WHERE p_all.loan_id = l.id
-                    AND p_all.top_up_capital IS NOT NULL
-                    AND p_all.top_up_capital > 0
-                ), 0)
-            FROM loans l
-            WHERE l.id = payment_method_logs.content_id
-            LIMIT 1
-        )
-        ELSE NULL
-    END as new_capital_loan
-"),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.description = 'Loan Updated' AND payment_method_logs.amount != 0
+                                THEN payment_method_logs.amount
+                            WHEN payment_method_logs.description = 'Loan Created' AND payment_method_logs.amount != 0
+                                THEN payment_method_logs.amount
+                            WHEN payment_method_logs.type = 'loan' THEN (
+                                SELECT 
+                                    l.capital
+                                    - COALESCE((
+                                        SELECT SUM(p_all.top_up_capital)
+                                        FROM payments p_all
+                                        WHERE p_all.loan_id = l.id
+                                        AND p_all.top_up_capital IS NOT NULL
+                                        AND p_all.top_up_capital > 0
+                                    ), 0)
+                                FROM loans l
+                                WHERE l.id = payment_method_logs.content_id
+                                LIMIT 1
+                            )
+                            ELSE NULL
+                        END as new_capital_loan
+                    "),
                     // top_up_capital
                     \DB::raw("
                         CASE
@@ -552,7 +544,8 @@ class ReportController extends Controller
                 })
                 ->leftJoin('loans', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'loans.id')
-                        ->where('payment_method_logs.type', '=', 'loan');
+                        ->where('payment_method_logs.type', '=', 'loan')
+                        ->where('payment_method_logs.description', 'not like', 'Loan Deleted%');
                 })
                 ->leftJoin('expenses', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'expenses.id')
