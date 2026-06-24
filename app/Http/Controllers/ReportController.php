@@ -467,6 +467,8 @@ class ReportController extends Controller
                             WHEN payment_method_logs.type = 'payment'
                                 THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description),
                                     IF(payment_method_logs.description = 'Payment Updated', ' Edit', ''))
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%'
+                                THEN payment_method_logs.description
                             WHEN payment_method_logs.type = 'loan'
                                 THEN CONCAT('Loan #', COALESCE(loans.loan_code, payment_method_logs.description),
                                     IF(payment_method_logs.description = 'Loan Updated', ' Edit', ''))
@@ -543,7 +545,8 @@ class ReportController extends Controller
                 })
                 ->leftJoin('loans', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'loans.id')
-                        ->where('payment_method_logs.type', '=', 'loan');
+                        ->where('payment_method_logs.type', '=', 'loan')
+                        ->where('payment_method_logs.description', 'not like', 'Loan Deleted%');
                 })
                 ->leftJoin('expenses', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'expenses.id')
