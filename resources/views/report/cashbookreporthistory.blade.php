@@ -221,15 +221,15 @@ $(document).ready(function () {
                 }
             },
             {
-    data: "new_capital_loan", name: "new_capital_loan", width: "80px",
-    render: function (data) {
-        if (data === null || data === undefined) return '-';
-        let v = parseFloat(data);
-        if (isNaN(v)) return '-';
-        let color = v < 0 ? 'red' : 'green';
-        return '<span style="color:' + color + '">' + v.toFixed(2) + '</span>';
-    }
-},
+                data: "new_capital_loan", name: "new_capital_loan", width: "80px",
+                render: function (data) {
+                    if (data === null || data === undefined) return '-';
+                    let v = parseFloat(data);
+                    if (isNaN(v)) return '-';
+                    let color = v < 0 ? 'red' : 'green';
+                    return '<span style="color:' + color + '">' + v.toFixed(2) + '</span>';
+                }
+            },
             {
                 data: "expenses", name: "expenses", width: "80px",
                 render: function (data) {
