@@ -248,17 +248,21 @@ $(document).ready(function () {
         footerCallback: function () {
             let api     = this.api();
             let allRows = api.rows({ search: 'applied' }).data();
-            let openingBalance = window.cashBookOpeningBalance || 0;
+            let openingBalance = 0;
 
             let totIP = 0, totCP = 0, totTUC = 0, totNCL = 0, totEXP = 0, lastAT = 0;
 
-            allRows.each(function (r) {
-                totIP  += parseFloat(r.interest_paid    || 0);
-                totCP  += parseFloat(r.customer_payment || 0);
-                totTUC -= parseFloat(r.top_up_capital   || 0);
-                totNCL -= parseFloat(r.new_capital_loan      || 0);
-                totEXP += parseFloat(r.expenses         || 0);
-            });
+            if (allRows.length > 0) {
+                let latest = allRows[0];
+
+                openingBalance =
+                    parseFloat(latest.account_total_amount || 0)
+                    - parseFloat(latest.interest_paid || 0)
+                    - parseFloat(latest.customer_payment || 0)
+                    + parseFloat(latest.top_up_capital || 0)
+                    + parseFloat(latest.new_capital_loan || 0)
+                    + parseFloat(latest.expenses || 0);
+            }
 
             if (allRows.length > 0) {
                 lastAT = parseFloat(allRows[allRows.length - 1].account_total_amount || 0);
