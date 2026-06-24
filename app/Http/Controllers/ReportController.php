@@ -500,9 +500,10 @@ class ReportController extends Controller
                     "),
                     \DB::raw("payment_method_logs.total as account_total_amount"),
                     // new_capital_loan
-                    // new_capital_loan
                     \DB::raw("
                         CASE
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%'
+                                THEN NULL
                             WHEN payment_method_logs.description = 'Loan Updated' AND payment_method_logs.amount != 0
                                 THEN payment_method_logs.amount
                             WHEN payment_method_logs.description = 'Loan Created' AND payment_method_logs.amount != 0
