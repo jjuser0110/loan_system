@@ -560,16 +560,6 @@ class ReportController extends Controller
                     });
                 });
 
-            // Hide Loan Created rows where loan has been hard deleted
-            $query->where(function ($q) {
-                $q->where('payment_method_logs.description', '!=', 'Loan Created')
-                ->orWhereExists(function ($sub) {
-                    $sub->select(\DB::raw(1))
-                        ->from('loans')
-                        ->whereColumn('loans.id', 'payment_method_logs.content_id');
-                });
-            });
-
             switch (Auth::user()->role_id) {
                 case 1: break;
                 case 2: $query->where('branches.id', Auth::user()->branch_id); break;
