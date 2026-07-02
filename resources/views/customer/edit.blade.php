@@ -1541,6 +1541,9 @@
                 {
                     "data": null,
                     "render": function(data, type, row, meta) {
+                        if (row.deleted_at) {
+                            return '';
+                        }
                         let url = `
                         <div class="cus-action-wrapper">
                             <a href="{{ route('loan.single_loan', ['loan_code' => ':loan_code']) }}"
