@@ -1431,7 +1431,9 @@
             },
             "order": [[2, "desc"]],
             "rowCallback": function(row, data) {
-                if (data.status === 'Fully Paid') {
+                if (data.deleted_at) {
+                    $(row).find('td').css('background-color', 'rgba(192, 57, 43, 0.15)');
+                } else if (data.status === 'Fully Paid') {
                     $(row).find('td').css('background-color', 'rgba(255, 0, 0, 0.1)');
                 } else if (data.status === 'Overdue') {
                     $(row).find('td').css('background-color', 'rgba(255, 220, 50, 0.25)');
@@ -1521,6 +1523,10 @@
                 {
                     "data": "status",
                     "render": function(data, type, row, meta) {
+                        if (row.deleted_at) {
+                            return `<span style="color:#c0392b; font-weight:700">Deleted</span>`;
+                        }
+
                         const colors = {
                             'Active':     '#1a7a36',
                             'Fully Paid': '#a32d2d',

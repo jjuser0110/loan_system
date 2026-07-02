@@ -10,6 +10,9 @@
     #table-loan tbody tr.row-active td {
         background-color: rgba(0, 200, 0, 0.1) !important;
     }
+    #table-loan tbody tr.row-deleted td {
+        background-color: rgba(192, 57, 43, 0.15) !important;
+    }
 </style>
 
 <header class="page-header">
@@ -317,6 +320,9 @@
                     "data": "status",
                     "name": "status",
                     "render": function(data, type, row, meta) {
+                        if (row.deleted_at) {
+                            return `<span style="color:red"><strong>Deleted</strong></span>`;
+                        }
                         const green = ['Active'];
                         const red = ['Fully Paid'];
                         const yellow = ['Overdue', 'Bad Debt', 'Blacklist'];
@@ -365,22 +371,21 @@
                     }
                 }
             ],
+            "rowCallback": function(row, data) {
+                $(row).removeClass('row-fully-paid row-overdue row-active row-deleted');
+
+                if (data.deleted_at) {
+                    $(row).addClass('row-deleted');
+                } else if (data.status === 'Fully Paid') {
+                    $(row).addClass('row-fully-paid');
+                } else if (data.status === 'Overdue') {
+                    $(row).addClass('row-overdue');
+                } else if (data.status === 'Active') {
+                    $(row).addClass('row-active');
+                }
+            },
             "drawCallback": function() {
                 initResizable();
-
-                $('#table-loan tbody tr').each(function() {
-                    // ✅ FIX: was nth-child(16), status is the 17th column
-                    const statusCell = $(this).find('td:nth-child(17)').text().trim();
-                    $(this).removeClass('row-fully-paid row-overdue row-active');
-
-                    if (statusCell === 'Fully Paid') {
-                        $(this).addClass('row-fully-paid');
-                    } else if (statusCell === 'Overdue') {
-                        $(this).addClass('row-overdue');
-                    } else if (statusCell === 'Active') {
-                        $(this).addClass('row-active');
-                    }
-                });
             }
         });
 

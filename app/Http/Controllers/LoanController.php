@@ -332,8 +332,15 @@ class LoanController extends Controller
             $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
             $orderByDirection = $request->input('order.0.dir');
 
-            $query = Loan::query()
-                ->select([
+            $query = Loan::query();
+
+            if ($request->hide_fully_paid == 1) {
+                $query->where('loans.status', '!=', 'Fully Paid');
+            } else {
+                $query->withTrashed();
+            }
+
+            $query->select([
                     'loans.*',
                     'customers.customer_name as customer_name',
                     'customers.nric_number as nric_number',
