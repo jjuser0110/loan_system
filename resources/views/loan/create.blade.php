@@ -29,7 +29,7 @@
                         <div class="col-md-6">
                             <div class="col-md-12 mb-3">
                                 <label class="col-form-label">{{ __('table.company_code') }}</label>
-                                <input type="text" class="form-control" id="company-code" value="{{ $company?->company_code ?? '' }}" autocomplete="off" disabled>
+                                <input type="text" class="form-control" id="company-code" value="{{ $customer?->company_code ?? '' }}" autocomplete="off" disabled>
                             </div>
                             
                             <div class="col-md-12 mb-3">

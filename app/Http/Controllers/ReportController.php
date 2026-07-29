@@ -215,7 +215,12 @@ class ReportController extends Controller
                             LIMIT 1
                         ) as account_total_amount
                     "),
-                    \DB::raw("DATE(payment_method_logs.created_at) as date"),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'loan' THEN loans.year_month
+                            ELSE DATE(payment_method_logs.created_at)
+                        END as date
+                    "),
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.type = 'payment' AND payments.top_up IS NOT NULL AND payments.top_up > 0 THEN CONCAT('Loan TopUp - Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
@@ -242,11 +247,6 @@ class ReportController extends Controller
                             WHEN payment_method_logs.type = 'payment' THEN (
                                 SELECT p.top_up_capital FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1
                             )
-                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN (
-                                SELECT SUM(pml_del.amount)
-                                FROM payment_method_logs pml_del
-                                WHERE pml_del.description = payment_method_logs.description
-                            )
                             ELSE NULL
                         END as top_up_capital
                     "),
@@ -265,6 +265,11 @@ class ReportController extends Controller
                                 FROM loans l
                                 WHERE l.id = payment_method_logs.content_id
                                 LIMIT 1
+                            )
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN (
+                                SELECT SUM(pml_del.amount)
+                                FROM payment_method_logs pml_del
+                                WHERE pml_del.description = payment_method_logs.description
                             )
                             ELSE NULL
                         END as new_capital_loan
@@ -312,7 +317,6 @@ class ReportController extends Controller
                 $q->where('payment_method_logs.description', '!=', 'Expense Updated')
                 ->where('payment_method_logs.description', '!=', 'Payment Updated')
                 ->where('payment_method_logs.description', '!=', 'Loan Updated')
-                ->where('payment_method_logs.description', 'NOT LIKE', 'Loan Deleted%')
                 ->where(function ($q3) {
                     // Hide Loan Created rows where loan no longer exists (hard deleted)
                     $q3->where('payment_method_logs.description', '!=', 'Loan Created')
@@ -458,7 +462,12 @@ class ReportController extends Controller
                     'payments.payment_amount as customer_payment',
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
-                    \DB::raw("DATE(payment_method_logs.created_at) as date"),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'loan' THEN loans.year_month
+                            ELSE DATE(payment_method_logs.created_at)
+                        END as date
+                    "),
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.type = 'payment' AND payments.top_up IS NOT NULL AND payments.top_up > 0
@@ -487,23 +496,12 @@ class ReportController extends Controller
                             ELSE NULL
                         END as interest_paid
                     "),
-
-                    // customer_payment
-                    \DB::raw("
-                        CASE
-                            WHEN payment_method_logs.type = 'payment' AND (
-                                SELECT p.payment_amount FROM payments p 
-                                WHERE p.id = payment_method_logs.content_id LIMIT 1
-                            ) > 0 THEN payment_method_logs.amount
-                            ELSE NULL
-                        END as customer_payment
-                    "),
                     \DB::raw("payment_method_logs.total as account_total_amount"),
                     // new_capital_loan
                     \DB::raw("
                         CASE
-                            WHEN payment_method_logs.description LIKE 'Loan Deleted%'
-                                THEN NULL
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' AND payment_method_logs.amount > 0
+                                THEN payment_method_logs.amount
                             WHEN payment_method_logs.description = 'Loan Updated' AND payment_method_logs.amount != 0
                                 THEN payment_method_logs.amount
                             WHEN payment_method_logs.description = 'Loan Created' AND payment_method_logs.amount != 0
@@ -525,14 +523,27 @@ class ReportController extends Controller
                             ELSE NULL
                         END as new_capital_loan
                     "),
-                    // top_up_capital
+
+                    // customer_payment
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' AND payment_method_logs.amount < 0
+                                THEN payment_method_logs.amount
+                            WHEN payment_method_logs.type = 'payment' AND (
+                                SELECT p.payment_amount FROM payments p 
+                                WHERE p.id = payment_method_logs.content_id LIMIT 1
+                            ) > 0 THEN payment_method_logs.amount
+                            ELSE NULL
+                        END as customer_payment
+                    "),
+
+                    // top_up_capital — remove the Loan Deleted branch entirely
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.type = 'payment' AND (
                                 SELECT p.top_up_capital FROM payments p 
                                 WHERE p.id = payment_method_logs.content_id LIMIT 1
                             ) > 0 THEN payment_method_logs.amount
-                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' AND payment_method_logs.amount != 0 THEN payment_method_logs.amount
                             ELSE NULL
                         END as top_up_capital
                     "),
