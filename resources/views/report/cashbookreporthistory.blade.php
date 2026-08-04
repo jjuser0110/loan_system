@@ -254,7 +254,6 @@ $(document).ready(function () {
 
             if (allRows.length > 0) {
                 let latest = allRows[0];
-
                 openingBalance =
                     parseFloat(latest.account_total_amount || 0)
                     - parseFloat(latest.interest_paid || 0)
@@ -262,9 +261,17 @@ $(document).ready(function () {
                     + parseFloat(latest.top_up_capital || 0)
                     + parseFloat(latest.new_capital_loan || 0)
                     + parseFloat(latest.expenses || 0);
-            }
 
-            if (allRows.length > 0) {
+                // 👇 加上这段，真正把每一列加总
+                for (let i = 0; i < allRows.length; i++) {
+                    let r = allRows[i];
+                    totIP  += parseFloat(r.interest_paid    || 0);
+                    totCP  += parseFloat(r.customer_payment || 0);
+                    totTUC += parseFloat(r.top_up_capital    || 0);
+                    totNCL += parseFloat(r.new_capital_loan || 0);
+                    totEXP += parseFloat(r.expenses          || 0);
+                }
+
                 lastAT = parseFloat(allRows[allRows.length - 1].account_total_amount || 0);
             }
 

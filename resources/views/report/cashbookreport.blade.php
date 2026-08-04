@@ -199,9 +199,12 @@ $(document).ready(function () {
             {
                 data: "new_capital_loan", name: "new_capital_loan", width: "80px",
                 render: function (data) {
-                    let v = parseFloat(data || 0);
-                    if (!v) return '-';
-                    return '<span style="color:red">-' + Math.abs(v).toFixed(2) + '</span>';
+                    if (data === null || data === undefined || data === '') return '-';
+                    let v = parseFloat(data);
+                    if (isNaN(v)) return '-';
+                    let color = v < 0 ? 'red' : 'green';
+
+                    return '<span style="color:' + color + '">' + v.toFixed(2) + '</span>';
                 }
             },
             {
