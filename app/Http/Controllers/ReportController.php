@@ -215,9 +215,6 @@ class ReportController extends Controller
                     'expenses.expense_title as expenses_name',
                     'expenses.expense_description as expenses_description',
                     'payments.top_up as top_up',
-                    // customer_payment — FIX: Loan Deleted rows are now a single merged
-                    // group whose net amount is shown entirely in New Loan Capital, so the
-                    // old "amount < 0 -> customer_payment" split branch is removed here.
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.type = 'payment' THEN payments.payment_amount
@@ -233,9 +230,6 @@ class ReportController extends Controller
                     "),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
-                    // account_total_amount — use this (now-collapsed) row's own `total`
-                    // directly, rather than the old cross-row "latest total" subquery which
-                    // mis-grouped Loan Deleted rows sharing the same content_id.
                     \DB::raw("payment_method_logs.total as account_total_amount"),
                     \DB::raw("
                         CASE
