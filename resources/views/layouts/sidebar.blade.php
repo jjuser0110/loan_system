@@ -113,6 +113,11 @@ $currentRoute = request()->route()->getName();
                                     {{ __('table.customer_payment_report') }}
                                 </a>
                             </li>
+                            <li class="{{ request()->routeIs('report.loan_list') || request()->routeIs('report.load_loan_list') || request()->routeIs('report.loan_list_pdf') ? 'nav-active' : ''}}">
+                                <a class="nav-link" href="{{ route('report.loan_list') }}">
+                                    {{ __('sidebar.loan_list') ?? 'Loan Listing' }}
+                                </a>
+                            </li>
                         </ul>
                     </li>
                     @endif

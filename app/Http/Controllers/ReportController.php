@@ -879,4 +879,212 @@ class ReportController extends Controller
             ], 500);
         }
     }
+
+    public function loan_list(Request $request)
+    {
+        switch (Auth::user()->role_id) {
+            case 1:
+                $query = DB::table('companies');
+                break;
+            case 2:
+                $query = DB::table('companies')->where('branch_id', Auth::user()->branch_id);
+                break;
+            default:
+                $query = DB::table('companies')->where('id', Auth::user()->company_id);
+                break;
+        }
+        $companies = $query->get();
+
+        $interestGroupQuery = DB::table('loans')
+            ->join('companies', 'loans.company_id', '=', 'companies.id');
+
+        switch (Auth::user()->role_id) {
+            case 1:
+                break;
+            case 2:
+                $interestGroupQuery->where('companies.branch_id', Auth::user()->branch_id);
+                break;
+            default:
+                $interestGroupQuery->where('loans.company_id', Auth::user()->company_id);
+                break;
+        }
+
+        $interestGroups = $interestGroupQuery
+            ->whereNotNull('loans.interest_group')
+            ->where('loans.interest_group', '!=', '')
+            ->distinct()
+            ->orderBy('loans.interest_group')
+            ->pluck('loans.interest_group');
+
+        return view('report.loanlist')
+            ->with('companies', $companies)
+            ->with('interestGroups', $interestGroups);
+    }
+
+    public function load_loan_list(Request $request)
+    {
+        try {
+            $data = $this->getLoanListData($request);
+
+            return response()->json([
+                'data' => $data,
+            ]);
+        } catch (Exception $e) {
+            \Log::error('Loan List Load Error: ' . $e->getMessage());
+
+            return response()->json([
+                'error'   => 'Server error occurred',
+                'message' => $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    public function loan_list_pdf(Request $request)
+    {
+        $data = $this->getLoanListData($request);
+
+        $company = null;
+        if ($request->input('company_id')) {
+            $company = DB::table('companies')->where('id', $request->input('company_id'))->first();
+        }
+
+        $grouped = $data->groupBy('interest_group');
+
+        $grandTotals = $this->calculateTotals($data);
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('report.loanlist_pdf', [
+            'grouped'      => $grouped,
+            'grandTotals'  => $grandTotals,
+            'company'      => $company,
+            'fromDate'     => $request->input('from_date'),
+            'toDate'       => $request->input('to_date'),
+            'generatedAt'  => now(),
+            'calculateTotals' => [$this, 'calculateTotals'],
+        ])->setPaper('a4', 'landscape');
+
+        return $pdf->stream('loan-listing-report.pdf');
+    }
+
+    /**
+     * Shared filter + data-shaping logic used by both the on-screen
+     * DataTable (JSON) and the PDF export, so filters always match.
+     */
+    private function getLoanListData(Request $request)
+    {
+        $fromDate      = $request->input('from_date');
+        $toDate        = $request->input('to_date');
+        $dateField     = $request->input('date_field', 'loan_date'); // loan_date | next_due_date
+        $companyId     = $request->input('company_id');
+        $interestGroup = $request->input('interest_group');
+        $search        = $request->input('search');
+        $status        = $request->input('status');
+
+        $query = \App\Models\Loan::query()
+            ->select([
+                'loans.*',
+                'companies.company_code',
+                'companies.company_name',
+                'customers.customer_name',
+                'creator.name as created_by_name',
+            ])
+            ->join('companies', 'loans.company_id', '=', 'companies.id')
+            ->join('customers', 'loans.customer_id', '=', 'customers.id')
+            ->leftJoin('users as creator', 'loans.created_by', '=', 'creator.id');
+
+        switch (Auth::user()->role_id) {
+            case 1:
+                break;
+            case 2:
+                $query->where('companies.branch_id', Auth::user()->branch_id);
+                break;
+            default:
+                $query->where('loans.company_id', Auth::user()->company_id);
+                break;
+        }
+
+        $dateColumn = $dateField === 'next_due_date' ? 'loans.next_due_date' : 'loans.created_at';
+
+        if ($fromDate && $toDate) {
+            $query->whereBetween($dateColumn, [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
+        } elseif ($fromDate) {
+            $query->whereDate($dateColumn, '>=', $fromDate);
+        } elseif ($toDate) {
+            $query->whereDate($dateColumn, '<=', $toDate);
+        }
+
+        if ($companyId) {
+            $query->where('loans.company_id', $companyId);
+        }
+
+        if ($interestGroup) {
+            $query->where('loans.interest_group', $interestGroup);
+        }
+
+        if ($status) {
+            $query->where('loans.status', $status);
+        }
+
+        if (!empty($search)) {
+            $query->where(function ($q) use ($search) {
+                $q->where('customers.customer_name', 'like', "%{$search}%")
+                ->orWhere('loans.loan_code', 'like', "%{$search}%")
+                ->orWhere('loans.status', 'like', "%{$search}%");
+            });
+        }
+
+        $loans = $query->orderBy('loans.interest_group')
+            ->orderBy('loans.loan_code')
+            ->get();
+
+        $loanIds = $loans->pluck('id');
+
+        $lastPayments = DB::table('payments')
+            ->select(
+                'loan_id',
+                DB::raw('MAX(created_at) as last_pay_date'),
+                DB::raw('SUM(COALESCE(top_up,0)) as total_top_up')
+            )
+            ->whereIn('loan_id', $loanIds)
+            ->groupBy('loan_id')
+            ->get()
+            ->keyBy('loan_id');
+
+        return $loans->map(function ($loan) use ($lastPayments) {
+            $extra = $lastPayments->get($loan->id);
+
+            return [
+                'system_code'      => $loan->loan_code,
+                'customer_name'    => $loan->customer_name,
+                'loan_code'        => $loan->loan_code,
+                'user'             => $loan->created_by_name,
+                'loan_date'        => optional($loan->created_at)->format('Y-m-d'),
+                'next_due_date'    => $loan->next_due_date,
+                'last_pay_date'    => $loan->updated_at,
+                'total_to_collect' => (float) $loan->payment,
+                'loan_amount'      => (float) $loan->loan_amount,
+                'interest_collect' => (float) $loan->interest,
+                'top_up'           => (float) ($extra->total_top_up ?? 0),
+                'processing_fee'   => (float) $loan->processing_fee,
+                'capital'          => (float) $loan->capital,
+                'discount'         => (float) $loan->discount,
+                'loan_balance'     => (float) $loan->balance,
+                'status'           => $loan->status,
+                'interest_group'   => $loan->interest_group ?: 'Ungrouped',
+            ];
+        });
+    }
+
+    public function calculateTotals($rows)
+    {
+        return [
+            'total_to_collect' => $rows->sum('total_to_collect'),
+            'loan_amount'      => $rows->sum('loan_amount'),
+            'interest_collect' => $rows->sum('interest_collect'),
+            'top_up'           => $rows->sum('top_up'),
+            'processing_fee'   => $rows->sum('processing_fee'),
+            'capital'          => $rows->sum('capital'),
+            'discount'         => $rows->sum('discount'),
+            'loan_balance'     => $rows->sum('loan_balance'),
+        ];
+    }
 }
