@@ -1,30 +1,30 @@
 @extends('layouts.app')
 @section('content')
 <header class="page-header">
-    <h2>{{ __('table.loan_listing_by_interest') ?? 'Loan Listing by Interest Total' }}</h2>
+    <h2>{{ __('table.loan_listing_by_interest') }}</h2>
 </header>
 @include('layouts.flash-message')
 
 <div class="row mb-3">
     <div class="col-md-2">
-        <label>Date Field</label>
+        <label>{{ __('table.date_field') }}</label>
         <select id="filter_date_field" class="form-control">
-            <option value="loan_date">Loan Date</option>
-            <option value="next_due_date">Next Pay Date</option>
+            <option value="loan_date">{{ __('table.loan_date') }}</option>
+            <option value="next_due_date">{{ __('table.next_date') }}</option>
         </select>
     </div>
     <div class="col-md-2">
-        <label>From Date</label>
+        <label>{{ __('table.from_date') }}</label>
         <input type="date" id="filter_from_date" class="form-control">
     </div>
     <div class="col-md-2">
-        <label>To Date</label>
+        <label>{{ __('table.to_date') }}</label>
         <input type="date" id="filter_to_date" class="form-control">
     </div>
     <div class="col-md-2">
-        <label>Company</label>
+        <label>{{ __('table.company') }}</label>
         <select id="filter_company" class="form-control">
-            <option value="">All Companies</option>
+            <option value="">{{ __('table.all_companies') }}</option>
             @foreach($companies as $company)
                 <option value="{{ $company->id }}">
                     {{ $company->company_name }} ({{ $company->company_code }})
@@ -33,18 +33,18 @@
         </select>
     </div>
     <div class="col-md-2">
-        <label>Interest Group</label>
+        <label>{{ __('table.interest_group') }}</label>
         <select id="filter_interest_group" class="form-control">
-            <option value="">All Groups</option>
+            <option value="">{{ __('table.all_groups') }}</option>
             @foreach($interestGroups as $group)
                 <option value="{{ $group }}">{{ $group }}</option>
             @endforeach
         </select>
     </div>
     <div class="col-md-2">
-        <label>Status</label>
+        <label>{{ __('table.status') }}</label>
         <select id="filter_status" class="form-control">
-            <option value="">All Status</option>
+            <option value="">{{ __('table.all_status') }}</option>
             <option value="Active">Active</option>
             <option value="Closed">Closed</option>
             <option value="Overdue">Overdue</option>
@@ -54,13 +54,13 @@
 
 <div class="row mb-3">
     <div class="col-md-4">
-        <label>Search (Customer / Loan Code / Status)</label>
-        <input type="text" id="filter_search" class="form-control" placeholder="Type to search...">
+        <label>{{ __('table.search') }} ({{ __('table.customer_name') }} / {{ __('table.loan_code') }} / {{ __('table.status') }})</label>
+        <input type="text" id="filter_search" class="form-control" placeholder="{{ __('table.search') }}...">
     </div>
     <div class="col-md-4 d-flex align-items-end">
-        <button class="btn btn-primary me-2" id="btn-filter">Filter</button>
+        <button class="btn btn-primary me-2" id="btn-filter">{{ __('table.filter') }}</button>
         <a href="#" id="btn-print" class="btn btn-outline-secondary" target="_blank">
-            🖨 Print / Export PDF
+            🖨 {{ __('table.print_export_pdf') }}
         </a>
     </div>
 </div>
@@ -72,30 +72,30 @@
                 <table class="table cus-table table-bordered table-striped mb-0" id="table-loan-list">
                     <thead>
                         <tr>
-                            <th style="display:none">Interest Group</th>
-                            <th>System Code</th>
-                            <th>Customer Name</th>
-                            <th>Loan Code</th>
-                            <th>User</th>
-                            <th>Loan Date</th>
-                            <th>Next Date</th>
-                            <th>Last Pay</th>
-                            <th>Total to Collect</th>
-                            <th>Loan Amt</th>
-                            <th>Interest Collect</th>
-                            <th>Top Up</th>
-                            <th>Process Fee</th>
-                            <th>Capital</th>
-                            <th>Discount</th>
-                            <th>Loan Balance</th>
-                            <th>Status</th>
+                            <th style="display:none">{{ __('table.interest_group') }}</th>
+                            <th>{{ __('table.system_code') }}</th>
+                            <th>{{ __('table.customer_name') }}</th>
+                            <th>{{ __('table.loan_code') }}</th>
+                            <th>{{ __('table.user') }}</th>
+                            <th>{{ __('table.loan_date') }}</th>
+                            <th>{{ __('table.next_date') }}</th>
+                            <th>{{ __('table.last_pay') }}</th>
+                            <th>{{ __('table.total_to_collect') }}</th>
+                            <th>{{ __('table.loan_amt') }}</th>
+                            <th>{{ __('table.interest_collect') }}</th>
+                            <th>{{ __('table.top_up') }}</th>
+                            <th>{{ __('table.process_fee') }}</th>
+                            <th>{{ __('table.capital') }}</th>
+                            <th>{{ __('table.discount') }}</th>
+                            <th>{{ __('table.loan_balance') }}</th>
+                            <th>{{ __('table.loan_status') }}</th>
                         </tr>
                     </thead>
                     <tbody></tbody>
                     <tfoot>
                         <tr>
                             <th style="display:none"></th>
-                            <th colspan="7" class="text-end">Grand Total:</th>
+                            <th colspan="7" class="text-end">{{ __('table.grand_total') }}:</th>
                             <th id="gt_total_to_collect"></th>
                             <th id="gt_loan_amount"></th>
                             <th id="gt_interest_collect"></th>
@@ -163,7 +163,7 @@
                         Object.keys(totals).forEach(k => totals[k] += parseFloat(row[k]) || 0);
                     });
                     return $('<tr/>')
-                        .append(`<td colspan="8"><strong>${group}</strong> (${rows.count()} loans)</td>`)
+                        .append(`<td colspan="8"><strong>${group}</strong> (${rows.count()} @lang('table.loan_code'))</td>`)
                         .append(`<td><strong>${money(totals.total_to_collect)}</strong></td>`)
                         .append(`<td><strong>${money(totals.loan_amount)}</strong></td>`)
                         .append(`<td><strong>${money(totals.interest_collect)}</strong></td>`)
