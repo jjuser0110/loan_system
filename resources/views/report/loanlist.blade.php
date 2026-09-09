@@ -7,13 +7,6 @@
 
 <div class="row mb-3">
     <div class="col-md-2">
-        <label>{{ __('table.date_field') }}</label>
-        <select id="filter_date_field" class="form-control">
-            <option value="loan_date">{{ __('table.loan_date') }}</option>
-            <option value="next_due_date">{{ __('table.next_date') }}</option>
-        </select>
-    </div>
-    <div class="col-md-2">
         <label>{{ __('table.from_date') }}</label>
         <input type="date" id="filter_from_date" class="form-control">
     </div>
@@ -46,7 +39,7 @@
         <select id="filter_status" class="form-control">
             <option value="">{{ __('table.all_status') }}</option>
             <option value="Active">Active</option>
-            <option value="Closed">Closed</option>
+            <option value="Fully Paid">Fully Paid</option>
             <option value="Overdue">Overdue</option>
         </select>
     </div>
@@ -126,7 +119,6 @@
 
     function currentFilters() {
         return {
-            date_field:     $('#filter_date_field').val(),
             from_date:      $('#filter_from_date').val(),
             to_date:        $('#filter_to_date').val(),
             company_id:     $('#filter_company').val(),
