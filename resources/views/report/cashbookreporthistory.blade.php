@@ -107,7 +107,7 @@ $(document).ready(function () {
         stateSave:    true,
         searching:    false,
         deferLoading: 0,
-        lengthMenu:   [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
+        lengthMenu: [[100, 500, 1000, 100000000], [100, 500, 1000, 'All']],
         dom:          'lrtip',
         ajax: {
             url:  "{{ route('report.load_cash_book_report_history') }}",
@@ -361,7 +361,7 @@ $(document).ready(function () {
                            + parseFloat(fr.expenses             || 0);
 
                     doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-                    doc.text('Cash Book Report', PW / 2, 12, { align: 'center' });
+                    doc.text('Cash Book Report History', PW / 2, 12, { align: 'center' });
                     doc.setFontSize(9); doc.setFont('helvetica', 'normal');
                     let sub = [];
                     if (companyLabel && company) sub.push('Company: ' + companyLabel);

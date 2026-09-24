@@ -107,6 +107,7 @@
             processing: true,
             serverSide: true,
             pageLength: 10,
+            lengthMenu: [[100, 500, 1000, 100000000], [100, 500, 1000, 'All']],
             ajax: {
                 url: "{{ route('reference.fetch') }}",
                 type: "GET",

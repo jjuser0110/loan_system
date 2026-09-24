@@ -36,12 +36,24 @@
     </div>
     <div class="col-md-2">
         <label>{{ __('table.status') }}</label>
-        <select id="filter_status" class="form-control">
-            <option value="">{{ __('table.all_status') }}</option>
-            <option value="Active">Active</option>
-            <option value="Fully Paid">Fully Paid</option>
-            <option value="Overdue">Overdue</option>
-        </select>
+        <div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="status_all" checked>
+                <label class="form-check-label" for="status_all">{{ __('table.all_status') }}</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input status-check" type="checkbox" value="Active" id="status_active" checked>
+                <label class="form-check-label" for="status_active">Active</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input status-check" type="checkbox" value="Fully Paid" id="status_fully_paid" checked>
+                <label class="form-check-label" for="status_fully_paid">Fully Paid</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input status-check" type="checkbox" value="Overdue" id="status_overdue" checked>
+                <label class="form-check-label" for="status_overdue">Overdue</label>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -66,6 +78,7 @@
                     <thead>
                         <tr>
                             <th style="display:none">{{ __('table.interest_group') }}</th>
+                            <th>No</th>
                             <th>{{ __('table.system_code') }}</th>
                             <th>{{ __('table.customer_name') }}</th>
                             <th>{{ __('table.loan_code') }}</th>
@@ -88,7 +101,7 @@
                     <tfoot>
                         <tr>
                             <th style="display:none"></th>
-                            <th colspan="7" class="text-end">{{ __('table.grand_total') }}:</th>
+                            <th colspan="8" class="text-end">{{ __('table.grand_total') }}:</th>
                             <th id="gt_total_to_collect"></th>
                             <th id="gt_loan_amount"></th>
                             <th id="gt_interest_collect"></th>
@@ -117,13 +130,17 @@
     let table_loan_list;
     const money = v => (parseFloat(v) || 0).toLocaleString('en-MY', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+    function selectedStatuses() {
+        return $('.status-check:checked').map(function () { return this.value; }).get();
+    }
+
     function currentFilters() {
         return {
             from_date:      $('#filter_from_date').val(),
             to_date:        $('#filter_to_date').val(),
             company_id:     $('#filter_company').val(),
             interest_group: $('#filter_interest_group').val(),
-            status:         $('#filter_status').val(),
+            status:         selectedStatuses().join(','),
             search:         $('#filter_search').val(),
         };
     }
@@ -133,6 +150,11 @@
         return "{{ route('report.loan_list_pdf') }}?" + params.toString();
     }
 
+    $.fn.dataTable.ext.search.push(function (settings, data, dataIndex, rowData) {
+        if (settings.nTable.id !== 'table-loan-list') return true;
+        return selectedStatuses().includes(rowData.status);
+    });
+
     $(document).ready(function () {
         table_loan_list = $('#table-loan-list').DataTable({
             processing: true,
@@ -140,13 +162,15 @@
             searching: true,
             paging: true,
             info: true,
-            order: [[0, 'asc'], [3, 'asc']],   // 0 = hidden interest_group, 3 = loan_code
+            order: [[0, 'asc'], [4, 'asc']],
+            lengthMenu: [[100, 500, 1000, 100000000], [100, 500, 1000, 'All']],
             columnDefs: [
                 { targets: 0, visible: false, searchable: false }
             ],
             rowGroup: {
                 dataSrc: 'interest_group',
-                startRender: function (rows, group) {
+                startRender: null,
+                endRender: function (rows, group) {
                     const totals = {
                         total_to_collect: 0, loan_amount: 0, interest_collect: 0,
                         top_up: 0, processing_fee: 0, capital: 0, discount: 0, loan_balance: 0,
@@ -170,10 +194,15 @@
             ajax: {
                 url: "{{ route('report.load_loan_list') }}",
                 type: 'GET',
-                data: function (d) { return Object.assign(d, currentFilters()); }
+                data: function (d) {
+                    const f = currentFilters();
+                    delete f.status;
+                    return Object.assign(d, f);
+                }
             },
             columns: [
                 { data: 'interest_group' },
+                { data: null, defaultContent: '', orderable: false, searchable: false },
                 { data: 'system_code' },
                 { data: 'customer_name' },
                 { data: 'loan_code' },
@@ -208,6 +237,13 @@
                 $('#gt_capital').html(money(totals.capital));
                 $('#gt_discount').html(money(totals.discount));
                 $('#gt_loan_balance').html(money(totals.loan_balance));
+            },
+            drawCallback: function () {
+                let n = this.api().page.info().start;
+                $('#table-loan-list tbody tr').not('.dtrg-group, .dtrg-end').each(function () {
+                    n++;
+                    $(this).find('td:first').text(n);
+                });
             }
         });
 
@@ -216,6 +252,19 @@
 
     $('#btn-filter').on('click', function () {
         table_loan_list.ajax.reload();
+        $('#btn-print').attr('href', buildPrintUrl());
+    });
+
+    $('#status_all').on('change', function () {
+        $('.status-check').prop('checked', this.checked);
+        table_loan_list.draw();
+        $('#btn-print').attr('href', buildPrintUrl());
+    });
+
+    $('.status-check').on('change', function () {
+        const allChecked = $('.status-check:checked').length === $('.status-check').length;
+        $('#status_all').prop('checked', allChecked);
+        table_loan_list.draw();
         $('#btn-print').attr('href', buildPrintUrl());
     });
 </script>

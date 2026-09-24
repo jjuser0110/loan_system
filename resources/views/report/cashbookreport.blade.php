@@ -92,7 +92,7 @@ $(document).ready(function () {
         stateSave:    true,
         searching:    false,
         deferLoading: 0,
-        lengthMenu:   [[10, 100, 500, 1000], ['10', '100', '500', '1000']],
+        lengthMenu: [[100, 500, 1000, 100000000], [100, 500, 1000, 'All']],
         dom:          'lrtip',
         ajax: {
             url:  "{{ route('report.load_cash_book_reports') }}",

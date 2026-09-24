@@ -667,6 +667,8 @@ class PaymentController extends Controller
 
                 $this->loanController->update_loan_misc($loan);
 
+                $this->syncLoanOutstandingAndStatus($loan);
+
                 if ($newBalanceAfterTopUp <= 0) {
                     $loan->update(['next_due_amount' => 0]);
                 } else {
@@ -1110,6 +1112,8 @@ class PaymentController extends Controller
 
                     $this->loanController->update_loan_misc($loan);
 
+                    $this->syncLoanOutstandingAndStatus($loan);
+
                     if ($finalBalanceB <= 0) {
                         $loan->update(['next_due_amount' => 0]);
                     } else {
@@ -1541,6 +1545,8 @@ class PaymentController extends Controller
 
                 $this->loanController->update_loan_misc($loan);
 
+                $this->syncLoanOutstandingAndStatus($loan);
+
             }
             else {
                 throw new Exception('Invalid interest group.');
@@ -1572,5 +1578,47 @@ class PaymentController extends Controller
         }
 
         return $loanCode . '-S001';
+    }
+
+    private function syncLoanOutstandingAndStatus(Loan $loan): void
+    {
+        $loan->refresh();
+
+        $outstanding = round(max(0, $loan->balance + $loan->late_balance + $loan->interest_balance), 2);
+        $data = ['outstanding' => $outstanding];
+
+        if ($outstanding <= 0) {
+            $data['status'] = 'Fully Paid';
+        } elseif ($loan->status === 'Fully Paid') {
+            // 删除或编辑付款后又有欠款，要变回来
+            $data['status'] = 'Active';
+        }
+
+        $loan->update($data);
+    }
+
+    public function loan_info(Request $request)
+    {
+        $loan = Loan::with('company')->where('loan_code', $request->loan_code)->first();
+
+        if (!$loan || $this->accessToLoan($loan) == false) {
+            return response()->json(['success' => false, 'message' => 'Loan not found.']);
+        }
+
+        return response()->json([
+            'success'          => true,
+            'loan_code'        => $loan->loan_code,
+            'interest_group'   => $loan->interest_group,
+            'company_code'     => $loan->company->company_code ?? null,
+            'balance'          => $loan->balance,
+            'late_balance'     => $loan->late_balance,
+            'next_due_amount'  => $loan->next_due_amount,
+            'next_due_date'    => $loan->next_due_date,
+            'first_payment'    => $loan->first_payment ?? 0,
+            'interest_rate'    => $loan->interest_rate ?? 0,
+            'interest_amount'  => ($loan->balance / 100) * $loan->interest_rate,
+            // adjust if LoanController computes $scheduleCount differently
+            'schedule_count'   => PaymentSchedule::where('loan_code', $loan->loan_code)->count(),
+        ]);
     }
 }

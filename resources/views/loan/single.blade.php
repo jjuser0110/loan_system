@@ -103,12 +103,14 @@
                 <li class="nav-item">
                     <a class="nav-link" data-bs-target="#payment" href="#payment" data-bs-toggle="tab">{{ __('table.payment') }}</a>
                 </li>
+                @if($loan)
                 <li class="nav-item">
                     <a class="nav-link" 
                     href="{{ url('customer/' . $loan->customer_id . '/edit#loan') }}">
                         {{ __('table.all_loan') }}
                     </a>
                 </li>
+                @endif
             </ul>
              <div class="tab-content">
                 <div id="overview" class="tab-pane active">
@@ -631,6 +633,9 @@
                             <div class="mb-3" style="text-align: right;">
                                 <a class="btn btn-xs btn-square btn-success me-1" onclick="exportPaymentReport()">
                                     <i class="fas fa-file-excel"></i> {{ __('table.payment_report') }}
+                                </a>
+                                <a class="btn btn-xs btn-square btn-danger me-1" onclick="exportPaymentPdf()">
+                                    <i class="fas fa-file-pdf"></i> PDF
                                 </a>
                                 <a class="btn btn-xs btn-square btn-primary" onclick="new bootstrap.Modal('#modal-add-payment').show()">
                                     {{ __('table.create') }}
@@ -1556,8 +1561,8 @@
     const loanInterest       = {{ $loan->interest ?? 0 }};
     const loanInterestPaid   = {{ $loan->interest_paid ?? 0 }};
     const interestRemaining  = loanInterest - loanInterestPaid;
-    const loanInterestAmount = {{ ($loan->balance / 100) * $loan->interest_rate ?? 0 }};
-    const loanNextDueDate = "{{ $loan->next_due_date ?? '' }}";
+    const loanInterestAmount = {{ $loan ? (($loan->balance / 100) * $loan->interest_rate) : 0 }};
+    const loanNextDueDate    = "{{ $loan->next_due_date ?? '' }}";
 
     function applyScheduleMultiplier(schedule) {
         const multiplier     = parseInt(schedule) || 0;
@@ -1655,7 +1660,7 @@
     }
 
     // init on page load
-    applyAddPaymentType('DEFAULT');
+    if (document.getElementById('add-payment-type')) applyAddPaymentType('DEFAULT');
 
     function deletePayment(rowIndex) {
         const data = table_payment.row(rowIndex).data();
@@ -1710,7 +1715,7 @@
                 }
             },
             error: function (xhr) {
-                setDefaultSwal('There is something wrong, please try again.');
+                setDefaultSwal('error','','There is something wrong, please try again.');
             }
         });
     });
@@ -1760,7 +1765,7 @@
                 }
             },
             error: function (xhr) {
-                setDefaultSwal('There is something wrong, please try again.');
+                setDefaultSwal('error','','There is something wrong, please try again.');
             }
         });
     });
@@ -1775,7 +1780,7 @@
             data: formData,
             processData: false,
             contentType: false,
-            header: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
+            headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}"},
             success: function (response) {
                 if(response.success == true){
                     setReloadSwal('success','',response.message);
@@ -1849,21 +1854,19 @@
         }
     }
 
-    document.getElementById('loan-status').addEventListener('change', function() {
-        $.ajax({
-            url: "{{ route('loan.update_status', $loan->loan_code) }}",
-            type: "POST",
-            data: { status: this.value },
-            headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
-            success: function() {
-                location.reload();
-            },
-            error: function(xhr) {
-                console.log(xhr.responseText); // check browser console for actual error
-                alert('Failed to update status');
-            }
+    const loanStatusSelect = document.getElementById('loan-status');
+    if (loanStatusSelect) {
+        loanStatusSelect.addEventListener('change', function() {
+            $.ajax({
+                url: "{{ $loan ? route('loan.update_status', $loan->loan_code) : '' }}",
+                type: "POST",
+                data: { status: this.value },
+                headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+                success: function() { location.reload(); },
+                error: function(xhr) { console.log(xhr.responseText); alert('Failed to update status'); }
+            });
         });
-    });
+    }
 
     function activateTabFromHash() {
         const hash = window.location.hash || '#overview';
@@ -1956,50 +1959,187 @@ function calculateCapital() {
 document.addEventListener('DOMContentLoaded', function () {
     const loanAmount = document.getElementById('loan-amount');
     const processingFee = document.querySelector('input[name="processing_fee"]');
+    if (!loanAmount || !processingFee) return;
 
     loanAmount.addEventListener('input', calculateCapital);
     processingFee.addEventListener('input', calculateCapital);
 });
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
 <script>
-function exportPaymentReport() {
-    const table = $('#table-payments').DataTable();
-    const rows = table.rows({ search: 'applied' }).data().toArray();
+const PAYMENT_LOAN_CODE = "{{ $loan->loan_code ?? '' }}";
+const PAYMENT_LOAD_URL  = "{{ route('payment.load_payment',['loan_code'=>':loan_code']) }}".replace(':loan_code', PAYMENT_LOAN_CODE);
 
-    const headers = [
-        '{{ __("table.payment_code") }}',
-        '{{ __("table.payment_date") }}',
-        '{{ __("table.sched") }}',
-        '{{ __("table.paid") }}',
-        '{{ __("table.discount") }}',
-        '{{ __("table.int_paid") }}',
-        '{{ __("table.late_paid") }}',
-        '{{ __("table.top_up_cap") }}',
-        '{{ __("table.top_up_amt") }}',
-        '{{ __("table.balance") }}',
-        '{{ __("table.remark") }}',
-        '{{ __("table.type") }}',
-        '{{ __("table.loan_code") }}',
-    ];
+const PAYMENT_EXPORT_HEADERS = [
+    '{{ __("table.payment_code") }}',
+    '{{ __("table.payment_date") }}',
+    '{{ __("table.sched") }}',
+    '{{ __("table.paid") }}',
+    '{{ __("table.discount") }}',
+    '{{ __("table.int_paid") }}',
+    '{{ __("table.late_paid") }}',
+    '{{ __("table.top_up_cap") }}',
+    '{{ __("table.top_up_amt") }}',
+    '{{ __("table.balance") }}',
+    '{{ __("table.remark") }}',
+    '{{ __("table.type") }}',
+    '{{ __("table.loan_code") }}',
+];
 
-    let csv = '\uFEFF' + headers.join(',') + '\n';
-    rows.forEach(row => {
-        const cols = Array.isArray(row) ? row : Object.values(row);
-        const data = cols.slice(0, headers.length).map(val => {
-            const clean = String(val ?? '').replace(/<[^>]+>/g, '').replace(/"/g, '""');
-            return `"${clean}"`;
-        });
-        csv += data.join(',') + '\n';
+// Fetch ALL payments of this loan (not just the current table page)
+async function fetchAllPaymentsForExport() {
+    const params = new URLSearchParams({
+        draw: 1,
+        start: 0,
+        length: 100000000,
+        'search[value]': '',
+        'order[0][column]': 1,          // payment date
+        'order[0][dir]': 'asc',         // ascending so running balance is correct
+        'columns[1][data]': 'created_at'
+    });
+    const sep = PAYMENT_LOAD_URL.includes('?') ? '&' : '?';
+
+    const res = await fetch(PAYMENT_LOAD_URL + sep + params.toString(), {
+        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+    });
+    const json = await res.json();
+    if (json.success === false) throw new Error(json.message || 'Failed to load payments.');
+    return json.data || [];
+}
+
+// Convert server rows into the same columns as the table
+function buildPaymentExport(data) {
+    const money = v => {
+        const n = parseFloat(v);
+        return (isNaN(n) || n === 0) ? '-' : n.toFixed(2);
+    };
+    const fmtDate = v => {
+        if (!v) return '-';
+        const p = String(v).substring(0, 10).split('-');
+        return `${p[2]}-${p[1]}-${p[0]}`;
+    };
+    const sum = key => data.reduce((t, r) => t + (parseFloat(r[key]) || 0), 0);
+
+    const rows = data.map(r => {
+        const isSkimA = (r.collection_type ?? '').trim().toUpperCase() === 'SKIM A';
+        const sched   = isSkimA ? 1 : (r.installment_calc ?? '-');
+        const bal     = r.deducted_balance == null ? '-' : parseFloat(r.deducted_balance).toFixed(2);
+
+        return [
+            r.payment_code ?? '-',
+            fmtDate(r.created_at),
+            sched,
+            (parseFloat(r.payment_amount) || 0).toFixed(2),
+            money(r.discount_amount),
+            money(r.interest_paid_amount),
+            money(r.late_paid_amount),
+            money(r.top_up_capital),
+            money(r.top_up),
+            bal,
+            r.remark || '-',
+            r.collection_type ?? '-',
+            r.loan_code ?? '-',
+        ];
     });
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url  = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href     = url;
-    link.download = 'payment_report_{{ now()->format("Ymd_His") }}.csv';
-    link.click();
-    URL.revokeObjectURL(url);
+    const totals = [
+        'TOTAL', '', '',
+        sum('payment_amount').toFixed(2),
+        sum('discount_amount').toFixed(2),
+        sum('interest_paid_amount').toFixed(2),
+        sum('late_paid_amount').toFixed(2),
+        sum('top_up_capital').toFixed(2),
+        sum('top_up').toFixed(2),
+        '', '', '', ''
+    ];
+
+    return { rows, totals };
+}
+
+async function exportPaymentReport() {
+    try {
+        const data = await fetchAllPaymentsForExport();
+        if (data.length === 0) {
+            setDefaultSwal('error', '', 'No payments to export.');
+            return;
+        }
+        const { rows, totals } = buildPaymentExport(data);
+
+        const esc = v => `"${String(v ?? '').replace(/<[^>]+>/g, '').replace(/"/g, '""')}"`;
+        let csv = '\uFEFF' + PAYMENT_EXPORT_HEADERS.map(esc).join(',') + '\n';
+        rows.forEach(r => { csv += r.map(esc).join(',') + '\n'; });
+        csv += totals.map(esc).join(',') + '\n';
+
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const url  = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href     = url;
+        link.download = `payment_report_${PAYMENT_LOAN_CODE}_{{ now()->format("Ymd_His") }}.csv`;
+        link.click();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        setDefaultSwal('error', '', err.message || 'Export failed.');
+    }
+}
+
+async function exportPaymentPdf() {
+    try {
+        if (!window.jspdf) {
+            setDefaultSwal('error', '', 'PDF library failed to load. Please refresh and try again.');
+            return;
+        }
+        const data = await fetchAllPaymentsForExport();
+        if (data.length === 0) {
+            setDefaultSwal('error', '', 'No payments to export.');
+            return;
+        }
+        const { rows, totals } = buildPaymentExport(data);
+
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+
+        const customer = data[0].customer_name ?? '';
+        doc.setFontSize(14);
+        doc.text('{{ __("table.payment_report") }}', 40, 36);
+        doc.setFontSize(9);
+        doc.text(`{{ __("table.loan_code") }}: ${PAYMENT_LOAN_CODE}` + (customer ? `   |   ${customer}` : ''), 40, 52);
+        doc.text(`Generated: {{ now()->format("d-m-Y H:i") }}`, 40, 65);
+
+        doc.autoTable({
+            head: [PAYMENT_EXPORT_HEADERS],
+            body: rows,
+            foot: [totals],
+            startY: 75,
+            theme: 'grid',
+            styles: { fontSize: 7, cellPadding: 3, overflow: 'linebreak' },
+            headStyles: { fillColor: [41, 98, 168], textColor: 255 },
+            footStyles: { fillColor: [230, 230, 230], textColor: 20, fontStyle: 'bold' },
+            columnStyles: {
+                2:  { halign: 'center' },
+                3:  { halign: 'right' },
+                4:  { halign: 'right' },
+                5:  { halign: 'right' },
+                6:  { halign: 'right' },
+                7:  { halign: 'right' },
+                8:  { halign: 'right' },
+                9:  { halign: 'right' },
+                10: { cellWidth: 90 }
+            },
+            didDrawPage: function () {
+                doc.setFontSize(8);
+                doc.text('Page ' + doc.internal.getNumberOfPages(),
+                    doc.internal.pageSize.getWidth() - 60,
+                    doc.internal.pageSize.getHeight() - 20);
+            }
+        });
+
+        doc.save(`payment_report_${PAYMENT_LOAN_CODE}_{{ now()->format("Ymd_His") }}.pdf`);
+    } catch (err) {
+        setDefaultSwal('error', '', err.message || 'PDF export failed.');
+    }
 }
 </script>
 
@@ -2035,17 +2175,19 @@ $('#modal-add-payment').on('shown.bs.modal', function () {
     updatePaymentTypeOptions();
 });
 
-document.getElementById('add-pay-date').addEventListener('change', function() {
-    const date = new Date(this.value);
-    // Y-n-j format (no leading zeros)
-    const formatted = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
-    document.getElementById('display-pay-date').textContent = formatted;
+if (document.getElementById('add-pay-date')) {
+    document.getElementById('add-pay-date').addEventListener('change', function() {
+        const date = new Date(this.value);
+        // Y-n-j format (no leading zeros)
+        const formatted = date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate();
+        document.getElementById('display-pay-date').textContent = formatted;
 
-    const scheduleVal = document.getElementById('add-input-schedule').value;
-    if (scheduleVal && scheduleVal != 0) {
-        applyScheduleMultiplier(scheduleVal);
-    }
-});
+        const scheduleVal = document.getElementById('add-input-schedule').value;
+        if (scheduleVal && scheduleVal != 0) {
+            applyScheduleMultiplier(scheduleVal);
+        }
+    });
+}
 </script>
 
 @endsection

@@ -68,23 +68,11 @@ $currentRoute = request()->route()->getName();
                             </li>
                         </ul>
                     </li>
-                    <li class="nav-parent {{ request()->routeIs('payment.*') ? 'nav-expanded nav-active' : ''}}">
-                        <a class="nav-link" href="#">
-                            <i class="far fa-money-bill-alt" aria-hidden="true"></i>
+                    <li class=" {{ request()->routeIs('payment.*') ? 'nav-active' : ''}}">
+                        <a class="nav-link" href="{{route('payment.index')}}">
+                            <i class="far fa-file-alt" aria-hidden="true"></i>
                             <span>{{ __('sidebar.payment') }}</span>
                         </a>
-                        <ul class="nav nav-children">
-                            <li class="{{ request()->routeIs('payment.index') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{route('payment.index')}}">
-                                    {{ __('sidebar.all_payments') }}
-                                </a>
-                            </li>
-                            <li class="{{ request()->routeIs('payment.create') ? 'nav-active' : ''}}">
-                                <a class="nav-link" href="{{route('payment.create')}}">
-                                    {{ __('sidebar.create_payment') }}
-                                </a>
-                            </li>
-                        </ul>
                     </li>
                     @if(Auth::user()->role_id != 4)
                     <li class="nav-parent {{ request()->routeIs('report.*') ? 'nav-expanded nav-active' : ''}}">

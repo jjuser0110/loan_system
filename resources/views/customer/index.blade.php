@@ -124,7 +124,7 @@
             "processing": true,
             "serverSide": true,
             "fixedHeader": false,
-            "lengthMenu": [[10, 100, 500, 1000], [10, 100, 500, 1000]],
+            "lengthMenu": [[100, 500, 1000, 100000000], [100, 500, 1000, 'All']],
             "ajax": {
                 "url": "{{ route('customer.fetch') }}",
                 "type": "GET",
