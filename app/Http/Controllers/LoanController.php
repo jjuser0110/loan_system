@@ -378,10 +378,43 @@ class LoanController extends Controller
             // clone query for totals BEFORE search/filter applied
             $totalQuery = clone $query;
             $recordsTotal = $totalQuery->count();
-            $total_loan_amount = $totalQuery->sum('loans.loan_amount');
-            $total_balance = $totalQuery->sum('loans.balance');
-            $total_outstanding = $totalQuery->sum('loans.outstanding');
-            $total_profit = $totalQuery->sum('loans.paid') - $totalQuery->sum('loans.capital');
+
+            // ---- TOTALS: separate query, deleted loans are never counted ----
+            // Loan::query() excludes soft-deleted rows by default
+            $totalsBase = Loan::query()
+                ->join('customers', 'customers.id', '=', 'loans.customer_id')
+                ->join('companies', 'companies.id', '=', 'loans.company_id')
+                ->join('branches', 'branches.id', '=', 'companies.branch_id');
+
+            switch (Auth::user()->role_id) {
+                case 1:
+                    break;
+                case 2:
+                    $totalsBase->where('companies.branch_id', Auth::user()->branch_id);
+                    break;
+                case 3:
+                case 4:
+                    $totalsBase->where('loans.company_id', Auth::user()->company_id);
+                    break;
+            }
+
+            if ($request->customer_code) {
+                $totalsBase->where('customers.customer_code', $request->customer_code);
+            }
+
+            // Loan amount / balance / outstanding: still follow the "hide fully paid" checkbox
+            $totalsFiltered = clone $totalsBase;
+            if ($request->hide_fully_paid == 1) {
+                $totalsFiltered->where('loans.status', '!=', 'Fully Paid');
+            }
+            $total_loan_amount = (clone $totalsFiltered)->sum('loans.loan_amount');
+            $total_balance     = (clone $totalsFiltered)->sum('loans.balance');
+            $total_outstanding = (clone $totalsFiltered)->sum('loans.outstanding');
+
+            // Profit: all loans (Fully Paid included, checkbox ignored) + Int + Late
+            $total_profit = (clone $totalsBase)
+                ->selectRaw('COALESCE(SUM(loans.paid + loans.interest_paid + loans.late_paid - loans.capital), 0) as profit')
+                ->value('profit');
 
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
@@ -1130,10 +1163,15 @@ class LoanController extends Controller
 
             } else if ($loan->interest_group == 'SKIM B') {
 
-                $loan_term     = $v['loan_term'];
-                $first_payment = $v['first_payment'];
-                $last_payment  = $v['last_payment'];
-                $processing_fee = $v['processing_fee'];
+                // Safety: never rebuild if payments already exist (the view locks this too)
+                if (Payment::where('loan_id', $loan->id)->exists()) {
+                    throw new Exception('This loan has payments and cannot be edited.');
+                }
+
+                $loan_term      = $v['loan_term'];
+                $first_payment  = $v['first_payment'];
+                $last_payment   = $v['last_payment'];
+                $processing_fee = $v['processing_fee'] ?? 0;   // avoids null error
 
                 $total_loan = $first_payment + $last_payment + ($installment * ($loan_term - 2));
 
@@ -1152,6 +1190,19 @@ class LoanController extends Controller
                     'next_due_amount' => $first_payment,
                     'year_month'      => $v['start_date'] ?? $loan->year_month,
                 ]);
+
+                // Rebuild schedules to match the new term
+                PaymentSchedule::where('loan_code', $loan_code)->forceDelete(); // use delete() if no SoftDeletes
+                $loan->refresh();
+
+                if (!$this->createPaymentSchedule($loan)) {
+                    throw new Exception('Failed to rebuild payment schedule.');
+                }
+
+                // Keep next due date in sync with the new first schedule
+                $firstSchedule = PaymentSchedule::where('loan_code', $loan_code)
+                    ->orderBy('due_date')->first();
+                $loan->update(['next_due_date' => $firstSchedule?->due_date]);
             }
 
             // Save payment_method_logs entries to reflect the capital change

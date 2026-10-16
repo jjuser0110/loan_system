@@ -1264,6 +1264,106 @@
     </div>
 
 </div>
+<!-- ADD PAYMENT MODAL -->
+<div class="modal fade" id="modal-add-payment" tabindex="-1" aria-labelledby="modalAddPaymentLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalAddPaymentLabel">{{ __('table.add_payment') }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="form-add-payment">
+                    @csrf
+                    <input type="hidden" name="loan_code" id="add-loan-code" value="">
+
+                    <div class="col-md-12 mb-3" style="position:relative">
+                        <label class="col-form-label">{{ __('table.loan_code') }}</label>
+                        <input type="text" id="add-loan-search" class="form-control" placeholder="Type at least 3 characters..." autocomplete="off">
+                        <div id="add-loan-dropdown" class="dropdown-menu w-100" style="display:none; max-height:200px; overflow-y:auto; padding:0;"></div>
+                    </div>
+
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">{{ __('table.payment_type') }}</label>
+                        <select class="form-control" id="add-payment-type" onchange="applyAddPaymentType(this.value)" disabled>
+                            <option value="DEFAULT">Option</option>
+                            <option value="CCM">Payment / CCM / Discount</option>
+                            <option value="INTEREST">Pay SKIM A Interest</option>
+                            <option value="LATE">Pay Late</option>
+                            <option value="TOPUP">Top Up</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-12 mb-3" id="add-wrap-schedule" style="display:none">
+                        <label class="col-form-label">Schedule</label>
+                        <select class="form-control" id="add-input-schedule" onchange="applyScheduleMultiplier(this.value)">
+                            <option value="0">-- Select Schedule --</option>
+                        </select>
+                    </div>
+
+                    <div class="row mb-3" id="add-wrap-payment">
+                        <div class="col-md-6">
+                            <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
+                            <input type="number" class="form-control" id="add-input-payment-amount" name="payment_amount" value="0">
+                            <p class="p-note">
+                                <span id="display-group">-</span><br>
+                                {{ __('table.outstanding') }}: <span id="display-balance">0.00</span> &nbsp;&nbsp;&nbsp;
+                                {{ __('table.next_payment') }}: <span id="display-next-amount"></span><br>
+                                <span style="color:blue;">{{ __('table.date') }}: <span id="display-pay-date">{{ now()->format('Y-n-j') }}</span></span> &nbsp;&nbsp;&nbsp;
+                                {{ __('table.due_date') }}: <span id="display-due-date"></span>
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="col-form-label">{{ __('table.discount') }}</label>
+                            <input type="number" class="form-control" name="discount_amount" value="0">
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6" id="add-wrap-topup-capital">
+                            <label class="col-form-label">{{ __('table.top_up_capital') }}</label>
+                            <input type="number" class="form-control" id="add-input-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01" value="0">
+                        </div>
+                        <div class="col-md-6" id="add-wrap-topup">
+                            <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
+                            <input type="number" class="form-control" id="add-input-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
+                        </div>
+                    </div>
+
+                    <div class="col-md-12 mb-3" id="add-wrap-late">
+                        <label class="col-form-label">{{ __('table.late_amount') }}</label>
+                        <input type="number" class="form-control" id="add-input-payment-late" name="late_paid_amount" value="0">
+                        <p class="p-note" id="display-late-balance">0.00</p>
+                    </div>
+
+                    <div class="col-md-12 mb-3" id="add-wrap-interest">
+                        <label class="col-form-label">{{ __('table.interest_amount') }}</label>
+                        <input type="number" class="form-control" id="add-input-payment-interest" name="interest_paid_amount" value="0">
+                        <p class="p-note" id="display-interest-amount">0.00</p>
+                    </div>
+
+                    <input type="hidden" name="collection_type" id="add-collection-type" value="">
+                    <input type="hidden" name="payment_method_id" id="add-payment-method-id" value="">
+
+                    <div class="col-md-12 mb-3">
+                        <label class="col-form-label">{{ __('table.pay_date') }}</label>
+                        <input type="date" class="form-control" id="add-pay-date" name="created_at" value="{{ date('Y-m-d') }}">
+                    </div>
+
+                    <div class="col-12">
+                        <label class="col-form-label">{{ __('table.remark') }}</label>
+                        <textarea class="form-control" name="remark" rows="3" placeholder="Enter remarks..."></textarea>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('table.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary">{{ __('table.submit') }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 @endsection
 
 @section('scripts')
@@ -1558,11 +1658,12 @@
                             title="Create Schedule">
                             <i class="fas fa-calendar-alt"></i>
                             </a>
-                            <a href="{{ route('payment.create', ['loan_code' => ':loan_code']) }}"
+                            <a href="javascript:void(0)"
+                            onclick="openAddPaymentModal(':loan_code')"
                             class="cus-action-icon"
                             style="background-color: #28a745; color: white;"
                             title="Create Payment">
-                            <i class="fas fa-money-check-alt"></i>
+                                <i class="fas fa-money-check-alt"></i>
                             </a>
                             @if(Auth::user()->role_id == 1)
                             <a class="cus-action-icon danger" 
@@ -2227,5 +2328,315 @@
                 });
             });
         }
+    </script>
+
+    <script>
+        // ================= ADD PAYMENT MODAL =================
+        const GREY_STYLE_ADD = 'opacity:0.45; pointer-events:none; user-select:none;';
+        let addLoan = null;
+        let addSearchTimeout;
+
+        function openAddPaymentModal(loanCode = null) {
+            document.getElementById('form-add-payment').reset();
+            addLoan = null;
+            document.getElementById('add-loan-code').value = '';
+            document.getElementById('add-collection-type').value = '';
+            document.getElementById('add-payment-method-id').value = '';
+            document.getElementById('add-loan-dropdown').style.display = 'none';
+            document.getElementById('add-payment-type').disabled = true;
+            document.getElementById('display-group').textContent = '-';
+            document.getElementById('display-balance').textContent = '0.00';
+            document.getElementById('display-next-amount').textContent = '';
+            document.getElementById('display-due-date').textContent = '';
+            document.getElementById('display-late-balance').textContent = '0.00';
+            document.getElementById('display-interest-amount').textContent = '0.00';
+            document.getElementById('display-pay-date').textContent = formatYnj(new Date());
+            document.getElementById('add-input-schedule').innerHTML = '<option value="0">-- Select Schedule --</option>';
+            applyAddPaymentType('DEFAULT');
+
+            // Pre-select the loan when opened from the loan table
+            if (loanCode) {
+                document.getElementById('add-loan-search').value = loanCode;
+                loadAddLoanInfo(loanCode);
+            }
+
+            bootstrap.Modal.getOrCreateInstance(document.getElementById('modal-add-payment')).show();
+        }
+
+        function formatYnj(d) {
+            return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+        }
+
+        // ---- loan search ----
+        const addLoanSearch   = document.getElementById('add-loan-search');
+        const addLoanDropdown = document.getElementById('add-loan-dropdown');
+
+        addLoanSearch.addEventListener('input', function () {
+            const query = this.value;
+            clearTimeout(addSearchTimeout);
+
+            if (addLoan) {
+                addLoan = null;
+                document.getElementById('add-loan-code').value = '';
+                document.getElementById('add-payment-method-id').value = '';
+                document.getElementById('add-collection-type').value = '';
+                document.getElementById('add-payment-type').disabled = true;
+                applyAddPaymentType('DEFAULT');
+            }
+
+            if (query.trim().length < 3) {
+                addLoanDropdown.style.display = 'none';
+                return;
+            }
+            addSearchTimeout = setTimeout(() => searchAddLoans(query), 500);
+        });
+
+        addLoanSearch.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                clearTimeout(addSearchTimeout);
+                if (this.value.trim().length >= 3) searchAddLoans(this.value);
+            }
+        });
+
+        function searchAddLoans(query) {
+            query = query.trim();
+
+            fetch(`{{ route('loan.search_loan') }}?search=${encodeURIComponent(query)}`, {
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            })
+            .then(r => r.json())
+            .then(loans => {
+                if (addLoanSearch.value.trim() !== query) return;
+
+                const exact = loans.find(l => l.loan_code.toLowerCase() === query.toLowerCase());
+                if (exact) {
+                    addLoanSearch.value = exact.loan_code;
+                    addLoanDropdown.style.display = 'none';
+                    loadAddLoanInfo(exact.loan_code);
+                    return;
+                }
+
+                addLoanDropdown.innerHTML = '';
+                if (loans.length === 0) {
+                    addLoanDropdown.innerHTML = '<div class="dropdown-item-text">No loan found</div>';
+                } else {
+                    loans.forEach(loan => {
+                        const item = document.createElement('a');
+                        item.className = 'dropdown-item';
+                        item.href = '#';
+                        item.innerHTML = `<strong>${loan.loan_code}</strong>`;
+                        item.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            addLoanSearch.value = loan.loan_code;
+                            addLoanDropdown.style.display = 'none';
+                            loadAddLoanInfo(loan.loan_code);
+                        });
+                        addLoanDropdown.appendChild(item);
+                    });
+                }
+                addLoanDropdown.style.display = 'block';
+            })
+            .catch(() => {
+                addLoanDropdown.innerHTML = '<div class="dropdown-item-text text-danger">Search failed</div>';
+                addLoanDropdown.style.display = 'block';
+            });
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!addLoanSearch.contains(e.target) && !addLoanDropdown.contains(e.target)) {
+                addLoanDropdown.style.display = 'none';
+            }
+        });
+
+        // ---- load selected loan details ----
+        function loadAddLoanInfo(loanCode) {
+            fetch(`{{ route('payment.loan_info') }}?loan_code=${encodeURIComponent(loanCode)}`, {
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+            })
+            .then(r => r.json())
+            .then(info => {
+                if (!info.success) {
+                    setDefaultSwal('error', '', info.message);
+                    return;
+                }
+                addLoan = info;
+
+                document.getElementById('add-loan-code').value = info.loan_code;
+                document.getElementById('add-collection-type').value = info.interest_group ?? '';
+
+                document.getElementById('display-group').textContent = info.interest_group ?? 'No SKIM';
+                document.getElementById('display-balance').textContent = info.balance ?? '0.00';
+                document.getElementById('display-next-amount').textContent = info.next_due_amount ?? '';
+                document.getElementById('display-due-date').textContent = info.next_due_date ?? '';
+                document.getElementById('display-late-balance').textContent = info.late_balance ?? '0.00';
+                document.getElementById('display-interest-amount').textContent = info.interest_amount ?? '0.00';
+
+                const max = info.interest_group === 'SKIM A' ? 12 : parseInt(info.schedule_count) || 0;
+                let opts = '<option value="0">-- Select Schedule --</option>';
+                for (let i = 1; i <= max; i++) opts += `<option value="${i}">${i}</option>`;
+                document.getElementById('add-input-schedule').innerHTML = opts;
+
+                fetch(`{{ route('payment_method.search_payment_methods') }}?company_code=${encodeURIComponent(info.company_code)}`, {
+                    headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}' }
+                })
+                .then(r => r.json())
+                .then(methods => {
+                    document.getElementById('add-payment-method-id').value = methods.length ? methods[0].id : '';
+                })
+                .catch(() => { document.getElementById('add-payment-method-id').value = ''; });
+
+                document.getElementById('add-payment-type').disabled = false;
+                document.getElementById('add-payment-type').value = 'DEFAULT';
+                updatePaymentTypeOptions();
+            })
+            .catch(() => setDefaultSwal('error', '', 'Failed to load loan details.'));
+        }
+
+        // ---- schedule multiplier ----
+        function applyScheduleMultiplier(schedule) {
+            if (!addLoan) return;
+            const multiplier     = parseInt(schedule) || 0;
+            const collectionType = document.getElementById('add-collection-type').value ?? '';
+            const type           = document.getElementById('add-payment-type').value;
+
+            if (multiplier <= 0) {
+                if (type === 'INTEREST') {
+                    $('#add-input-payment-interest').val('0');
+                } else {
+                    $('#add-input-payment-amount').val('0');
+                }
+                document.getElementById('display-due-date').textContent = '';
+                return;
+            }
+
+            if (collectionType === 'SKIM A' && type === 'INTEREST') {
+                $('#add-input-payment-interest').val((parseFloat(addLoan.interest_amount) * multiplier).toFixed(2));
+            } else {
+                $('#add-input-payment-amount').val((parseFloat(addLoan.first_payment) * multiplier).toFixed(2));
+            }
+
+            if (addLoan.next_due_date) {
+                const base = new Date(addLoan.next_due_date);
+                base.setMonth(base.getMonth() + multiplier);
+                document.getElementById('display-due-date').textContent =
+                    base.getFullYear() + '-' +
+                    String(base.getMonth() + 1).padStart(2, '0') + '-' +
+                    String(base.getDate()).padStart(2, '0');
+            }
+        }
+
+        // ---- payment type ----
+        function applyAddPaymentType(type) {
+            const wrapPayment      = document.getElementById('add-wrap-payment');
+            const wrapLate         = document.getElementById('add-wrap-late');
+            const wrapInterest     = document.getElementById('add-wrap-interest');
+            const wrapTopupCapital = document.getElementById('add-wrap-topup-capital');
+            const wrapTopup        = document.getElementById('add-wrap-topup');
+            const wrapSchedule     = document.getElementById('add-wrap-schedule');
+
+            const inputPayment      = document.getElementById('add-input-payment-amount');
+            const inputLate         = document.getElementById('add-input-payment-late');
+            const inputInterest     = document.getElementById('add-input-payment-interest');
+            const inputTopupCapital = document.getElementById('add-input-topup-capital');
+            const inputTopup        = document.getElementById('add-input-topup');
+            const inputDiscount     = document.querySelector('#add-wrap-payment [name="discount_amount"]');
+            const inputSchedule     = document.getElementById('add-input-schedule');
+
+            const isSkimB = (document.getElementById('add-collection-type').value ?? '') === 'SKIM B';
+
+            [wrapPayment, wrapLate, wrapInterest, wrapTopup, wrapTopupCapital].forEach(w => w.setAttribute('style', GREY_STYLE_ADD));
+            [inputPayment, inputLate, inputInterest, inputTopup, inputTopupCapital, inputDiscount].forEach(i => {
+                i.disabled = true;
+                i.required = false;
+                i.value = 0;
+            });
+            inputSchedule.value = '0';
+
+            if (type === 'CCM') {
+                wrapPayment.removeAttribute('style');
+                inputPayment.disabled = false;
+                inputPayment.required = true;
+                inputDiscount.disabled = false;
+                wrapSchedule.style.display = isSkimB ? 'block' : 'none';
+            } else if (type === 'INTEREST') {
+                wrapInterest.removeAttribute('style');
+                inputInterest.disabled = false;
+                inputInterest.required = true;
+                wrapSchedule.style.display = 'block';
+            } else if (type === 'LATE') {
+                wrapLate.removeAttribute('style');
+                inputLate.disabled = false;
+                inputLate.required = true;
+                wrapSchedule.style.display = 'none';
+            } else if (type === 'TOPUP') {
+                wrapTopup.removeAttribute('style');
+                wrapTopupCapital.removeAttribute('style');
+                inputTopup.disabled = false;
+                inputTopupCapital.disabled = false;
+                wrapSchedule.style.display = 'none';
+            } else {
+                wrapSchedule.style.display = 'none';
+            }
+        }
+
+        function updatePaymentTypeOptions() {
+            const type = ($('#add-collection-type').val() || '').toUpperCase();
+            const $select = $('#add-payment-type');
+
+            $select.find('option').show();
+            if (type === 'SKIM B') {
+                $select.find('option[value="TOPUP"]').hide();
+                $select.find('option[value="INTEREST"]').hide();
+            }
+            if (type === 'SKIM A') {
+                $select.find('option[value="LATE"]').hide();
+            }
+            if ($select.find('option:selected').is(':hidden')) {
+                $select.val('DEFAULT');
+            }
+            applyAddPaymentType($select.val());
+        }
+
+        // ---- pay date display ----
+        document.getElementById('add-pay-date').addEventListener('change', function () {
+            document.getElementById('display-pay-date').textContent = formatYnj(new Date(this.value));
+            const scheduleVal = document.getElementById('add-input-schedule').value;
+            if (scheduleVal && scheduleVal != 0) applyScheduleMultiplier(scheduleVal);
+        });
+
+        // ---- submit ----
+        $('#form-add-payment').on('submit', function (e) {
+            e.preventDefault();
+
+            if (!document.getElementById('add-loan-code').value) {
+                setDefaultSwal('error', '', 'Please search and select a loan first.');
+                return;
+            }
+            if (!document.getElementById('add-payment-method-id').value) {
+                setDefaultSwal('error', '', 'No payment method found for this loan\'s company.');
+                return;
+            }
+
+            let formData = new FormData(this);
+            $.ajax({
+                url: "{{ route('payment.store') }}",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: { 'X-CSRF-TOKEN': "{{ csrf_token() }}" },
+                success: function (response) {
+                    if (response.success == true) {
+                        setReloadSwal('success', '', response.message);
+                    } else {
+                        setDefaultSwal('error', '', response.message);
+                    }
+                },
+                error: function () {
+                    setDefaultSwal('error', '', 'There is something wrong, please try again.');
+                }
+            });
+        });
     </script>
 @endsection

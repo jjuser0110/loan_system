@@ -1605,6 +1605,11 @@ class PaymentController extends Controller
             return response()->json(['success' => false, 'message' => 'Loan not found.']);
         }
 
+        // SKIM B: only schedules that still owe something
+        $remainingSchedules = PaymentSchedule::where('loan_code', $loan->loan_code)
+            ->whereRaw('payment_amount - (paid_amount + discount_amount) > 0')
+            ->count();
+
         return response()->json([
             'success'          => true,
             'loan_code'        => $loan->loan_code,
@@ -1617,8 +1622,7 @@ class PaymentController extends Controller
             'first_payment'    => $loan->first_payment ?? 0,
             'interest_rate'    => $loan->interest_rate ?? 0,
             'interest_amount'  => ($loan->balance / 100) * $loan->interest_rate,
-            // adjust if LoanController computes $scheduleCount differently
-            'schedule_count'   => PaymentSchedule::where('loan_code', $loan->loan_code)->count(),
+            'schedule_count'   => $remainingSchedules,
         ]);
     }
 }

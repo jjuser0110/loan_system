@@ -433,6 +433,7 @@
                             totalTotalPay.toFixed(2),  // ← sum of payment+topup-topUpCap
                             ''                         // ← balance left blank, it's a running value
                         ]],
+                        showFoot: 'lastPage',
                         theme: 'grid',
                         didParseCell: function (data) {
                             if (data.section === 'body' || data.section === 'foot') {
