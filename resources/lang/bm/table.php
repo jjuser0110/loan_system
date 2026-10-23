@@ -371,6 +371,7 @@ return [
 'all_companies'    => 'Semua Syarikat',
 'all_groups'       => 'Semua Kumpulan',
 'all_status'       => 'Semua Status',
+'monthly_inst' => 'Ansuran Bulanan',
 
 
 ];

@@ -371,6 +371,7 @@ return [
 'all_companies'    => '所有公司',
 'all_groups'       => '所有组别',
 'all_status'       => '所有状态',
+'monthly_inst' => '每月分期',
 
 
 ];

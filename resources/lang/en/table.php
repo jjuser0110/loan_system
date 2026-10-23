@@ -371,6 +371,7 @@ return [
 'all_companies'    => 'All Companies',
 'all_groups'       => 'All Groups',
 'all_status'       => 'All Status',
+'monthly_inst'       => 'Monthly Instal',
 
     
 ];

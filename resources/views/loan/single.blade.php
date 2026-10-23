@@ -524,6 +524,14 @@
                                 {{ $hasPayment ? 'readonly' : '' }}>
                         </div>
 
+                        <div class="col-xl-3 mb-3">
+                            <label>{{ __('table.created_by') }}</label>
+                            <input type="text" id="created-by"
+                                class="form-control locked-editable"
+                                value="{{ $loan?->creator?->name ?? '' }}"
+                                readonly>
+                        </div>
+
                         @endif
 
                         @if($loan?->interest_group == 'SKIM A')

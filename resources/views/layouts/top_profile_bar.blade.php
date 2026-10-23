@@ -17,10 +17,10 @@
 
     <div class="header-right">
 
-        <form action="{{ route('customer.single_customer') }}" method="get" class="search nav-form" onsubmit="return false;">
-            <div class="input-group">
-                <input type="text" class="form-control" name="nric_number" id="q" placeholder="Customer NRIC...">
-                <button class="btn btn-default" type="button" onclick="submitNricSearch()"><i class="bx bx-search"></i></button>
+        <form action="{{ route('customer.single_customer') }}" method="get" class="search nav-form" style="width: 250px; max-width: 100%;" onsubmit="submitNricSearch(); return false;">
+            <div class="input-group flex-nowrap" style="width: 100%;">
+                <input type="text" class="form-control" name="nric_number" id="q" placeholder="Customer NRIC..." style="flex: 1 1 auto; width: 1%; min-width: 0;">
+                <button class="btn btn-default" type="button" onclick="submitNricSearch()" style="flex: 0 0 auto;"><i class="bx bx-search"></i></button>
             </div>
         </form>
 

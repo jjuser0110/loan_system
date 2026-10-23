@@ -81,17 +81,18 @@
                             <th>No</th>
                             <th>{{ __('table.system_code') }}</th>
                             <th>{{ __('table.customer_name') }}</th>
-                            <th>{{ __('table.loan_code') }}</th>
                             <th>{{ __('table.user') }}</th>
                             <th>{{ __('table.loan_date') }}</th>
                             <th>{{ __('table.next_date') }}</th>
                             <th>{{ __('table.last_pay') }}</th>
-                            <th>{{ __('table.total_to_collect') }}</th>
                             <th>{{ __('table.loan_amt') }}</th>
-                            <th>{{ __('table.interest_collect') }}</th>
-                            <th>{{ __('table.top_up') }}</th>
+                            <th>{{ __('table.loan_term') }}</th>
+                            <th>{{ __('table.monthly_inst') }}</th>
                             <th>{{ __('table.process_fee') }}</th>
                             <th>{{ __('table.capital') }}</th>
+                            <th>{{ __('table.interest_collect') }}</th>
+                            <th>{{ __('table.top_up') }}</th>
+                            <th>{{ __('table.total_to_collect') }}</th>
                             <th>{{ __('table.discount') }}</th>
                             <th>{{ __('table.loan_balance') }}</th>
                             <th>{{ __('table.loan_status') }}</th>
@@ -101,13 +102,15 @@
                     <tfoot>
                         <tr>
                             <th style="display:none"></th>
-                            <th colspan="8" class="text-end">{{ __('table.grand_total') }}:</th>
-                            <th id="gt_total_to_collect"></th>
+                            <th colspan="7" class="text-end">{{ __('table.grand_total') }}:</th>
                             <th id="gt_loan_amount"></th>
-                            <th id="gt_interest_collect"></th>
-                            <th id="gt_top_up"></th>
+                            <th></th> {{-- loan term: no total --}}
+                            <th id="gt_monthly_inst"></th>
                             <th id="gt_processing_fee"></th>
                             <th id="gt_capital"></th>
+                            <th id="gt_interest_collect"></th>
+                            <th id="gt_top_up"></th>
+                            <th id="gt_total_to_collect"></th>
                             <th id="gt_discount"></th>
                             <th id="gt_loan_balance"></th>
                             <th></th>
@@ -155,6 +158,19 @@
         return selectedStatuses().includes(rowData.status);
     });
 
+    const sumKeys = [
+        'loan_amount', 'monthly_inst', 'processing_fee', 'capital',
+        'interest_collect', 'top_up', 'total_to_collect', 'discount', 'loan_balance'
+    ];
+
+    function sumRows(rowsData) {
+        const totals = Object.fromEntries(sumKeys.map(k => [k, 0]));
+        rowsData.each(function (row) {
+            sumKeys.forEach(k => totals[k] += parseFloat(row[k]) || 0);
+        });
+        return totals;
+    }
+
     $(document).ready(function () {
         table_loan_list = $('#table-loan-list').DataTable({
             processing: true,
@@ -171,24 +187,21 @@
                 dataSrc: 'interest_group',
                 startRender: null,
                 endRender: function (rows, group) {
-                    const totals = {
-                        total_to_collect: 0, loan_amount: 0, interest_collect: 0,
-                        top_up: 0, processing_fee: 0, capital: 0, discount: 0, loan_balance: 0,
-                    };
-                    rows.data().each(function (row) {
-                        Object.keys(totals).forEach(k => totals[k] += parseFloat(row[k]) || 0);
-                    });
+                    const t = sumRows(rows.data());
+                    const b = v => `<td><strong>${money(v)}</strong></td>`;
                     return $('<tr/>')
-                        .append(`<td colspan="8"><strong>${group}</strong> (${rows.count()} @lang('table.loan_code'))</td>`)
-                        .append(`<td><strong>${money(totals.total_to_collect)}</strong></td>`)
-                        .append(`<td><strong>${money(totals.loan_amount)}</strong></td>`)
-                        .append(`<td><strong>${money(totals.interest_collect)}</strong></td>`)
-                        .append(`<td><strong>${money(totals.top_up)}</strong></td>`)
-                        .append(`<td><strong>${money(totals.processing_fee)}</strong></td>`)
-                        .append(`<td><strong>${money(totals.capital)}</strong></td>`)
-                        .append(`<td><strong>${money(totals.discount)}</strong></td>`)
-                        .append(`<td><strong>${money(totals.loan_balance)}</strong></td>`)
-                        .append(`<td></td>`);
+                        .append(`<td colspan="7"><strong>${group}</strong> (${rows.count()} @lang('table.loan_code'))</td>`)
+                        .append(b(t.loan_amount))
+                        .append('<td></td>')  
+                        .append(b(t.monthly_inst))
+                        .append(b(t.processing_fee))
+                        .append(b(t.capital))
+                        .append(b(t.interest_collect))
+                        .append(b(t.top_up))
+                        .append(b(t.total_to_collect))
+                        .append(b(t.discount))
+                        .append(b(t.loan_balance))
+                        .append('<td></td>'); 
                 }
             },
             ajax: {
@@ -205,38 +218,31 @@
                 { data: null, defaultContent: '', orderable: false, searchable: false },
                 { data: 'system_code' },
                 { data: 'customer_name' },
-                { data: 'loan_code' },
                 { data: 'user' },
                 { data: 'loan_date' },
                 { data: 'next_due_date' },
                 { data: 'last_pay_date' },
-                { data: 'total_to_collect', render: money },
                 { data: 'loan_amount', render: money },
-                { data: 'interest_collect', render: money },
-                { data: 'top_up', render: money },
+                { data: 'loan_term', render: v => parseInt(v) || 0 },
+                { data: 'monthly_inst', render: money },
                 { data: 'processing_fee', render: money },
                 { data: 'capital', render: money },
+                { data: 'interest_collect', render: money },
+                { data: 'top_up', render: money },
+                { data: 'total_to_collect', render: money },
                 { data: 'discount', render: money },
                 { data: 'loan_balance', render: money },
                 { data: 'status' },
             ],
             footerCallback: function () {
-                const api = this.api();
-                const totals = {
-                    total_to_collect: 0, loan_amount: 0, interest_collect: 0,
-                    top_up: 0, processing_fee: 0, capital: 0, discount: 0, loan_balance: 0,
-                };
-                api.rows({ search: 'applied' }).data().each(function (row) {
-                    Object.keys(totals).forEach(k => totals[k] += parseFloat(row[k]) || 0);
-                });
-                $('#gt_total_to_collect').html(money(totals.total_to_collect));
-                $('#gt_loan_amount').html(money(totals.loan_amount));
-                $('#gt_interest_collect').html(money(totals.interest_collect));
-                $('#gt_top_up').html(money(totals.top_up));
-                $('#gt_processing_fee').html(money(totals.processing_fee));
-                $('#gt_capital').html(money(totals.capital));
-                $('#gt_discount').html(money(totals.discount));
-                $('#gt_loan_balance').html(money(totals.loan_balance));
+                const t = sumRows(this.api().rows({ search: 'applied' }).data());
+                $('#gt_loan_amount').html(money(t.loan_amount));
+                $('#gt_capital').html(money(t.capital));
+                $('#gt_interest_collect').html(money(t.interest_collect));
+                $('#gt_top_up').html(money(t.top_up));
+                $('#gt_total_to_collect').html(money(t.total_to_collect));
+                $('#gt_discount').html(money(t.discount));
+                $('#gt_loan_balance').html(money(t.loan_balance));
             },
             drawCallback: function () {
                 let n = this.api().page.info().start;

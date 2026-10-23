@@ -986,6 +986,8 @@ class ReportController extends Controller
                 'companies.company_name',
                 'customers.customer_name',
                 'creator.name as created_by_name',
+                'loans.loan_term',
+                'loans.installment  as monthly_inst',
             ])
             ->join('companies', 'loans.company_id', '=', 'companies.id')
             ->join('customers', 'loans.customer_id', '=', 'customers.id')
@@ -1062,6 +1064,8 @@ class ReportController extends Controller
                 'last_pay_date'    => $loan->updated_at,
                 'total_to_collect' => (float) $loan->payment,
                 'loan_amount'      => (float) $loan->loan_amount,
+                'loan_term'        => (int) $loan->loan_term,          // NEW
+                'monthly_inst'     => (float) $loan->installment, 
                 'interest_collect' => (float) $loan->interest,
                 'top_up'           => (float) ($extra->total_top_up ?? 0),
                 'processing_fee'   => (float) $loan->processing_fee,
