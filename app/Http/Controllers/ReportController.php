@@ -1023,7 +1023,10 @@ class ReportController extends Controller
         }
 
         if ($status) {
-            $query->where('loans.status', $status);
+            $statuses = array_filter(array_map('trim', explode(',', $status)));
+            if (!empty($statuses)) {
+                $query->whereIn('loans.status', $statuses);
+            }
         }
 
         if (!empty($search)) {
@@ -1083,6 +1086,7 @@ class ReportController extends Controller
         return [
             'total_to_collect' => $rows->sum('total_to_collect'),
             'loan_amount'      => $rows->sum('loan_amount'),
+            'monthly_inst'     => $rows->sum('monthly_inst'),
             'interest_collect' => $rows->sum('interest_collect'),
             'top_up'           => $rows->sum('top_up'),
             'processing_fee'   => $rows->sum('processing_fee'),
