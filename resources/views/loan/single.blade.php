@@ -608,6 +608,14 @@
                                 </button>
                             </div>
                         </div>
+
+                        <div class="col-xl-3 mb-3">
+                            <label>{{ __('table.created_by') }}</label>
+                            <input type="text" id="created-by"
+                                class="form-control {{ $hasPayment ? 'locked-editable' : 'readonly-field' }}"
+                                value="{{ $loan?->creator?->name ?? '' }}"
+                                readonly>
+                        </div>
                         
                         @endif
 
