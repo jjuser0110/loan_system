@@ -229,11 +229,46 @@ class ReportController extends Controller
                         ) as collection_type
                     "),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
-                    \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
-                    \DB::raw("payment_method_logs.total as account_total_amount"),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'expense' AND payment_method_logs.description LIKE 'Expense Deleted%'
+                                THEN payment_method_logs.amount
+                            WHEN payment_method_logs.type = 'expense'
+                                THEN COALESCE(expenses.amount, payment_method_logs.amount)
+                            ELSE 0
+                        END as expenses
+                    "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'expense' AND payment_method_logs.description = 'Expense Created' THEN
+                                COALESCE(
+                                    (
+                                        SELECT ly.total
+                                        FROM payment_method_logs ly
+                                        WHERE ly.type = 'expense'
+                                        AND ly.description = 'Expense Updated'
+                                        AND ly.payment_method_id = payment_method_logs.payment_method_id
+                                        AND ly.id > (
+                                                SELECT MIN(lx.id)
+                                                FROM payment_method_logs lx
+                                                WHERE lx.type = 'expense'
+                                                AND lx.description = 'Expense Updated'
+                                                AND lx.payment_method_id = payment_method_logs.payment_method_id
+                                                AND lx.amount = -payment_method_logs.amount
+                                                AND lx.id > payment_method_logs.id
+                                        )
+                                        ORDER BY ly.id ASC
+                                        LIMIT 1
+                                    ),
+                                    payment_method_logs.total
+                                )
+                            ELSE payment_method_logs.total
+                        END as account_total_amount
+                    "),
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN DATE(payment_method_logs.created_at)
+                            WHEN payment_method_logs.type = 'payment' THEN DATE(COALESCE(payments.created_at, payment_method_logs.created_at))
                             WHEN payment_method_logs.type = 'loan' THEN loans.year_month
                             ELSE DATE(payment_method_logs.created_at)
                         END as date
@@ -243,16 +278,30 @@ class ReportController extends Controller
                             WHEN payment_method_logs.type = 'payment' AND payments.top_up IS NOT NULL AND payments.top_up > 0 THEN CONCAT('Loan TopUp - Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
                             WHEN payment_method_logs.type = 'payment' THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
                             WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN payment_method_logs.description
-                            WHEN payment_method_logs.type = 'loan'    THEN CONCAT('Loan #',    COALESCE(loans.loan_code,       payment_method_logs.description))
-                            WHEN payment_method_logs.type = 'expense' THEN CONCAT('Expense #', COALESCE(expenses.expense_code, payment_method_logs.description))
+                            WHEN payment_method_logs.type = 'loan' THEN CONCAT('Loan #', COALESCE(loans.loan_code, payment_method_logs.description))
+                            WHEN payment_method_logs.type = 'expense' THEN CONCAT(
+                                IF(expenses.expense_type = 'non-expense', 'Non-Expense #', 'Expense #'),
+                                COALESCE(
+                                    expenses.expense_code,
+                                    NULLIF(TRIM(REPLACE(payment_method_logs.description, 'Expense Deleted', '')), ''),
+                                    payment_method_logs.description
+                                )
+                            )
                             ELSE CONCAT('Manual # ', COALESCE(payment_method_logs.description, '-'))
                         END as description
                     "),
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN 1
+                            WHEN payment_method_logs.description LIKE 'Expense Deleted%' THEN 1
                             ELSE 0
                         END as is_deleted_row
+                    "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'payment' THEN (SELECT p.late_paid_amount FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            ELSE NULL
+                        END as late_paid
                     "),
                     \DB::raw("
                         CASE
@@ -358,12 +407,13 @@ class ReportController extends Controller
                 5  => 'expenses.expense_title',
                 6  => 'expenses.expense_description',
                 7  => 'payments.remark',
+                8  => 'payments.late_paid_amount', 
                 9  => 'payments.interest_paid_amount',
-                8  => 'payments.payment_amount',
-                10 => 'payments.top_up_capital',
-                11 => 'payments.top_up',
-                12 => 'expenses.amount',
-                13 => 'payment_method_logs.total',
+                10 => 'payments.payment_amount',  
+                11 => 'payments.top_up_capital',
+                12 => 'payment_method_logs.amount',
+                13 => 'expenses.amount',
+                14 => 'payment_method_logs.total',
             ];
 
             $orderColIdx = (int) $request->input('order.0.column', 2);
@@ -471,7 +521,8 @@ class ReportController extends Controller
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN DATE(payment_method_logs.created_at)
-                            WHEN payment_method_logs.type = 'loan' THEN loans.year_month
+                            WHEN payment_method_logs.type = 'payment' THEN DATE(COALESCE(payments.created_at, payment_method_logs.created_at))
+                            WHEN payment_method_logs.type = 'loan' THEN DATE(COALESCE(loans.created_at, payment_method_logs.created_at))
                             ELSE DATE(payment_method_logs.created_at)
                         END as date
                     "),
@@ -489,9 +540,48 @@ class ReportController extends Controller
                                 THEN CONCAT('Loan #', COALESCE(loans.loan_code, payment_method_logs.description),
                                     IF(payment_method_logs.description = 'Loan Updated', ' Edit', ''))
                             WHEN payment_method_logs.type = 'expense'
-                                THEN CONCAT('Expense #', COALESCE(expenses.expense_code, payment_method_logs.description))
+                                THEN CONCAT(
+                                    IF(expenses.expense_type = 'non-expense', 'Non-Expense #', 'Expense #'),
+                                    COALESCE(
+                                        expenses.expense_code,
+                                        NULLIF(TRIM(REPLACE(payment_method_logs.description, 'Expense Deleted', '')), ''),
+                                        payment_method_logs.description
+                                    ),
+                                    IF(
+                                        (
+                                            payment_method_logs.description = 'Expense Updated'
+                                            AND payment_method_logs.id <> (
+                                                SELECT MAX(l2.id)
+                                                FROM payment_method_logs l2
+                                                WHERE l2.content_id = payment_method_logs.content_id
+                                                AND l2.type = 'expense'
+                                                AND l2.description = 'Expense Updated'
+                                            )
+                                        )
+                                        OR (
+                                            COALESCE(payment_method_logs.description, '') = 'Expense Created'
+                                            AND EXISTS (
+                                                SELECT 1
+                                                FROM payment_method_logs l3
+                                                WHERE l3.type = 'expense'
+                                                AND l3.description = 'Expense Updated'
+                                                AND l3.payment_method_id = payment_method_logs.payment_method_id
+                                                AND l3.amount = -payment_method_logs.amount
+                                                AND l3.id > payment_method_logs.id
+                                            )
+                                        ),
+                                        ' Edit', ''
+                                    )
+                                )
                             ELSE CONCAT('Manual # ', COALESCE(payment_method_logs.description, '-'))
                         END as description
+                    "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN 1
+                            WHEN payment_method_logs.description LIKE 'Expense Deleted%' THEN 1
+                            ELSE 0
+                        END as is_deleted_row
                     "),
                     \DB::raw("
                         CASE
@@ -613,12 +703,13 @@ class ReportController extends Controller
                 5  => 'expenses.expense_title',
                 6  => 'expenses.expense_description',
                 7  => 'payments.remark',
+                8  => 'payments.late_paid_amount',
                 9  => 'payments.interest_paid_amount',
-                8  => 'payments.payment_amount',
-                10 => 'payments.top_up_capital',
-                11 => 'payments.top_up',
-                12 => 'expenses.amount',
-                13 => 'payment_method_logs.total',
+                10 => 'payments.payment_amount',
+                11 => 'payments.top_up_capital',
+                12 => 'payment_method_logs.amount',
+                13 => 'expenses.amount',
+                14 => 'payment_method_logs.total',
             ];
 
             $orderColIdx = (int) $request->input('order.0.column', 2);

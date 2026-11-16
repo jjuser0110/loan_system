@@ -843,6 +843,45 @@
                 return;
             }
 
+            // 1. Payment type must be chosen
+            const type = document.getElementById('add-payment-type').value;
+            if (type === 'DEFAULT') {
+                setDefaultSwal('error', '', 'Please select a payment type first.');
+                return;
+            }
+
+            // 2. Schedule must be chosen when it is visible
+            const scheduleWrap = document.getElementById('add-wrap-schedule');
+            const scheduleVal  = document.getElementById('add-input-schedule').value;
+            if (scheduleWrap.style.display !== 'none' && (!scheduleVal || scheduleVal == '0')) {
+                setDefaultSwal('error', '', 'Please select a schedule first.');
+                return;
+            }
+
+            // 3. The active field must have a value greater than 0
+            const num = sel => parseFloat(document.querySelector(sel).value) || 0;
+            let valid = true;
+            let msg   = '';
+
+            if (type === 'CCM') {
+                valid = num('#add-input-payment-amount') > 0 || num('#add-wrap-payment [name="discount_amount"]') > 0;
+                msg   = 'Please enter a payment amount or discount.';
+            } else if (type === 'INTEREST') {
+                valid = num('#add-input-payment-interest') > 0;
+                msg   = 'Please enter the interest amount.';
+            } else if (type === 'LATE') {
+                valid = num('#add-input-payment-late') > 0;
+                msg   = 'Please enter the late amount.';
+            } else if (type === 'TOPUP') {
+                valid = num('#add-input-topup') > 0 || num('#add-input-topup-capital') > 0;
+                msg   = 'Please enter a top up amount.';
+            }
+
+            if (!valid) {
+                setDefaultSwal('error', '', msg);
+                return;
+            }
+
             let formData = new FormData(this);
             $.ajax({
                 url: "{{ route('payment.store') }}",

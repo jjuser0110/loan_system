@@ -71,6 +71,7 @@ class ExpenseController extends Controller
                     'company'             => 'companies.company_name',
                     'bank'                => 'banks.bank_name',
                     'created_at'          => 'expenses.created_at',
+                    'updated_by_name' => 'updater.name',
                 ];
                 $orderByColumn    = $columnMap[$colName] ?? 'expenses.created_at';
                 $orderByDirection = $request->input('order.0.dir', 'desc');
@@ -85,12 +86,14 @@ class ExpenseController extends Controller
                     'branches.branch_code as branch_code',
                     'payment_methods.account_no as bank_account_no',
                     'payment_methods.owner_name as bank_owner_name',
-                    'banks.bank_name as bank_name'
+                    'banks.bank_name as bank_name',
+                    'updater.name as updated_by_name'
                 ])
                 ->join('companies', 'companies.id', '=', 'expenses.company_id')
                 ->join('payment_methods', 'expenses.payment_method_id', '=', 'payment_methods.id')
                 ->join('banks', 'banks.id', '=', 'payment_methods.bank_id')
-                ->join('branches', 'branches.id', '=', 'companies.branch_id');
+                ->join('branches', 'branches.id', '=', 'companies.branch_id')
+                ->leftJoin('users as updater', 'updater.id', '=', 'expenses.updated_by');
 
             switch (Auth::user()->role_id) {
                 case 1:

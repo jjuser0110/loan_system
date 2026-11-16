@@ -55,6 +55,7 @@
                             <th>{{ __('table.company') }}</th>
                             <th>{{ __('table.bank') }}</th>
                             <th>{{ __('table.expense_type') }}</th>
+                            <th>{{ __('table.created_by') }}</th>
                             <th>{{ __('table.created_at') }}</th>
                             <th>{{ __('table.actions') }}</th>
                         </tr>
@@ -305,9 +306,12 @@
                         return `${row.bank_name}<br>${row.bank_owner_name}`;
                     }
                 },
-                
                 {
                     "data": "expense_type",
+                },
+                {
+                    "data": "updated_by_name",
+                    "defaultContent": "-"
                 },
                 {
                     "data": "created_at",

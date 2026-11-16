@@ -160,7 +160,9 @@
                                                     <div class="summary">
                                                         <h4 class="title">{{ __('table.outstanding') }}</h4>
                                                         <div class="info">
-                                                            <strong class="amount">RM {{ $loan->outstanding }}</strong>
+                                                            <strong class="amount">
+                                                                RM {{ $loan->interest_group === 'SKIM A' ? $loan->balance : $loan->outstanding }}
+                                                            </strong>
                                                         </div>
                                                     </div>
                                                     <div class="summary-footer">
@@ -1044,6 +1046,8 @@
             "processing": true,
             "serverSide": true,
             "fixedHeader": false,
+            "pageLength": 50,
+            "lengthMenu": [[50, 100000000], [50, "All"]], 
             "ajax": {
                 "url": "{{ route('schedule.load_schedule',['loan_code'=>':loan_code']) }}".replace(':loan_code',"{{ $loan->loan_code }}"),
                 "type": "GET"
@@ -1150,6 +1154,8 @@
             "serverSide": true,
             "fixedHeader": false,
             "ordering":   true,
+            "pageLength": 50,
+            "lengthMenu": [[50, 100000000], [50, "All"]],
             "order": [[1, "asc"]],
             "columnDefs": [
                 { "orderable": false, "targets": [2, 9, 12] },  // installment_calc, deducted_balance, action

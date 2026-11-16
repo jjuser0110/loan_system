@@ -989,7 +989,13 @@ class LoanController extends Controller
     }
 
     public function update_outstanding(Loan $loan){
-        $outstanding = $loan->balance + $loan->late_balance + $loan->interest_balance + $loan->installment;
+        $outstanding = $loan->balance + $loan->late_balance + $loan->interest_balance;
+
+        // only SKIM A includes the installment
+        if ($loan->interest_group === 'SKIM A') {
+            $outstanding += $loan->installment;
+        }
+
         $isFullyPaid = $outstanding <= 0 && $loan->balance <= 0;
         $loan->update([
             'outstanding' => $outstanding,

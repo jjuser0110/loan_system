@@ -5,15 +5,9 @@
 </header>
 @include('layouts.flash-message')
 <style>
-    .row-invalid td {
-        background-color: #ffe6e6 !important;
-    }
-    .row-edit td {
-        background-color: rgba(255, 0, 0, 0.1) !important;
-    }
-    .row-deleted td {
-        background-color: rgba(255, 0, 0, 0.1) !important;
-    }
+    .row-invalid td { background-color: #ffe6e6 !important; }
+    .row-edit td { background-color: rgba(255, 0, 0, 0.1) !important; }
+    .row-deleted td { background-color: rgba(255, 0, 0, 0.1) !important; }
 </style>
 
 <div class="row mb-3">
@@ -66,6 +60,7 @@
                                 <th>{{ __('table.expenses_name') }}</th>
                                 <th>{{ __('table.expenses_description') }}</th>
                                 <th>{{ __('table.remark') }}</th>
+                                <th>{{ __('table.late_paid') }}</th>
                                 <th>{{ __('table.interest_paid') }}</th>
                                 <th>{{ __('table.customer_payment') }}</th>
                                 <th>{{ __('table.top_up_capital') }}</th>
@@ -77,7 +72,7 @@
                         <tfoot>
                             <tr>
                                 <th colspan="6" class="text-right">Total</th>
-                                <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
+                                <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
                             </tr>
                         </tfoot>
                         <tbody></tbody>
@@ -99,7 +94,6 @@ let table_cash_book_reports;
 
 $(document).ready(function () {
 
-    // ── DataTable ─────────────────────────────────────────────────────────
     table_cash_book_reports = $('#table-cash-book-reports').DataTable({
         processing:   true,
         serverSide:   true,
@@ -128,7 +122,7 @@ $(document).ready(function () {
             if (desc.includes('Payment Created') || desc.includes('Payment Deleted')) {
                 $(row).addClass('row-invalid');
             }
-            if (desc.endsWith('Edit') || desc.includes('Loan Deleted')) {
+            if (desc.endsWith('Edit') || desc.includes('Loan Deleted') || data.is_deleted_row == 1) {
                 $(row).addClass('row-edit');
             }
         },
@@ -144,13 +138,13 @@ $(document).ready(function () {
                 render: function (data) {
                     if (!data || data === '-') return '-';
                     if (data.startsWith('Loan #Loan Deleted')) {
-                        return data; // plain text, no link
+                        return data;
                     }
                     if (data.startsWith('Loan #')) {
                         let loanCode = data.replace('Loan #', '').trim();
                         return '<a href="{{ url("loan/single_loan") }}/' + loanCode + '#loan">' + data + '</a>';
                     }
-                    if (data.startsWith('Expense #')) {
+                    if (data.startsWith('Expense #') || data.startsWith('Non-Expense #')) {
                         return '<a href="{{ url("expense/index") }}">' + data + '</a>';
                     }
                     if (data.startsWith('Payment #') || data.startsWith('Loan TopUp - Payment #')) {
@@ -195,6 +189,14 @@ $(document).ready(function () {
             {
                 data: "remark", name: "remark", width: "160px",
                 render: function (data) { return data || '-'; }
+            },
+            {
+                data: "late_paid", name: "late_paid", width: "80px",
+                render: function (data) {
+                    let v = parseFloat(data || 0);
+                    if (!v) return '-';
+                    return '<span style="color:#e6b800;font-weight:bold">' + v.toFixed(2) + '</span>';
+                }
             },
             {
                 data: "interest_paid", name: "interest_paid", width: "100px",
@@ -250,7 +252,7 @@ $(document).ready(function () {
             let allRows = api.rows({ search: 'applied' }).data();
             let openingBalance = 0;
 
-            let totIP = 0, totCP = 0, totTUC = 0, totNCL = 0, totEXP = 0, lastAT = 0;
+            let totLP = 0, totIP = 0, totCP = 0, totTUC = 0, totNCL = 0, totEXP = 0, lastAT = 0;
 
             if (allRows.length > 0) {
                 let latest = allRows[0];
@@ -262,14 +264,14 @@ $(document).ready(function () {
                     + parseFloat(latest.new_capital_loan || 0)
                     + parseFloat(latest.expenses || 0);
 
-                // 👇 加上这段，真正把每一列加总
                 for (let i = 0; i < allRows.length; i++) {
                     let r = allRows[i];
+                    totLP  += parseFloat(r.late_paid        || 0);
                     totIP  += parseFloat(r.interest_paid    || 0);
                     totCP  += parseFloat(r.customer_payment || 0);
-                    totTUC += parseFloat(r.top_up_capital    || 0);
+                    totTUC += parseFloat(r.top_up_capital   || 0);
                     totNCL += parseFloat(r.new_capital_loan || 0);
-                    totEXP += parseFloat(r.expenses          || 0);
+                    totEXP += parseFloat(r.expenses         || 0);
                 }
 
                 lastAT = parseFloat(allRows[allRows.length - 1].account_total_amount || 0);
@@ -279,14 +281,19 @@ $(document).ready(function () {
                 return '<span style="color:' + (v >= 0 ? 'green' : 'red') + '">' + v.toFixed(2) + '</span>';
             }
 
+            function yellowBold(v) {
+                return '<span style="color:#e6b800;font-weight:bold">' + v.toFixed(2) + '</span>';
+            }
+
             $(api.column(6).footer()).html('<span style="font-weight:bold">Opening Balance: </span>');
             $(api.column(7).footer()).html(colorValue(openingBalance));
-            $(api.column(8).footer()).html(colorValue(totIP));
-            $(api.column(9).footer()).html(colorValue(totCP));
-            $(api.column(10).footer()).html(colorValue(totTUC));
-            $(api.column(11).footer()).html(colorValue(totNCL));
-            $(api.column(12).footer()).html(colorValue(totEXP));
-            $(api.column(13).footer()).html(colorValue(lastAT));
+            $(api.column(8).footer()).html(yellowBold(totLP));
+            $(api.column(9).footer()).html(colorValue(totIP));
+            $(api.column(10).footer()).html(colorValue(totCP));
+            $(api.column(11).footer()).html(colorValue(totTUC));
+            $(api.column(12).footer()).html(colorValue(totNCL));
+            $(api.column(13).footer()).html(colorValue(totEXP));
+            $(api.column(14).footer()).html(colorValue(lastAT));
         },
     });
 
@@ -344,13 +351,14 @@ $(document).ready(function () {
                     const PH  = doc.internal.pageSize.height;
                     const ML  = 10;
 
-                    const CW = [8, 25, 18, 25, 20, 20, 18, 20, 18, 18, 18, 22];
+                    const CW = [8, 25, 18, 25, 20, 20, 16, 18, 20, 18, 18, 18, 22];
                     let CL = [], cx = ML;
                     CW.forEach(function (w) { CL.push(cx); cx += w; });
                     const TW = CW.reduce(function (a, b) { return a + b; }, 0);
 
                     function numColor(colIdx, val) {
-                        if (colIdx === 10) return val > 0 ? [200,0,0] : (val < 0 ? [0,140,0] : [0,0,0]);
+                        if (colIdx === 6)  return [200,150,0];   // Late Paid yellow
+                        if (colIdx === 11) return val > 0 ? [200,0,0] : (val < 0 ? [0,140,0] : [0,0,0]);
                         return val < 0 ? [200,0,0] : (val > 0 ? [0,140,0] : [0,0,0]);
                     }
 
@@ -376,10 +384,11 @@ $(document).ready(function () {
                     doc.setDrawColor(180, 210, 180); doc.rect(ML, obY, TW, 6, 'S');
                     doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(0, 140, 0);
                     doc.text('Opening Balance', ML + 2, obY + 4);
-                    doc.text(ob.toFixed(2), CL[11] + CW[11] - 2, obY + 4, { align: 'right' });
+                    doc.text(ob.toFixed(2), CL[12] + CW[12] - 2, obY + 4, { align: 'right' });
                     doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal');
 
                     let bodyRows = rows.map(function (row, i) {
+                        let lp  = parseFloat(row.late_paid            || 0);
                         let ip  = parseFloat(row.interest_paid        || 0);
                         let cp  = parseFloat(row.customer_payment     || 0);
                         let tuc = parseFloat(row.top_up_capital       || 0);
@@ -394,6 +403,7 @@ $(document).ready(function () {
                             row.customer_name        || '-',
                             row.expenses_name        || '-',
                             row.expenses_description || '-',
+                            lp  !== 0 ? lp.toFixed(2)  : '-',
                             ip  !== 0 ? ip.toFixed(2)  : '-',
                             cp  !== 0 ? cp.toFixed(2)  : '-',
                             tuc !== 0 ? tuc.toFixed(2) : '-',
@@ -403,6 +413,7 @@ $(document).ready(function () {
                         ];
                     });
 
+                    let totLP  = rows.reduce(function (s, r) { return s + parseFloat(r.late_paid        || 0); }, 0);
                     let totIP  = rows.reduce(function (s, r) { return s + parseFloat(r.interest_paid    || 0); }, 0);
                     let totCP  = rows.reduce(function (s, r) { return s + parseFloat(r.customer_payment || 0); }, 0);
                     let totTUC = rows.reduce(function (s, r) { return s + parseFloat(r.top_up_capital   || 0); }, 0);
@@ -413,7 +424,7 @@ $(document).ready(function () {
                     doc.autoTable({
                         startY: 34,
                         margin: { left: ML, right: ML },
-                        head: [['No', 'Description', 'Date', 'Customer Name', 'Expenses Name', 'Expenses Desc', 'Interest Paid', 'Customer Payment', 'Top Up Capital', 'Loan Top Up', 'Expenses', 'Account Total']],
+                        head: [['No', 'Description', 'Date', 'Customer Name', 'Expenses Name', 'Expenses Desc', 'Late Paid', 'Interest Paid', 'Customer Payment', 'Top Up Capital', 'Loan Top Up', 'Expenses', 'Account Total']],
                         body: bodyRows,
                         theme: 'grid',
                         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold', fontSize: 7, halign: 'center' },
@@ -431,10 +442,11 @@ $(document).ready(function () {
                             9:  { halign: 'right',  cellWidth: CW[9]  },
                             10: { halign: 'right',  cellWidth: CW[10] },
                             11: { halign: 'right',  cellWidth: CW[11] },
+                            12: { halign: 'right',  cellWidth: CW[12] },
                         },
                         didParseCell: function (data) {
                             if (data.section !== 'body') return;
-                            if (![6,7,8,9,10,11].includes(data.column.index)) return;
+                            if (![6,7,8,9,10,11,12].includes(data.column.index)) return;
                             let v = parseFloat(data.cell.raw);
                             if (isNaN(v)) return;
                             data.cell.styles.textColor = numColor(data.column.index, v);
@@ -458,14 +470,14 @@ $(document).ready(function () {
                     doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(0, 0, 0);
                     doc.text('Total', CL[4] + 2, fy + 4.8);
 
-                    [[6,totIP],[7,totCP],[8,totTUC],[9,totLTU],[10,totEXP],[11,totAT]].forEach(function (pair) {
+                    [[6,totLP],[7,totIP],[8,totCP],[9,totTUC],[10,totLTU],[11,totEXP],[12,totAT]].forEach(function (pair) {
                         let c = numColor(pair[0], pair[1]);
                         doc.setTextColor(c[0], c[1], c[2]);
                         doc.text(pair[1].toFixed(2), CL[pair[0]] + CW[pair[0]] - 2, fy + 4.8, { align: 'right' });
                     });
                     doc.setTextColor(0, 0, 0);
 
-                    let fn = 'cash_book_report' + (from ? '_' + from : '') + (to ? '_to_' + to : '');
+                    let fn = 'cash_book_report_history' + (from ? '_' + from : '') + (to ? '_to_' + to : '');
                     doc.save(fn + '.pdf');
 
                 } catch (err) {
