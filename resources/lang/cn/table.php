@@ -372,6 +372,7 @@ return [
 'all_groups'       => '所有组别',
 'all_status'       => '所有状态',
 'monthly_inst' => '每月分期',
+'all_payment' => '所有付款',
 
 
 ];

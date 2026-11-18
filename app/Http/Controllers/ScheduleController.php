@@ -31,7 +31,9 @@ class ScheduleController extends Controller
 
     public function index(Request $request)
     {
-        return view('schedule.index');
+        $companies = Company::orderBy('company_name')->get();
+
+        return view('schedule.index')->with('companies', $companies);
     }
 
     public function load_schedule(Request $request){
@@ -76,6 +78,12 @@ class ScheduleController extends Controller
                 default:
                     throw new Exception('Invalid role id.');
             }
+
+            // Company filter (combined with the role scope using AND)
+            if ($request->filled('company_id')) {
+                $query->where('payment_schedules.company_id', $request->company_id);
+            }
+
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('payment_schedules.loan_code', 'like', "%{$search}%")

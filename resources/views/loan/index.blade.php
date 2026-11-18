@@ -155,11 +155,26 @@
     <div class="col-lg-12 mb-3">
         <section class="card">
             <div class="card-body">
-                <div style="margin-bottom: 10px;">
-                    <label style="cursor:pointer; user-select:none;">
-                        <input type="checkbox" id="hide-fully-paid" checked>
-                        &nbsp;{{ __('table.hide_fully_paid') }}
-                    </label>
+                <div class="row mb-3 align-items-end">
+                    @if(Auth::user()->role_id == 1)
+                    <div class="col-md-4">
+                        <label>{{ __('table.company') }}</label>
+                        <select id="filter_company" class="form-control">
+                            <option value="">{{ __('table.select_company') }}</option>
+                            @foreach($companyList as $company)
+                                <option value="{{ $company->id }}">
+                                    {{ $company->company_name }} ({{ $company->company_code }})
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                    @endif
+                    <div class="col-md-4">
+                        <label style="cursor:pointer; user-select:none; margin-bottom:0;">
+                            <input type="checkbox" id="hide-fully-paid" checked>
+                            &nbsp;{{ __('table.hide_fully_paid') }}
+                        </label>
+                    </div>
                 </div>
                 <table class="table cus-table table-bordered mb-0" id="table-loan">
                     <thead>
@@ -207,6 +222,7 @@
                 "type": "GET",
                 "data": function(d) {
                     d.hide_fully_paid = $('#hide-fully-paid').is(':checked') ? 1 : 0;
+                    d.company_id      = $('#filter_company').val() || '';
                 }
             },
             "order": [[6, "desc"]],
@@ -392,10 +408,9 @@
             }
         });
 
-        $('#hide-fully-paid').on('change', function() {
+        $(document).on('change', '#hide-fully-paid, #filter_company', function() {
             table_loan.draw();
         });
-
     });
 
     function initResizable() {

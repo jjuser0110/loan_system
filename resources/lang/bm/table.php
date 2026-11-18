@@ -372,6 +372,7 @@ return [
 'all_groups'       => 'Semua Kumpulan',
 'all_status'       => 'Semua Status',
 'monthly_inst' => 'Ansuran Bulanan',
+'all_payment' => 'Semua Pembayaran',
 
 
 ];

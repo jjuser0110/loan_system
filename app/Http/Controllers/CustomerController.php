@@ -31,61 +31,101 @@ class CustomerController extends Controller
 {
     public function index(Request $request)
     {
-        return view('customer.index');
+        $query = Company::query();
+
+        switch (Auth::user()->role_id) {
+            case 1:
+                break;
+            case 2:
+                $query->where('branch_id', Auth::user()->branch_id);
+                break;
+            case 3:
+            case 4:
+                $query->where('id', Auth::user()->company_id);
+                break;
+            default:
+                abort(403, 'Invalid role id.');
+        }
+
+        $companies = $query->orderBy('company_name')->get();
+
+        return view('customer.index')->with('companies', $companies);
     }
 
-    public function fetch(Request $request){
-        try{
-            $draw = $request->input('draw');
+    public function fetch(Request $request)
+    {
+        try {
+            $draw   = $request->input('draw');
             $search = $request->input('search.value');
-            $start = $request->input('start', 0);
+            $start  = $request->input('start', 0);
             $length = $request->input('length', 10);
-            $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
-            $orderByDirection = $request->input('order.0.dir');
+
+            $orderIdx         = $request->input('order.0.column');
+            $orderByColumn    = $orderIdx !== null
+                ? ($request->input('columns')[$orderIdx]['data'] ?? null)
+                : null;
+            $orderByDirection = strtolower($request->input('order.0.dir', 'desc'));
+            if (!in_array($orderByDirection, ['asc', 'desc'])) {
+                $orderByDirection = 'desc';
+            }
+
+            $statsCase = "
+                CASE 
+                    WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id) 
+                        THEN 'New'
+                    WHEN EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0 AND loans.next_due_date < CURDATE()) 
+                        THEN 'Delay'
+                    WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0) 
+                        THEN 'Settled'
+                    WHEN EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0 AND loans.next_due_date >= CURDATE()) 
+                        THEN 'Active'
+                    ELSE 'Unknown'
+                END
+            ";
+
             $query = Customer::query()
                 ->select([
                     'customers.*',
-                    'customers.company_name as customer_company', 
+                    'customers.company_name as customer_company',
                     'companies.company_name as company_name',
                     'companies.company_code as company_code',
                     'branches.branch_name as branch_name',
                     'branches.branch_code as branch_code',
-                        DB::raw("(
-                    CASE 
-                        WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id) 
-                            THEN 'New'
-                        WHEN EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0 AND loans.next_due_date < CURDATE()) 
-                            THEN 'Delay'
-                        WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0) 
-                            THEN 'Settled'
-                        WHEN EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0 AND loans.next_due_date >= CURDATE()) 
-                            THEN 'Active'
-                        ELSE 'Unknown'
-                    END
-                ) as stats")
+                    DB::raw("({$statsCase}) as stats"),
                 ])
                 ->join('companies', 'customers.company_id', '=', 'companies.id')
                 ->join('branches', 'companies.branch_id', '=', 'branches.id');
-    
+
+            // Role-based scope
             switch (Auth::user()->role_id) {
                 case 1:
                     break;
-
                 case 2:
                     $query->where('branches.id', Auth::user()->branch_id);
                     break;
-
                 case 3:
                 case 4:
                     $query->where('companies.id', Auth::user()->company_id);
                     break;
-
-            default:
-                throw new Exception('Invalid role id.');
+                default:
+                    throw new Exception('Invalid role id.');
             }
 
+            // Company filter (combined with the role scope using AND)
+            if ($request->filled('company_id')) {
+                $query->where('customers.company_id', $request->company_id);
+            }
+
+            // Hide fully paid
+            if ($request->hide_fully_paid == 1) {
+                $query->where('customers.status', '!=', 'fully_paid');
+            }
+
+            // Total = scoped + filtered, before search
+            $recordsTotal = (clone $query)->count();
+
             if (!empty($search)) {
-                $query->where(function ($q) use ($search) {
+                $query->where(function ($q) use ($search, $statsCase) {
                     $q->where('customers.customer_code', 'like', "%{$search}%")
                     ->orWhere('customers.customer_name', 'like', "%{$search}%")
                     ->orWhere('customers.nric_number', 'like', "%{$search}%")
@@ -98,27 +138,11 @@ class CustomerController extends Controller
                     ->orWhere('companies.company_code', 'like', "%{$search}%")
                     ->orWhere('branches.branch_code', 'like', "%{$search}%")
                     ->orWhere('customers.status', 'like', "%{$search}%")
-                    ->orWhereRaw("
-                    CASE 
-                        WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id) 
-                            THEN 'New'
-                        WHEN EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0 AND loans.next_due_date < CURDATE()) 
-                            THEN 'Delay'
-                        WHEN NOT EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0) 
-                            THEN 'Settled'
-                        WHEN EXISTS (SELECT 1 FROM loans WHERE loans.customer_id = customers.id AND loans.closed = 0 AND loans.next_due_date >= CURDATE()) 
-                            THEN 'Active'
-                        ELSE 'Unknown'
-                    END LIKE ?
-                ", ["%{$search}%"]);
+                    ->orWhereRaw("({$statsCase}) LIKE ?", ["%{$search}%"]);
                 });
             }
 
-            $recordsTotal = $query->count();
-
-            if ($request->hide_fully_paid == 1) {
-                $query->where('customers.status', '!=', 'fully_paid');
-            }
+            $recordsFiltered = $query->count();
 
             $columnMap = [
                 'customer_code'    => 'customers.customer_code',
@@ -132,25 +156,25 @@ class CustomerController extends Controller
                 'status'           => 'customers.status',
                 'created_at'       => 'customers.created_at',
             ];
-            $orderByColumn = $columnMap[$orderByColumn] ?? 'customers.created_at';
+            $orderCol = $columnMap[$orderByColumn] ?? 'customers.created_at';
 
-            $data = $query->orderBy($orderByColumn, $orderByDirection)->skip($start)->take($length)->get();
+            $data = $query->orderBy($orderCol, $orderByDirection)
+                ->skip($start)
+                ->take($length)
+                ->get();
 
-            $data = $query->orderBy($orderByColumn, $orderByDirection)->skip($start)->take($length)->get();
             return response()->json([
-                "draw" => intval($draw),
-                "recordsTotal" => $recordsTotal,
-                "recordsFiltered" => $recordsTotal,
-                "data" => $data,
+                "draw"            => intval($draw),
+                "recordsTotal"    => $recordsTotal,
+                "recordsFiltered" => $recordsFiltered,
+                "data"            => $data,
             ]);
-        }
-        catch(Exception $e){
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()
             ]);
         }
-
     }
 
     public function create()

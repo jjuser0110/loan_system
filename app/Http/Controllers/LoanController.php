@@ -47,6 +47,8 @@ class LoanController extends Controller
 
         $loanQuery = DB::table('loans');
 
+        $companyList = Company::orderBy('company_name')->get();
+
         switch (Auth::user()->role_id) {
             case 1:
                 break;
@@ -77,6 +79,7 @@ class LoanController extends Controller
         ========================= */
         return view('loan.index')
             ->with('companies', $companies)
+            ->with('companyList', $companyList)
             ->with('total_capital', $loans->total_capital ?? 0)
             ->with('outstanding', $loans->outstanding ?? 0)
             ->with('total_interest_paid', $loans->total_interest_paid ?? 0)
@@ -373,6 +376,10 @@ class LoanController extends Controller
 
             if($request->customer_code){
                 $query->where('customers.customer_code', $request->customer_code);
+            }
+
+            if ($request->filled('company_id')) {
+                $query->where('loans.company_id', $request->company_id);
             }
 
             // clone query for totals BEFORE search/filter applied

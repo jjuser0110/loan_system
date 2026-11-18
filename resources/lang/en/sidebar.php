@@ -39,6 +39,7 @@ return [
 'cash_book_report_history' => 'Cash Book Report History',
 'expenses_type' => 'Expenses Type',
 'loan_list'=>'Loan List',
+'all_payment'=>'All Payment',
     
 ];
 

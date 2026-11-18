@@ -324,10 +324,14 @@
                 {
                     "data": null,
                     "render": function(data, type, row, meta) {
+                        const roleId = {{ Auth::user()->role_id ?? 0 }};
+
                         return `
                             <div class="cus-action-wrapper">
                                 <a class="cus-action-icon info" title="Update Expense" onclick="updateExpense(${meta.row})"><i class="fas fa-edit"></i></a>
+                                ${roleId != 4 ? `
                                 <a class="cus-action-icon danger" title="Delete Expense" onclick="deleteExpense(${meta.row})"><i class="fas fa-trash-alt"></i></a>
+                                ` : ''}
                             </div>
                         `;
                     }

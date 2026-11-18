@@ -50,6 +50,8 @@ $currentRoute = request()->route()->getName();
                             <span>{{ __('sidebar.all_loans') }}</span>
                         </a>
                     </li>
+                    
+                    @if(Auth::user()->role_id != 4)
                     <li class="nav-parent {{ request()->routeIs('schedule.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="far fa-calendar" aria-hidden="true"></i>
@@ -68,12 +70,15 @@ $currentRoute = request()->route()->getName();
                             </li>
                         </ul>
                     </li>
+                    @endif
+
                     <li class=" {{ request()->routeIs('payment.*') ? 'nav-active' : ''}}">
                         <a class="nav-link" href="{{route('payment.index')}}">
                             <i class="far fa-file-alt" aria-hidden="true"></i>
-                            <span>{{ __('sidebar.payment') }}</span>
+                            <span>{{ __('sidebar.all_payment') }}</span>
                         </a>
                     </li>
+
                     @if(Auth::user()->role_id != 4)
                     <li class="nav-parent {{ request()->routeIs('report.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
@@ -109,6 +114,16 @@ $currentRoute = request()->route()->getName();
                         </ul>
                     </li>
                     @endif
+
+                    @if(Auth::user()->role_id == 4)
+                    <li class=" {{ request()->routeIs('report.*') ? 'nav-active' : ''}}">
+                        <a class="nav-link" href="{{route('report.cash_book_report')}}">
+                            <i class="bx bx-file" aria-hidden="true"></i>
+                            <span>{{ __('sidebar.cash_book_report') }}</span>
+                        </a>
+                    </li>
+                    @endif
+
                     <li class="{{ request()->routeIs('expense.*') ? 'nav-active' : ''}}">
                         <a class="nav-link" href="{{ route('expense.index') }}">
                             <i class="fas fa-receipt" aria-hidden="true"></i>  {{-- icon added --}}
@@ -135,7 +150,7 @@ $currentRoute = request()->route()->getName();
                         </ul>
                     </li>
                     @endif
-                    @if(Auth::user()->role_id != 4)
+                    @if(Auth::user()->role_id != 3 && Auth::user()->role_id != 4)
                     <li class="nav-parent {{ request()->routeIs('badmin.*') || request()->routeIs('cadmin.*') || request()->routeIs('company.*') || request()->routeIs('branch.*') || request()->routeIs('bank.*') || request()->routeIs('employer_type.*') || request()->routeIs('race.*') || request()->routeIs('marital_status.*')|| request()->routeIs('house_ownership.*')|| request()->routeIs('reference_type.*')|| request()->routeIs('expenses_type.*')|| request()->routeIs('non_expenses_type.*') ? 'nav-expanded nav-active' : ''}}">
                         <a class="nav-link" href="#">
                             <i class="bx bx-wrench" aria-hidden="true"></i>

@@ -4,6 +4,21 @@
     <h2>{{ __('table.payment') }}</h2>
 </header>
 @include('layouts.flash-message')
+@if(Auth::user()->role_id == 1)
+<div class="row mb-3">
+    <div class="col-md-4">
+        <label>{{ __('table.company') }}</label>
+        <select id="filter_company" class="form-control">
+            <option value="">{{ __('table.select_company') }}</option>
+            @foreach($companies as $company)
+                <option value="{{ $company->id }}">
+                    {{ $company->company_name }} ({{ $company->company_code }})
+                </option>
+            @endforeach
+        </select>
+    </div>
+</div>
+@endif
 <div class="row" style="padding-top:0">
     <div class="col-lg-12 mb-3">
         <section class="card">
@@ -246,7 +261,10 @@
                 "lengthMenu": [[100, 500, 1000, 100000000], [100, 500, 1000, 'All']],
                 "ajax": {
                     "url": "{{ route('payment.load_payment') }}",
-                    "type": "GET"
+                    "type": "GET",
+                    "data": function(d) {
+                        d.company_id = $('#filter_company').val() || '';
+                    }
                 },
                 "order": [
                     [0, "desc"]
@@ -349,6 +367,9 @@
                 }
                 @endif
                 ]
+            });
+            $(document).on('change', '#filter_company', function() {
+                table_payment.draw();
             });
         });
 

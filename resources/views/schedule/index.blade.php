@@ -18,6 +18,19 @@
                             <label class="col-form-label" style="padding:0">{{ __('table.end_date') }}</label>
                             <input type="date" class="form-control" id="end-date" onchange="reloadTable()" value="{{ date('Y-m-d') }}" required>
                         </div>
+                        @if(Auth::user()->role_id == 1)
+                        <div class="col-md-4">
+                            <label class="col-form-label" style="padding:0">{{ __('table.company') }}</label>
+                            <select id="filter_company" class="form-control" onchange="reloadTable()">
+                                <option value="">{{ __('table.select_company') }}</option>
+                                @foreach($companies as $company)
+                                    <option value="{{ $company->id }}">
+                                        {{ $company->company_name }} ({{ $company->company_code }})
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                        @endif
                     </div>
                     <div class="col-md-4" style="display:flex;flex-wrap:nowrap; gap: 5px;justify-content:flex-end;text-align:right">
                         <div>
@@ -143,7 +156,8 @@
                 "type": "GET",
                 'data': function(d){
                     d.start_date = document.getElementById('start-date').value;
-                    d.end_date = document.getElementById('end-date').value;
+                    d.end_date   = document.getElementById('end-date').value;
+                    d.company_id = $('#filter_company').val() || '';
                 },
                 "dataSrc": function(json) {
                     $('#total-due-amount').html(formatCredit(json.total_due_amount));

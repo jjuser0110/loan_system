@@ -674,6 +674,7 @@
                                         <th>{{ __('table.balance') }}</th>
                                         <th>{{ __('table.remark') }}</th>
                                         <th>{{ __('table.type') }}</th>
+                                        <th>{{ __('table.created_by') }}</th>
                                         <th>{{ __('table.loan_code') }}</th>
                                         @if(Auth::user()->role_id <= 3)
                                         <th>{{ __('table.actions') }}</th>
@@ -1258,6 +1259,10 @@
                 },
                 {
                     "data": "collection_type"
+                },
+                {
+                    "data": "created_by_name",
+                    "defaultContent": "-"
                 },
                 {
                     "data": null,

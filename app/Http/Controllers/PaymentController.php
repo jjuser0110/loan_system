@@ -35,7 +35,9 @@ class PaymentController extends Controller
 
     public function index(Request $request)
     {
-        return view('payment.index');
+        $companies = Company::orderBy('company_name')->get();
+
+        return view('payment.index')->with('companies', $companies);
     }
 
     public function load_payment(Request $request){
@@ -104,6 +106,11 @@ class PaymentController extends Controller
                 case 3:
                 case 4: $query->where('loans.company_id', Auth::user()->company_id); break;
                 default: throw new Exception('Invalid role id.');
+            }
+
+            // Company filter (combined with the role scope using AND)
+            if ($request->filled('company_id')) {
+                $query->where('loans.company_id', $request->company_id);
             }
 
             if (!empty($search)) {

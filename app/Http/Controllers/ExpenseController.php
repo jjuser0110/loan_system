@@ -24,19 +24,36 @@ use Carbon\Carbon;
 
 class ExpenseController extends Controller
 {
+    /**
+     * Companies the logged-in user is allowed to access.
+     * Role 1 = all, Role 2 = same branch, Role 3/4 = own company.
+     */
+    private function scopedCompanyQuery()
+    {
+        $query = Company::query();
+
+        switch (Auth::user()->role_id) {
+            case 1:
+                break;
+            case 2:
+                $query->where('branch_id', Auth::user()->branch_id);
+                break;
+            case 3:
+            case 4:
+                $query->where('id', Auth::user()->company_id);
+                break;
+            default:
+                throw new Exception('Invalid role id.');
+        }
+
+        return $query;
+    }
+
     public function index(Request $request)
     {
         try {
-            $query = Company::query();
-            switch (Auth::user()->role_id) {
-                case 1: break;
-                case 2: $query->where('branch_id', Auth::user()->branch_id); break;
-                case 3:
-                case 4: $query->where('id', Auth::user()->company_id); break;
-                default: throw new Exception('Invalid role id.');
-            }
-            $companies = $query->get();
-            $expenseTypes = ExpensesType::orderBy('title')->get();
+            $companies       = $this->scopedCompanyQuery()->get();
+            $expenseTypes    = ExpensesType::orderBy('title')->get();
             $nonexpenseTypes = NonExpensesType::orderBy('title')->get();
 
             return view('expense.index')
@@ -48,15 +65,16 @@ class ExpenseController extends Controller
         }
     }
 
-    public function load_expense(Request $request){
-        try{
-            $draw = $request->input('draw');
+    public function load_expense(Request $request)
+    {
+        try {
+            $draw   = $request->input('draw');
             $search = $request->input('search.value');
-            $start = $request->input('start', 0);
+            $start  = $request->input('start', 0);
             $length = $request->input('length', 10);
 
-            // Safe column ordering — fallback if called outside DataTables
-            $orderByColumn = 'expenses.created_at';
+            // Safe column ordering - fallback if called outside DataTables
+            $orderByColumn    = 'expenses.created_at';
             $orderByDirection = 'desc';
             if ($request->input('order.0.column') !== null && $request->input('columns')) {
                 $colIndex = $request->input('order.0.column');
@@ -71,10 +89,13 @@ class ExpenseController extends Controller
                     'company'             => 'companies.company_name',
                     'bank'                => 'banks.bank_name',
                     'created_at'          => 'expenses.created_at',
-                    'updated_by_name' => 'updater.name',
+                    'updated_by_name'     => 'updater.name',
                 ];
                 $orderByColumn    = $columnMap[$colName] ?? 'expenses.created_at';
                 $orderByDirection = $request->input('order.0.dir', 'desc');
+                if (!in_array(strtolower($orderByDirection), ['asc', 'desc'])) {
+                    $orderByDirection = 'desc';
+                }
             }
 
             $query = Expense::query()
@@ -95,6 +116,7 @@ class ExpenseController extends Controller
                 ->join('branches', 'branches.id', '=', 'companies.branch_id')
                 ->leftJoin('users as updater', 'updater.id', '=', 'expenses.updated_by');
 
+            // Role-based scope
             switch (Auth::user()->role_id) {
                 case 1:
                     break;
@@ -123,13 +145,13 @@ class ExpenseController extends Controller
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('expenses.expense_title', 'like', "%{$search}%")
-                    ->orWhere('expenses.amount', 'like', "%{$search}%")
-                    ->orWhere('expenses.expense_code', 'like', "%{$search}%")
-                    ->orWhere('expenses.expense_description', 'like', "%{$search}%")
-                    ->orWhere('companies.company_name', 'like', "%{$search}%")
-                    ->orWhere('companies.company_code', 'like', "%{$search}%")
-                    ->orWhere('branches.branch_code', 'like', "%{$search}%")
-                    ->orWhere('branches.branch_name', 'like', "%{$search}%");
+                      ->orWhere('expenses.amount', 'like', "%{$search}%")
+                      ->orWhere('expenses.expense_code', 'like', "%{$search}%")
+                      ->orWhere('expenses.expense_description', 'like', "%{$search}%")
+                      ->orWhere('companies.company_name', 'like', "%{$search}%")
+                      ->orWhere('companies.company_code', 'like', "%{$search}%")
+                      ->orWhere('branches.branch_code', 'like', "%{$search}%")
+                      ->orWhere('branches.branch_name', 'like', "%{$search}%");
                 });
             }
 
@@ -137,9 +159,8 @@ class ExpenseController extends Controller
             $data = $query->orderBy($orderByColumn, $orderByDirection)->skip($start)->take($length)->get();
 
             foreach ($data as $row) {
-
                 $row->expense_amount = 0;
-                $row->non_amount = 0;
+                $row->non_amount     = 0;
 
                 if ($row->expense_type == 'expense') {
                     $row->expense_amount = $row->amount;
@@ -157,7 +178,7 @@ class ExpenseController extends Controller
                 "data"            => $data,
             ]);
 
-        } catch(Exception $e){
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage()
@@ -179,25 +200,19 @@ class ExpenseController extends Controller
                 'date'                => 'required'
             ]);
 
-            // Calculate final amount: amount_in is positive, amount_out is negative
+            // amount_in is positive, amount_out is negative
             $amount_in  = floatval($request->amount_in  ?? 0);
             $amount_out = floatval($request->amount_out ?? 0);
             $amount     = $amount_in - $amount_out;
 
-            $query = Company::query();
-            switch (Auth::user()->role_id) {
-                case 1: break;
-                case 2: $query->where('branch_id', Auth::user()->branch_id); break;
-                case 3:
-                case 4: $query->where('id', Auth::user()->company_id); break;
-                default: throw new Exception('Invalid role id.');
-            }
-
-            $company = $query->where('company_code', $request->company)->first();
+            // Only companies the user can access
+            $company = $this->scopedCompanyQuery()
+                ->where('company_code', $request->company)
+                ->first();
             if (!$company) throw new Exception('Selected company does not exist.');
 
             $pm = PaymentMethod::where('id', $request->payment_method_id)
-                            ->where('company_id', $company->id)->first();
+                ->where('company_id', $company->id)->first();
             if (!$pm) throw new Exception('Invalid payment method.');
 
             $prefix       = $company->company_code . '-E';
@@ -252,28 +267,27 @@ class ExpenseController extends Controller
                 'date'                => 'required'
             ]);
 
-            // Calculate final amount
             $amount_in  = floatval($request->amount_in  ?? 0);
             $amount_out = floatval($request->amount_out ?? 0);
             $amount     = $amount_in - $amount_out;
 
-            $query = Company::query();
-            switch (Auth::user()->role_id) {
-                case 1: break;
-                case 2: $query->where('branch_id', Auth::user()->branch_id); break;
-                case 3:
-                case 4: $query->where('id', Auth::user()->company_id); break;
-                default: throw new Exception('Invalid role id.');
-            }
-
-            $company = $query->where('company_code', $request->company)->first();
+            // Target company must be accessible to the user
+            $company = $this->scopedCompanyQuery()
+                ->where('company_code', $request->company)
+                ->first();
             if (!$company) throw new Exception('Selected company does not exist.');
 
-            $expense = Expense::where('id', $request->id)->first();
+            $expense = Expense::lockForUpdate()->where('id', $request->id)->first();
             if (!$expense) throw new Exception('Invalid expense.');
 
+            // The EXISTING expense must also belong to a company the user can access
+            $ownsExpense = $this->scopedCompanyQuery()
+                ->where('id', $expense->company_id)
+                ->exists();
+            if (!$ownsExpense) throw new Exception('Access denied.');
+
             $pm = PaymentMethod::where('id', $request->payment_method_id)
-                            ->where('company_id', $company->id)->first();
+                ->where('company_id', $company->id)->first();
             if (!$pm) throw new Exception('Invalid payment method.');
 
             $ppm = PaymentMethod::where('id', $expense->payment_method_id)->first();
@@ -281,7 +295,7 @@ class ExpenseController extends Controller
 
             // Reverse old amount on previous payment method
             $ppm_before = $ppm->amount;
-            $ppm_after  = $ppm_before - $expense->amount; // reverse old amount
+            $ppm_after  = $ppm_before - $expense->amount;
             $ppm->update(['amount' => $ppm_after]);
             $ppm->payment_method_logs()->create([
                 'type'              => 'expense',
@@ -332,48 +346,37 @@ class ExpenseController extends Controller
     {
         try {
             DB::beginTransaction();
-            $expense = Expense::lockForUpdate()->where('id',$request->id)->first();
-            if(!$expense){
-                throw new Exceptionm('Failed to remove selected expense');
+
+            $expense = Expense::lockForUpdate()->where('id', $request->id)->first();
+            if (!$expense) {
+                throw new Exception('Failed to remove selected expense');
             }
-            $query = Company::query();
-            switch (Auth::user()->role_id) {
-                case 1:
-                    break;
 
-                case 2:
-                    $query->where('branch_id', Auth::user()->branch_id);
-                    break;
-
-                case 3:
-                case 4:
-                    $query->where('id', Auth::user()->company_id);
-                    break;
-
-                default:
-                    throw new Exception('Invalid role id.');
-            }
-            
-            $company = $query->where('id',$expense->company_id)->first();
-            if(!$company){
+            // Expense must belong to a company the user can access
+            $company = $this->scopedCompanyQuery()
+                ->where('id', $expense->company_id)
+                ->first();
+            if (!$company) {
                 throw new Exception('Access denied.');
             }
 
-            $pm = PaymentMethod::where('id',$expense->payment_method_id)->first();
-            if(!$pm){
+            $pm = PaymentMethod::where('id', $expense->payment_method_id)->first();
+            if (!$pm) {
                 throw new Exception('Invalid payment method.');
             }
 
+            // Reverse the expense: amount is signed (+ in, - out), so subtract it.
+            // (Original code added it, which moved the balance the wrong way.)
             $pm_before = $pm->amount;
-            $pm_after = $pm_before + $expense->amount;
-            $pm->update(['amount'=>$pm_after]);
+            $pm_after  = $pm_before - $expense->amount;
+            $pm->update(['amount' => $pm_after]);
             $pm->payment_method_logs()->create([
-                'type'=> 'expense',
-                'description'=>'Expense Deleted',
-                'prev_amount'=> $pm_before,
-                'amount' => $expense->amount,
-                'payment_method_id'=>$pm->id,
-                'total' => $pm_after
+                'type'              => 'expense',
+                'description'       => 'Expense Deleted',
+                'prev_amount'       => $pm_before,
+                'amount'            => $expense->amount * -1,
+                'payment_method_id' => $pm->id,
+                'total'             => $pm_after
             ]);
 
             $expense->delete();
@@ -391,13 +394,38 @@ class ExpenseController extends Controller
 
     public function fetch_expense()
     {
-        $total_expenses = DB::table('expenses')
-            ->whereNull('deleted_at')
-            ->where('expense_type', 'expense')
-            ->sum('amount');
+        try {
+            // Expense::query() keeps the soft-delete filter automatically
+            // (assumes the Expense model uses SoftDeletes, as deleted_at is used elsewhere).
+            $query = Expense::query()->where('expenses.expense_type', 'expense');
 
-        return response()->json([
-            'total_expenses' => number_format($total_expenses, 2)
-        ]);
+            switch (Auth::user()->role_id) {
+                case 1:
+                    break;
+                case 2:
+                    $query->whereIn('expenses.company_id', function ($q) {
+                        $q->select('id')
+                          ->from('companies')
+                          ->where('branch_id', Auth::user()->branch_id);
+                    });
+                    break;
+                case 3:
+                case 4:
+                    $query->where('expenses.company_id', Auth::user()->company_id);
+                    break;
+                default:
+                    throw new Exception('Invalid role id.');
+            }
+
+            return response()->json([
+                'total_expenses' => number_format($query->sum('expenses.amount'), 2)
+            ]);
+
+        } catch (Exception $e) {
+            return response()->json([
+                'total_expenses' => '0.00',
+                'message'        => $e->getMessage()
+            ]);
+        }
     }
 }
