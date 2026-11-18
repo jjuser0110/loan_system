@@ -1610,10 +1610,10 @@
                     "data": "installment",
                     "render": function(data, type, row, meta) {
                         if (row.interest_group === 'SKIM A') {
-                            // fixed: based on original capital, NOT balance
-                            const capital = parseFloat(String(row.capital).replace(/,/g, '')) || 0;
+                            // fixed: based on original balance
+                            const balance = parseFloat(String(row.balance).replace(/,/g, '')) || 0;
                             const rate    = parseFloat(row.interest_rate) || 0;
-                            return `<strong>${(capital * rate / 100).toFixed(2)}</strong>`;
+                            return `<strong>${(balance * rate / 100).toFixed(2)}</strong>`;
                         }
                         return `<strong>${row.installment}</strong>`;
                     }

@@ -118,11 +118,7 @@ $(document).ready(function () {
         },
         order: [[2, "asc"]],
         rowCallback: function(row, data) {
-            let desc = data.description || '';
-            if (desc.includes('Payment Created') || desc.includes('Payment Deleted')) {
-                $(row).addClass('row-invalid');
-            }
-            if (desc.endsWith('Edit') || desc.includes('Loan Deleted') || data.is_deleted_row == 1) {
+            if (data.is_edited_row == 1 || data.is_deleted_row == 1 || (data.description || '').includes('Loan Deleted')) {
                 $(row).addClass('row-edit');
             }
         },

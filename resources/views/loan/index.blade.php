@@ -22,7 +22,6 @@
 <div class="row mb-4" style="padding-top:40px;">
     
     @if(Auth::user()->role_id != 4)
-
     <div class="col-xl-4">
         <section class="card card-featured-left card-featured-secondary mb-3" style="background-color:#d6eaff;">
             <div class="card-body" style="background: transparent;">
