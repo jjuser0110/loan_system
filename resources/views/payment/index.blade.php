@@ -62,7 +62,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="form-add-payment">
+                <form id="form-add-payment" novalidate>
                     @csrf
                     <input type="hidden" name="loan_code" id="add-loan-code" value="">
 
@@ -97,7 +97,7 @@
                     <div class="row mb-3" id="add-wrap-payment">
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
-                            <input type="number" class="form-control" id="add-input-payment-amount" name="payment_amount" value="0">
+                            <input type="number" step="0.01" class="form-control" id="add-input-payment-amount" name="payment_amount" value="0">
                             <p class="p-note">
                                 <span id="display-group">-</span><br>
                                 {{ __('table.outstanding') }}: <span id="display-balance">0.00</span> &nbsp;&nbsp;&nbsp;
@@ -108,7 +108,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.discount') }}</label>
-                            <input type="number" class="form-control" name="discount_amount" value="0">
+                            <input type="number" step="0.01" class="form-control" name="discount_amount" value="0">
                         </div>
                     </div>
 
@@ -116,25 +116,25 @@
                     <div class="row mb-3">
                         <div class="col-md-6" id="add-wrap-topup-capital">
                             <label class="col-form-label">{{ __('table.top_up_capital') }}</label>
-                            <input type="number" class="form-control" id="add-input-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01" value="0">
+                            <input type="number" step="0.01" class="form-control" id="add-input-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01" value="0">
                         </div>
                         <div class="col-md-6" id="add-wrap-topup">
                             <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
-                            <input type="number" class="form-control" id="add-input-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
+                            <input type="number" step="0.01" class="form-control" id="add-input-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
                         </div>
                     </div>
 
                     {{-- Late --}}
                     <div class="col-md-12 mb-3" id="add-wrap-late">
                         <label class="col-form-label">{{ __('table.late_amount') }}</label>
-                        <input type="number" class="form-control" id="add-input-payment-late" name="late_paid_amount" value="0">
+                        <input type="number" step="0.01" class="form-control" id="add-input-payment-late" name="late_paid_amount" value="0">
                         <p class="p-note" id="display-late-balance">0.00</p>
                     </div>
 
                     {{-- Interest --}}
                     <div class="col-md-12 mb-3" id="add-wrap-interest">
                         <label class="col-form-label">{{ __('table.interest_amount') }}</label>
-                        <input type="number" class="form-control" id="add-input-payment-interest" name="interest_paid_amount" value="0">
+                        <input type="number" step="0.01" class="form-control" id="add-input-payment-interest" name="interest_paid_amount" value="0">
                         <p class="p-note" id="display-interest-amount">0.00</p>
                     </div>
 
@@ -169,14 +169,14 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="form-update-payment">
+                <form id="form-update-payment" novalidate>
                     @csrf
                     <input type="hidden" name="payment_id" id="update-payment-id">
 
                     {{-- Payment type selector --}}
                     <div class="col-md-12 mb-3">
                         <label class="col-form-label">{{ __('table.payment_type') }}</label>
-                        <select class="form-control" id="update-payment-type" onchange="applyUpdatePaymentType(this.value)">
+                        <select class="form-control" step="0.01" id="update-payment-type" onchange="applyUpdatePaymentType(this.value)">
                             <option value="CCM">Payment / CCM / Discount</option>
                             <option value="INTEREST">Pay SKIM A Interest</option>
                             <option value="LATE">Pay Late</option>
@@ -194,11 +194,11 @@
                     <div class="row mb-3" id="update-wrap-payment">
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.payment/capital_amount') }}</label>
-                            <input type="number" class="form-control" id="update-payment-paid" name="payment_amount">
+                            <input type="number" step="0.01" class="form-control" id="update-payment-paid" name="payment_amount">
                         </div>
                         <div class="col-md-6">
                             <label class="col-form-label">{{ __('table.discount') }}</label>
-                            <input type="number" class="form-control" id="update-payment-discount" name="discount_amount">
+                            <input type="number" step="0.01" class="form-control" id="update-payment-discount" name="discount_amount">
                         </div>
                     </div>
 
@@ -206,24 +206,24 @@
                     <div class="row mb-3">
                         <div class="col-md-6" id="update-wrap-topup-capital">
                             <label class="col-form-label">{{ __('table.top_up_capital') }}</label>
-                            <input type="number" class="form-control" id="update-payment-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01" value="0">
+                            <input type="number" step="0.01" class="form-control" id="update-payment-topup-capital" name="top_up_capital" placeholder="5000.00" step="0.01" value="0">
                         </div>
                         <div class="col-md-6" id="update-wrap-topup">
                             <label class="col-form-label">{{ __('table.top_up_amount') }}</label>
-                            <input type="number" class="form-control" id="update-payment-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
+                            <input type="number" step="0.01" class="form-control" id="update-payment-topup" name="top_up" placeholder="5000.00" step="0.01" value="0">
                         </div>
                     </div>
 
                     {{-- Late --}}
                     <div class="col-md-12 mb-3" id="update-wrap-late">
                         <label class="col-form-label">{{ __('table.late_amount') }}</label>
-                        <input type="number" class="form-control" id="update-payment-late" name="late_paid_amount" value="0">
+                        <input type="number" step="0.01" class="form-control" id="update-payment-late" name="late_paid_amount" value="0">
                     </div>
 
                     {{-- Interest --}}
                     <div class="col-md-12 mb-3" id="update-wrap-interest">
                         <label class="col-form-label">{{ __('table.interest_amount') }}</label>
-                        <input type="number" class="form-control" id="update-payment-interest" name="interest_paid_amount">
+                        <input type="number" step="0.01" class="form-control" id="update-payment-interest" name="interest_paid_amount">
                     </div>
 
                     <input type="hidden" name="collection_type" id="update-payment-collection" value="">
