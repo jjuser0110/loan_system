@@ -553,7 +553,7 @@ class ReportController extends Controller
                 END
             ";
 
-            // Fallback: Updated/Deleted expense logs are saved against the PaymentMethod (not the Expense),
+            // Updated/Deleted expense logs are saved against the PaymentMethod (not the Expense),
             // so find the expense by payment method + timestamp (within 2 seconds).
             $expenseLookup = function (string $col) {
                 return "(
@@ -571,8 +571,11 @@ class ReportController extends Controller
                 )";
             };
 
-            $lookupCode = $expenseLookup('expense_code');
-            $lookupType = $expenseLookup('expense_type');
+            $lookupCode  = $expenseLookup('expense_code');
+            $lookupType  = $expenseLookup('expense_type');
+            $lookupTitle = $expenseLookup('expense_title');
+            $lookupDesc  = $expenseLookup('expense_description');
+            $lookupId    = $expenseLookup('id');
 
             $deletedCodeLookup = "(
                 SELECT NULLIF(TRIM(SUBSTRING(ld.description, CHAR_LENGTH('Expense Deleted') + 1)), '')
@@ -588,6 +591,34 @@ class ReportController extends Controller
             $expenseCodeExpr = "COALESCE(expenses.expense_code, {$deletedCodeLookup}, {$lookupCode}, '-')";
             $expenseTypeExpr = "COALESCE(expenses.expense_type, {$lookupType})";
 
+            // The final "Expense Updated" log of ONE expense
+            // (last Updated log within 2s of that expense's updated_at, on the same payment method)
+            $latestUpdatedId = "(
+                SELECT MAX(l2.id)
+                FROM payment_method_logs l2
+                JOIN expenses e3 ON e3.payment_method_id = l2.payment_method_id
+                WHERE l2.type = 'expense'
+                  AND l2.description = 'Expense Updated'
+                  AND l2.content_type NOT LIKE '%Expense'
+                  AND ABS(TIMESTAMPDIFF(SECOND, e3.updated_at, l2.created_at)) <= 2
+                  AND e3.id = {$lookupId}
+            )";
+
+            // TRUE when this Updated row is the final one of its expense.
+            // If logs are saved against the Expense itself (content_type = Expense), use content_id instead.
+            $isLatestUpdated = "(CASE
+                WHEN payment_method_logs.content_type LIKE '%Expense'
+                    THEN payment_method_logs.id = (
+                        SELECT MAX(l4.id)
+                        FROM payment_method_logs l4
+                        WHERE l4.type = 'expense'
+                          AND l4.description = 'Expense Updated'
+                          AND l4.content_type = payment_method_logs.content_type
+                          AND l4.content_id = payment_method_logs.content_id
+                    )
+                ELSE payment_method_logs.id = {$latestUpdatedId}
+            END)";
+
             $query = \DB::table('payment_method_logs')
                 ->select([
                     'payment_method_logs.*',
@@ -595,8 +626,8 @@ class ReportController extends Controller
                     'customers.customer_name',
                     'payments.remark as remark',
                     'payments.collection_type as collection_type',
-                    'expenses.expense_title as expenses_name',
-                    'expenses.expense_description as expenses_description',
+                    \DB::raw("COALESCE(expenses.expense_title, {$lookupTitle}) as expenses_name"),
+                    \DB::raw("COALESCE(expenses.expense_description, {$lookupDesc}) as expenses_description"),
                     'payments.top_up as top_up',
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
@@ -629,17 +660,7 @@ class ReportController extends Controller
                                             THEN ' Deleted'
 
                                         WHEN payment_method_logs.description = 'Expense Updated'
-                                            THEN IF(
-                                                payment_method_logs.id <> (
-                                                    SELECT MAX(l2.id)
-                                                    FROM payment_method_logs l2
-                                                    WHERE l2.content_id = payment_method_logs.content_id
-                                                    AND l2.type = 'expense'
-                                                    AND l2.description = 'Expense Updated'
-                                                ),
-                                                ' Updated Edit',
-                                                ' Updated'
-                                            )
+                                            THEN IF({$isLatestUpdated}, ' Updated', ' Updated Edit')
 
                                         WHEN COALESCE(payment_method_logs.description, '') = 'Expense Created'
                                             AND EXISTS (
@@ -668,20 +689,40 @@ class ReportController extends Controller
                             ELSE 0
                         END as is_deleted_row
                     "),
+
+                    // Red row flag: expense rows follow the same rule as the description
+                    // ("Edit" / "Updated Edit" = red, final "Updated" = white)
                     \DB::raw("
                         CASE
-                            WHEN payment_method_logs.type IN ('payment','loan','expense')
-                            AND payment_method_logs.id < (
-                                SELECT MAX(l2.id)
-                                FROM payment_method_logs l2
-                                WHERE l2.content_id = payment_method_logs.content_id
-                                AND l2.type = payment_method_logs.type
-                                AND l2.description = CONCAT(UPPER(LEFT(payment_method_logs.type, 1)), SUBSTRING(payment_method_logs.type, 2), ' Updated')
-                            )
-                            THEN 1
+                            WHEN payment_method_logs.type = 'expense' AND payment_method_logs.description = 'Expense Updated'
+                                THEN IF({$isLatestUpdated}, 0, 1)
+
+                            WHEN payment_method_logs.type = 'expense' AND payment_method_logs.description = 'Expense Created'
+                                AND EXISTS (
+                                    SELECT 1
+                                    FROM payment_method_logs l3
+                                    WHERE l3.type = 'expense'
+                                    AND l3.description = 'Expense Updated'
+                                    AND l3.payment_method_id = payment_method_logs.payment_method_id
+                                    AND l3.amount = -payment_method_logs.amount
+                                    AND l3.id > payment_method_logs.id
+                                )
+                                THEN 1
+
+                            WHEN payment_method_logs.type IN ('payment','loan')
+                                AND payment_method_logs.id < (
+                                    SELECT MAX(l2.id)
+                                    FROM payment_method_logs l2
+                                    WHERE l2.content_id = payment_method_logs.content_id
+                                    AND l2.type = payment_method_logs.type
+                                    AND l2.description = CONCAT(UPPER(LEFT(payment_method_logs.type, 1)), SUBSTRING(payment_method_logs.type, 2), ' Updated')
+                                )
+                                THEN 1
+
                             ELSE 0
                         END as is_edited_row
                     "),
+
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN NULL
