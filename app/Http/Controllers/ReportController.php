@@ -215,16 +215,42 @@ class ReportController extends Controller
                 END
             ";
 
+            // Updated/Deleted expense logs are saved against the PaymentMethod (not the Expense),
+            // so find the expense by payment method + timestamp (within 2 seconds).
+            $expenseLookup = function (string $col) {
+                return "(
+                    SELECT e2.{$col}
+                    FROM expenses e2
+                    WHERE e2.payment_method_id = payment_method_logs.payment_method_id
+                      AND payment_method_logs.type = 'expense'
+                      AND payment_method_logs.content_type NOT LIKE '%Expense'
+                      AND (
+                            ABS(TIMESTAMPDIFF(SECOND, e2.updated_at, payment_method_logs.created_at)) <= 2
+                         OR ABS(TIMESTAMPDIFF(SECOND, e2.deleted_at, payment_method_logs.created_at)) <= 2
+                      )
+                    ORDER BY e2.id DESC
+                    LIMIT 1
+                )";
+            };
+
+            $lookupCode  = $expenseLookup('expense_code');
+            $lookupType  = $expenseLookup('expense_type');
+            $lookupTitle = $expenseLookup('expense_title');
+            $lookupDesc  = $expenseLookup('expense_description');
+
+            $expenseCodeExpr = "COALESCE(expenses.expense_code, {$lookupCode}, '-')";
+            $expenseTypeExpr = "COALESCE(expenses.expense_type, {$lookupType})";
+
             $query = \DB::table(\DB::raw("({$collapsedSubquery}) as payment_method_logs"))
                 ->select([
                     'payment_method_logs.*',
                     'customers.id as customer_id',
                     'customers.customer_name',
                     'payments.remark as remark',
-                    'expenses.expense_title as expenses_name',
-                    'expenses.expense_description as expenses_description',
+                    \DB::raw("COALESCE(expenses.expense_title, {$lookupTitle}) as expenses_name"),
+                    \DB::raw("COALESCE(expenses.expense_description, {$lookupDesc}) as expenses_description"),
                     'payments.top_up as top_up',
-                    
+
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.type = 'payment' THEN payments.payment_amount
@@ -239,6 +265,7 @@ class ReportController extends Controller
                         ) as collection_type
                     "),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
+                    \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.type = 'payment' AND payments.top_up IS NOT NULL AND payments.top_up > 0
@@ -253,21 +280,20 @@ class ReportController extends Controller
                             WHEN payment_method_logs.type = 'loan'
                                 THEN CONCAT('Loan #', COALESCE(loans.loan_code, payment_method_logs.description))
 
-                            -- Expense Updated / Updated Edit / Created Edit / Deleted / Edit
                             WHEN payment_method_logs.type = 'expense'
                                 AND payment_method_logs.description LIKE 'Expense %'
                                 AND payment_method_logs.description != 'Expense Created'
                                 THEN CONCAT(
-                                    IF(expenses.expense_type = 'non-expense', 'Non-Expense #', 'Expense #'),
-                                    COALESCE(expenses.expense_code, '-'),
+                                    IF({$expenseTypeExpr} = 'non-expense', 'Non-Expense #', 'Expense #'),
+                                    {$expenseCodeExpr},
                                     ' ',
                                     TRIM(SUBSTRING(payment_method_logs.description, 9))
                                 )
 
                             WHEN payment_method_logs.type = 'expense'
                                 THEN CONCAT(
-                                    IF(expenses.expense_type = 'non-expense', 'Non-Expense #', 'Expense #'),
-                                    COALESCE(expenses.expense_code, payment_method_logs.description)
+                                    IF({$expenseTypeExpr} = 'non-expense', 'Non-Expense #', 'Expense #'),
+                                    {$expenseCodeExpr}
                                 )
 
                             ELSE CONCAT('Manual # ', COALESCE(payment_method_logs.description, '-'))
@@ -330,10 +356,10 @@ class ReportController extends Controller
                     "),
                     \DB::raw("
                         CASE
-                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN 
+                            WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN
                                 payment_method_logs.grouped_amount
 
-                            WHEN payment_method_logs.type = 'loan' THEN 
+                            WHEN payment_method_logs.type = 'loan' THEN
                                 payment_method_logs.grouped_amount
 
                             ELSE NULL
@@ -356,9 +382,12 @@ class ReportController extends Controller
                     $join->on('payments.loan_id', '=', 'payment_loans.id')
                         ->where('payment_method_logs.type', '=', 'payment');
                 })
+                // Only join expenses when the log is really saved against an Expense
+                // (Updated/Deleted logs use PaymentMethod as content_type, so content_id is NOT an expense id)
                 ->leftJoin('expenses', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'expenses.id')
-                        ->where('payment_method_logs.type', '=', 'expense');
+                        ->where('payment_method_logs.type', '=', 'expense')
+                        ->where('payment_method_logs.content_type', 'like', '%Expense');
                 })
                 ->leftJoin('customers', function ($join) {
                     $join->on(function ($q) {
@@ -395,6 +424,16 @@ class ReportController extends Controller
                 ->orWhereNull('payment_method_logs.description');
             });
 
+            // Hide deleted expenses (Deleted rows, and Created rows of expenses that no longer exist)
+            $query->where(function ($q) {
+                $q->where('payment_method_logs.type', '!=', 'expense')
+                ->orWhere(function ($q2) {
+                    $q2->where('payment_method_logs.description', 'not like', 'Expense Deleted%')
+                        ->whereNotNull('expenses.id')
+                        ->whereNull('expenses.deleted_at');
+                });
+            });
+
             if ($fromDate) {
                 $query->whereRaw("({$dateExpr}) >= ?", [$fromDate]);
             }
@@ -417,9 +456,9 @@ class ReportController extends Controller
                 5  => 'expenses.expense_title',
                 6  => 'expenses.expense_description',
                 7  => 'payments.remark',
-                8  => 'payments.late_paid_amount', 
+                8  => 'payments.late_paid_amount',
                 9  => 'payments.interest_paid_amount',
-                10 => 'payments.payment_amount',  
+                10 => 'payments.payment_amount',
                 11 => 'payments.top_up_capital',
                 12 => 'payment_method_logs.amount',
                 13 => 'expenses.amount',
@@ -535,7 +574,18 @@ class ReportController extends Controller
             $lookupCode = $expenseLookup('expense_code');
             $lookupType = $expenseLookup('expense_type');
 
-            $expenseCodeExpr = "COALESCE(expenses.expense_code, {$lookupCode}, '-')";
+            $deletedCodeLookup = "(
+                SELECT NULLIF(TRIM(SUBSTRING(ld.description, CHAR_LENGTH('Expense Deleted') + 1)), '')
+                FROM payment_method_logs ld
+                WHERE ld.type = 'expense'
+                AND ld.content_type LIKE '%Expense'
+                AND ld.content_id = payment_method_logs.content_id
+                AND ld.description LIKE 'Expense Deleted %'
+                ORDER BY ld.id DESC
+                LIMIT 1
+            )";
+
+            $expenseCodeExpr = "COALESCE(expenses.expense_code, {$deletedCodeLookup}, {$lookupCode}, '-')";
             $expenseTypeExpr = "COALESCE(expenses.expense_type, {$lookupType})";
 
             $query = \DB::table('payment_method_logs')
