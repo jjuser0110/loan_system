@@ -514,6 +514,30 @@ class ReportController extends Controller
                 END
             ";
 
+            // Fallback: Updated/Deleted expense logs are saved against the PaymentMethod (not the Expense),
+            // so find the expense by payment method + timestamp (within 2 seconds).
+            $expenseLookup = function (string $col) {
+                return "(
+                    SELECT e2.{$col}
+                    FROM expenses e2
+                    WHERE e2.payment_method_id = payment_method_logs.payment_method_id
+                      AND payment_method_logs.type = 'expense'
+                      AND payment_method_logs.content_type NOT LIKE '%Expense'
+                      AND (
+                            ABS(TIMESTAMPDIFF(SECOND, e2.updated_at, payment_method_logs.created_at)) <= 2
+                         OR ABS(TIMESTAMPDIFF(SECOND, e2.deleted_at, payment_method_logs.created_at)) <= 2
+                      )
+                    ORDER BY e2.id DESC
+                    LIMIT 1
+                )";
+            };
+
+            $lookupCode = $expenseLookup('expense_code');
+            $lookupType = $expenseLookup('expense_type');
+
+            $expenseCodeExpr = "COALESCE(expenses.expense_code, {$lookupCode}, '-')";
+            $expenseTypeExpr = "COALESCE(expenses.expense_type, {$lookupType})";
+
             $query = \DB::table('payment_method_logs')
                 ->select([
                     'payment_method_logs.*',
@@ -548,14 +572,8 @@ class ReportController extends Controller
 
                             WHEN payment_method_logs.type = 'expense'
                                 THEN CONCAT(
-                                    IF(expenses.expense_type = 'non-expense', 'Non-Expense #', 'Expense #'),
-                                    COALESCE(
-                                        expenses.expense_code,
-                                        IF(payment_method_logs.description LIKE 'Expense Deleted%',
-                                            NULLIF(TRIM(REPLACE(payment_method_logs.description, 'Expense Deleted', '')), ''),
-                                            NULL),
-                                        '-'
-                                    ),
+                                    IF({$expenseTypeExpr} = 'non-expense', 'Non-Expense #', 'Expense #'),
+                                    {$expenseCodeExpr},
                                     CASE
                                         WHEN payment_method_logs.description LIKE 'Expense Deleted%'
                                             THEN ' Deleted'
@@ -691,9 +709,12 @@ class ReportController extends Controller
                         ->where('payment_method_logs.type', '=', 'loan')
                         ->where('payment_method_logs.description', 'not like', 'Loan Deleted%');
                 })
+                // Only join expenses when the log is really saved against an Expense
+                // (Updated/Deleted logs use PaymentMethod as content_type, so content_id is NOT an expense id)
                 ->leftJoin('expenses', function ($join) {
                     $join->on('payment_method_logs.content_id', '=', 'expenses.id')
-                        ->where('payment_method_logs.type', '=', 'expense');
+                        ->where('payment_method_logs.type', '=', 'expense')
+                        ->where('payment_method_logs.content_type', 'like', '%Expense');
                 })
                 ->leftJoin('customers', function ($join) {
                     $join->on(function ($q) {
