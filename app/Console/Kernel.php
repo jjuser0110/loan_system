@@ -16,12 +16,10 @@ class Kernel extends ConsoleKernel
     
     protected $commands = [
         //
-	   'App\Console\Commands\DoClosings',
     ];
 
     protected function schedule(Schedule $schedule)
     {
-        $schedule->command('daily:cron')->daily();
         $schedule->command('dailyreport:autosave')->dailyAt('00:00');
         $schedule->command('cashbook:autosave')->dailyAt('00:00');
         $schedule->command('schedule:rollover-skim-a')

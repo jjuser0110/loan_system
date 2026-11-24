@@ -6,29 +6,48 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Company;
 use App\Models\DailyReport;
-use App\Models\PaymentMethodLog;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
 
 class ReportController extends Controller
 {
+    /** DataTables response shown before any filter is chosen. */
+    private function emptyTableResponse($draw)
+    {
+        return response()->json([
+            "draw"            => intval($draw),
+            "recordsTotal"    => 0,
+            "recordsFiltered" => 0,
+            "data"            => [],
+        ]);
+    }
+
+    /**
+     * Updated/Deleted expense logs are saved against the PaymentMethod (not the Expense),
+     * so find the expense by payment method + timestamp (within 2 seconds).
+     * Used by both cash book reports.
+     */
+    private function expenseLookupSql(string $col)
+    {
+        return "(
+                    SELECT e2.{$col}
+                    FROM expenses e2
+                    WHERE e2.payment_method_id = payment_method_logs.payment_method_id
+                      AND payment_method_logs.type = 'expense'
+                      AND payment_method_logs.content_type NOT LIKE '%Expense'
+                      AND (
+                            ABS(TIMESTAMPDIFF(SECOND, e2.updated_at, payment_method_logs.created_at)) <= 2
+                         OR ABS(TIMESTAMPDIFF(SECOND, e2.deleted_at, payment_method_logs.created_at)) <= 2
+                      )
+                    ORDER BY e2.id DESC
+                    LIMIT 1
+                )";
+    }
+
     public function daily_report(Request $request)
     {
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('companies');
-                break;
-
-            case 2:
-                $query = DB::table('companies')->where('branch_id', Auth::user()->branch_id);
-                break;
-
-            default:
-                $query = DB::table('companies')->where('id', Auth::user()->company_id);
-                break;
-        }
-        $companies = $query->get();
+        $companies = $this->scopedCompaniesTable()->get();
         return view('report.dailyreport')->with('companies', $companies);
     }
 
@@ -45,12 +64,7 @@ class ReportController extends Controller
             $companyId = $request->input('company_id');
 
             if (!$fromDate && !$toDate && !$companyId) {
-                return response()->json([
-                    "draw" => intval($draw),
-                    "recordsTotal" => 0,
-                    "recordsFiltered" => 0,
-                    "data" => [],
-                ]);
+                return $this->emptyTableResponse($draw);
             }
 
             $orderColumnIndex = $request->input('order.0.column', 10);
@@ -149,20 +163,7 @@ class ReportController extends Controller
 
     public function cash_book_report(Request $request)
     {
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('companies');
-                break;
-
-            case 2:
-                $query = DB::table('companies')->where('branch_id', Auth::user()->branch_id);
-                break;
-
-            default:
-                $query = DB::table('companies')->where('id', Auth::user()->company_id);
-                break;
-        }
-        $companies = $query->get();
+        $companies = $this->scopedCompaniesTable()->get();
         return view('report.cashbookreport')->with('companies', $companies);
     }
 
@@ -177,12 +178,7 @@ class ReportController extends Controller
             $companyId = $request->input('company_id');
 
             if (!$fromDate && !$toDate && !$companyId) {
-                return response()->json([
-                    "draw"            => intval($draw),
-                    "recordsTotal"    => 0,
-                    "recordsFiltered" => 0,
-                    "data"            => [],
-                ]);
+                return $this->emptyTableResponse($draw);
             }
 
             $collapsedSubquery = "
@@ -206,37 +202,22 @@ class ReportController extends Controller
                 WHERE pml_grouped.rn = 1
             ";
 
+            // Expense rows use the expense's own date (expenses.date). For Updated/Deleted logs
+            // that are not linked to the expense directly, the expense is found by the lookup.
             $dateExpr = "
                 CASE
                     WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN DATE(payment_method_logs.created_at)
                     WHEN payment_method_logs.type = 'payment' THEN DATE(COALESCE(payments.created_at, payment_method_logs.created_at))
                     WHEN payment_method_logs.type = 'loan' THEN DATE(loans.year_month)
+                    WHEN payment_method_logs.type = 'expense' THEN DATE(COALESCE(expenses.date, {$this->expenseLookupSql('date')}, payment_method_logs.created_at))
                     ELSE DATE(payment_method_logs.created_at)
                 END
             ";
 
-            // Updated/Deleted expense logs are saved against the PaymentMethod (not the Expense),
-            // so find the expense by payment method + timestamp (within 2 seconds).
-            $expenseLookup = function (string $col) {
-                return "(
-                    SELECT e2.{$col}
-                    FROM expenses e2
-                    WHERE e2.payment_method_id = payment_method_logs.payment_method_id
-                      AND payment_method_logs.type = 'expense'
-                      AND payment_method_logs.content_type NOT LIKE '%Expense'
-                      AND (
-                            ABS(TIMESTAMPDIFF(SECOND, e2.updated_at, payment_method_logs.created_at)) <= 2
-                         OR ABS(TIMESTAMPDIFF(SECOND, e2.deleted_at, payment_method_logs.created_at)) <= 2
-                      )
-                    ORDER BY e2.id DESC
-                    LIMIT 1
-                )";
-            };
-
-            $lookupCode  = $expenseLookup('expense_code');
-            $lookupType  = $expenseLookup('expense_type');
-            $lookupTitle = $expenseLookup('expense_title');
-            $lookupDesc  = $expenseLookup('expense_description');
+            $lookupCode  = $this->expenseLookupSql('expense_code');
+            $lookupType  = $this->expenseLookupSql('expense_type');
+            $lookupTitle = $this->expenseLookupSql('expense_title');
+            $lookupDesc  = $this->expenseLookupSql('expense_description');
 
             $expenseCodeExpr = "COALESCE(expenses.expense_code, {$lookupCode}, '-')";
             $expenseTypeExpr = "COALESCE(expenses.expense_type, {$lookupType})";
@@ -269,10 +250,10 @@ class ReportController extends Controller
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.type = 'payment' AND payments.top_up IS NOT NULL AND payments.top_up > 0
-                                THEN CONCAT('Loan TopUp - Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
+                                THEN CONCAT('Loan TopUp - Payment #', COALESCE(payments.payment_code, payment_method_logs.description), IF(COALESCE(payments.discount_amount, 0) > 0, ' Discount', ''), IF(COALESCE(payments.late_paid_amount, 0) > 0, ' Late', ''))
 
                             WHEN payment_method_logs.type = 'payment'
-                                THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description))
+                                THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description), IF(COALESCE(payments.discount_amount, 0) > 0, ' Discount', ''), IF(COALESCE(payments.late_paid_amount, 0) > 0, ' Late', ''))
 
                             WHEN payment_method_logs.description LIKE 'Loan Deleted%'
                                 THEN payment_method_logs.description
@@ -342,6 +323,12 @@ class ReportController extends Controller
                     "),
                     \DB::raw("
                         CASE
+                            WHEN payment_method_logs.type = 'payment' THEN (SELECT p.discount_amount FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
+                            ELSE NULL
+                        END as discount
+                    "),
+                    \DB::raw("
+                        CASE
                             WHEN payment_method_logs.type = 'payment' THEN (SELECT p.interest_paid_amount FROM payments p WHERE p.id = payment_method_logs.content_id LIMIT 1)
                             ELSE NULL
                         END as interest_paid
@@ -398,6 +385,11 @@ class ReportController extends Controller
                 ->where(function ($q) {
                     $q->where('payment_method_logs.type', '!=', 'payment')
                     ->orWhereNotNull('payments.payment_code');
+                })
+                // Deleted payments are not shown in the cash book report (only in the history)
+                ->where(function ($q) {
+                    $q->where('payment_method_logs.type', '!=', 'payment')
+                    ->orWhereNull('payments.deleted_at');
                 });
 
             switch (Auth::user()->role_id) {
@@ -457,12 +449,13 @@ class ReportController extends Controller
                 6  => 'expenses.expense_description',
                 7  => 'payments.remark',
                 8  => 'payments.late_paid_amount',
-                9  => 'payments.interest_paid_amount',
-                10 => 'payments.payment_amount',
-                11 => 'payments.top_up_capital',
-                12 => 'payment_method_logs.amount',
-                13 => 'expenses.amount',
-                14 => 'payment_method_logs.total',
+                9  => 'payments.discount_amount',
+                10 => 'payments.interest_paid_amount',
+                11 => 'payments.payment_amount',
+                12 => 'payments.top_up_capital',
+                13 => 'payment_method_logs.amount',
+                14 => 'expenses.amount',
+                15 => 'payment_method_logs.total',
             ];
 
             $orderColIdx = (int) $request->input('order.0.column', 2);
@@ -507,20 +500,7 @@ class ReportController extends Controller
 
     public function cash_book_report_history(Request $request)
     {
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('companies');
-                break;
-
-            case 2:
-                $query = DB::table('companies')->where('branch_id', Auth::user()->branch_id);
-                break;
-
-            default:
-                $query = DB::table('companies')->where('id', Auth::user()->company_id);
-                break;
-        }
-        $companies = $query->get();
+        $companies = $this->scopedCompaniesTable()->get();
         return view('report.cashbookreporthistory')->with('companies', $companies);
     }
 
@@ -535,47 +515,27 @@ class ReportController extends Controller
             $companyId = $request->input('company_id');
 
             if (!$fromDate && !$toDate && !$companyId) {
-                return response()->json([
-                    "draw"            => intval($draw),
-                    "recordsTotal"    => 0,
-                    "recordsFiltered" => 0,
-                    "data"            => [],
-                ]);
+                return $this->emptyTableResponse($draw);
             }
 
             // Single source of truth for the Date column (used in select + filter)
+            // Expense rows use the expense's own date (expenses.date). For Updated/Deleted logs
+            // that are not linked to the expense directly, the expense is found by the lookup.
             $dateExpr = "
                 CASE
                     WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN DATE(payment_method_logs.created_at)
                     WHEN payment_method_logs.type = 'payment' THEN DATE(COALESCE(payments.created_at, payment_method_logs.created_at))
-                    WHEN payment_method_logs.type = 'loan' THEN DATE(COALESCE(loans.created_at, payment_method_logs.created_at))
+                    WHEN payment_method_logs.type = 'loan' THEN DATE(COALESCE(loans.year_month, loans.created_at, payment_method_logs.created_at))
+                    WHEN payment_method_logs.type = 'expense' THEN DATE(COALESCE(expenses.date, {$this->expenseLookupSql('date')}, payment_method_logs.created_at))
                     ELSE DATE(payment_method_logs.created_at)
                 END
             ";
 
-            // Updated/Deleted expense logs are saved against the PaymentMethod (not the Expense),
-            // so find the expense by payment method + timestamp (within 2 seconds).
-            $expenseLookup = function (string $col) {
-                return "(
-                    SELECT e2.{$col}
-                    FROM expenses e2
-                    WHERE e2.payment_method_id = payment_method_logs.payment_method_id
-                      AND payment_method_logs.type = 'expense'
-                      AND payment_method_logs.content_type NOT LIKE '%Expense'
-                      AND (
-                            ABS(TIMESTAMPDIFF(SECOND, e2.updated_at, payment_method_logs.created_at)) <= 2
-                         OR ABS(TIMESTAMPDIFF(SECOND, e2.deleted_at, payment_method_logs.created_at)) <= 2
-                      )
-                    ORDER BY e2.id DESC
-                    LIMIT 1
-                )";
-            };
-
-            $lookupCode  = $expenseLookup('expense_code');
-            $lookupType  = $expenseLookup('expense_type');
-            $lookupTitle = $expenseLookup('expense_title');
-            $lookupDesc  = $expenseLookup('expense_description');
-            $lookupId    = $expenseLookup('id');
+            $lookupCode  = $this->expenseLookupSql('expense_code');
+            $lookupType  = $this->expenseLookupSql('expense_type');
+            $lookupTitle = $this->expenseLookupSql('expense_title');
+            $lookupDesc  = $this->expenseLookupSql('expense_description');
+            $lookupId    = $this->expenseLookupSql('id');
 
             $deletedCodeLookup = "(
                 SELECT NULLIF(TRIM(SUBSTRING(ld.description, CHAR_LENGTH('Expense Deleted') + 1)), '')
@@ -638,11 +598,11 @@ class ReportController extends Controller
                         CASE
                             WHEN payment_method_logs.type = 'payment' AND payments.top_up IS NOT NULL AND payments.top_up > 0
                                 THEN CONCAT('Loan TopUp - Payment #', COALESCE(payments.payment_code, payment_method_logs.description),
-                                    IF(payment_method_logs.description = 'Payment Updated', ' Edit', ''))
+                                    IF(COALESCE(payments.discount_amount, 0) > 0, ' Discount', ''), IF(COALESCE(payments.late_paid_amount, 0) > 0, ' Late', ''), CASE payment_method_logs.description WHEN 'Payment Updated' THEN ' Edit' WHEN 'Payment Deleted' THEN ' Deleted' ELSE '' END)
 
                             WHEN payment_method_logs.type = 'payment'
                                 THEN CONCAT('Payment #', COALESCE(payments.payment_code, payment_method_logs.description),
-                                    IF(payment_method_logs.description = 'Payment Updated', ' Edit', ''))
+                                    IF(COALESCE(payments.discount_amount, 0) > 0, ' Discount', ''), IF(COALESCE(payments.late_paid_amount, 0) > 0, ' Late', ''), CASE payment_method_logs.description WHEN 'Payment Updated' THEN ' Edit' WHEN 'Payment Deleted' THEN ' Deleted' ELSE '' END)
 
                             WHEN payment_method_logs.description LIKE 'Loan Deleted%'
                                 THEN payment_method_logs.description
@@ -686,8 +646,26 @@ class ReportController extends Controller
                         CASE
                             WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN 1
                             WHEN payment_method_logs.description LIKE 'Expense Deleted%' THEN 1
+                            WHEN payment_method_logs.description = 'Payment Deleted' THEN 1
                             ELSE 0
                         END as is_deleted_row
+                    "),
+
+                    // Late paid / discount of the payment. Reversal rows (Edit / Deleted, negative amount)
+                    // show them as negative so the column totals stay correct.
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'payment' AND COALESCE(payments.late_paid_amount, 0) > 0
+                                THEN IF(payment_method_logs.amount < 0, -1, 1) * payments.late_paid_amount
+                            ELSE NULL
+                        END as late_paid
+                    "),
+                    \DB::raw("
+                        CASE
+                            WHEN payment_method_logs.type = 'payment' AND COALESCE(payments.discount_amount, 0) > 0
+                                THEN IF(payment_method_logs.amount < 0, -1, 1) * payments.discount_amount
+                            ELSE NULL
+                        END as discount
                     "),
 
                     // Red row flag: expense rows follow the same rule as the description
@@ -848,12 +826,13 @@ class ReportController extends Controller
                 6  => 'expenses.expense_description',
                 7  => 'payments.remark',
                 8  => 'payments.late_paid_amount',
-                9  => 'payments.interest_paid_amount',
-                10 => 'payments.payment_amount',
-                11 => 'payments.top_up_capital',
-                12 => 'payment_method_logs.amount',
-                13 => 'expenses.amount',
-                14 => 'payment_method_logs.total',
+                9  => 'payments.discount_amount',
+                10 => 'payments.interest_paid_amount',
+                11 => 'payments.payment_amount',
+                12 => 'payments.top_up_capital',
+                13 => 'payment_method_logs.amount',
+                14 => 'expenses.amount',
+                15 => 'payment_method_logs.total',
             ];
 
             $orderColIdx = (int) $request->input('order.0.column', 2);
@@ -890,18 +869,7 @@ class ReportController extends Controller
 
     public function customer_payment_report(Request $request)
     {
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('companies');
-                break;
-            case 2:
-                $query = DB::table('companies')->where('branch_id', Auth::user()->branch_id);
-                break;
-            default:
-                $query = DB::table('companies')->where('id', Auth::user()->company_id);
-                break;
-        }
-        $companies = $query->get();
+        $companies = $this->scopedCompaniesTable()->get();
         return view('report.customerpaymentreport')->with('companies', $companies);
     }
 
@@ -917,12 +885,7 @@ class ReportController extends Controller
             $companyId = $request->input('company_id');
 
             if (!$fromDate && !$toDate && !$companyId) {
-                return response()->json([
-                    "draw"            => intval($draw),
-                    "recordsTotal"    => 0,
-                    "recordsFiltered" => 0,
-                    "data"            => [],
-                ]);
+                return $this->emptyTableResponse($draw);
             }
 
             $query = DB::table('payments')
@@ -1116,18 +1079,7 @@ class ReportController extends Controller
 
     public function loan_list(Request $request)
     {
-        switch (Auth::user()->role_id) {
-            case 1:
-                $query = DB::table('companies');
-                break;
-            case 2:
-                $query = DB::table('companies')->where('branch_id', Auth::user()->branch_id);
-                break;
-            default:
-                $query = DB::table('companies')->where('id', Auth::user()->company_id);
-                break;
-        }
-        $companies = $query->get();
+        $companies = $this->scopedCompaniesTable()->get();
 
         $interestGroupQuery = DB::table('loans')
             ->join('companies', 'loans.company_id', '=', 'companies.id');
@@ -1238,7 +1190,8 @@ class ReportController extends Controller
                 break;
         }
 
-        $dateColumn = $dateField === 'next_due_date' ? 'loans.next_due_date' : 'loans.created_at';
+        // "Loan date" is the Year/Month date picked in the loan form
+        $dateColumn = $dateField === 'next_due_date' ? 'loans.next_due_date' : 'loans.year_month';
 
         if ($fromDate && $toDate) {
             $query->whereBetween($dateColumn, [$fromDate . ' 00:00:00', $toDate . ' 23:59:59']);
@@ -1296,10 +1249,11 @@ class ReportController extends Controller
                 'customer_name'    => $loan->customer_name,
                 'loan_code'        => $loan->loan_code,
                 'user'             => $loan->created_by_name,
-                'loan_date'        => optional($loan->created_at)->format('Y-m-d'),
+                'loan_date'        => $loan->year_month ? \Carbon\Carbon::parse($loan->year_month)->format('Y-m-d') : null,
                 'next_due_date'    => $loan->next_due_date,
                 'last_pay_date'    => $loan->updated_at,
                 'total_to_collect' => (float) $loan->payment,
+                'late_paid'        => (float) $loan->late_paid,
                 'loan_amount'      => (float) $loan->loan_amount,
                 'loan_term'        => (int) $loan->loan_term,          // NEW
                 'monthly_inst'     => (float) $loan->installment, 
@@ -1319,6 +1273,7 @@ class ReportController extends Controller
     {
         return [
             'total_to_collect' => $rows->sum('total_to_collect'),
+            'late_paid'        => $rows->sum('late_paid'),
             'loan_amount'      => $rows->sum('loan_amount'),
             'monthly_inst'     => $rows->sum('monthly_inst'),
             'interest_collect' => $rows->sum('interest_collect'),

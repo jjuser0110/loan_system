@@ -82,7 +82,7 @@
                             <th>{{ __('table.system_code') }}</th>
                             <th>{{ __('table.customer_name') }}</th>
                             <th>{{ __('table.user') }}</th>
-                            <th>{{ __('table.loan_date') }}</th>
+                            <th>{{ __('table.created_date') }}</th>
                             <th>{{ __('table.next_date') }}</th>
                             <th>{{ __('table.last_pay') }}</th>
                             <th>{{ __('table.loan_amt') }}</th>
@@ -93,6 +93,7 @@
                             <th>{{ __('table.interest_collect') }}</th>
                             <th>{{ __('table.top_up') }}</th>
                             <th>{{ __('table.total_to_collect') }}</th>
+                            <th>{{ __('table.late_paid') }}</th>
                             <th>{{ __('table.discount') }}</th>
                             <th>{{ __('table.loan_balance') }}</th>
                             <th>{{ __('table.loan_status') }}</th>
@@ -111,6 +112,7 @@
                             <th id="gt_interest_collect"></th>
                             <th id="gt_top_up"></th>
                             <th id="gt_total_to_collect"></th>
+                            <th id="gt_late_paid"></th>
                             <th id="gt_discount"></th>
                             <th id="gt_loan_balance"></th>
                             <th></th>
@@ -160,7 +162,7 @@
 
     const sumKeys = [
         'loan_amount', 'monthly_inst', 'processing_fee', 'capital',
-        'interest_collect', 'top_up', 'total_to_collect', 'discount', 'loan_balance'
+        'interest_collect', 'top_up', 'total_to_collect', 'late_paid', 'discount', 'loan_balance'
     ];
 
     function sumRows(rowsData) {
@@ -199,6 +201,7 @@
                         .append(b(t.interest_collect))
                         .append(b(t.top_up))
                         .append(b(t.total_to_collect))
+                        .append(b(t.late_paid))
                         .append(b(t.discount))
                         .append(b(t.loan_balance))
                         .append('<td></td>'); 
@@ -230,6 +233,7 @@
                 { data: 'interest_collect', render: money },
                 { data: 'top_up', render: money },
                 { data: 'total_to_collect', render: money },
+                { data: 'late_paid', render: money },
                 { data: 'discount', render: money },
                 { data: 'loan_balance', render: money },
                 { data: 'status' },
@@ -241,6 +245,7 @@
                 $('#gt_interest_collect').html(money(t.interest_collect));
                 $('#gt_top_up').html(money(t.top_up));
                 $('#gt_total_to_collect').html(money(t.total_to_collect));
+                $('#gt_late_paid').html(money(t.late_paid));
                 $('#gt_discount').html(money(t.discount));
                 $('#gt_loan_balance').html(money(t.loan_balance));
             },

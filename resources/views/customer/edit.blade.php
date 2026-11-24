@@ -781,6 +781,7 @@
                                             <th>{{ __('table.interest_rate') }}</th>
                                             <th>{{ __('table.int') }}</th>
                                             <th>{{ __('table.late') }}</th>
+                                            <th>Dis</th>
                                             <th>{{ __('table.status') }}</th>
                                             <th>{{ __('table.actions') }}</th>
                                         </tr>
@@ -1568,7 +1569,7 @@
                     "render": function(data, type, row, meta) {
                         if (!data) return '-';
                         const parts = data.substring(0, 10).split('-');
-                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        return `<strong style="color:#000">${parts[2]}-${parts[1]}-${parts[0]}</strong>`;
                     }
                 },
                 {
@@ -1624,8 +1625,24 @@
                         return parseFloat(data).toFixed(2);
                     }
                 },
-                { "data": "interest_paid" },
-                { "data": "late_paid" },
+                {
+                    "data": "interest_paid",
+                    "render": function(data) {
+                        return `<strong style="color:#000">${data}</strong>`;
+                    }
+                },
+                {
+                    "data": "late_paid",
+                    "render": function(data) {
+                        return `<strong style="color:#ff8c00">${data}</strong>`;
+                    }
+                },
+                {
+                    "data": "discount",
+                    "render": function(data) {
+                        return `<strong style="color:green">${data ?? '0.00'}</strong>`;
+                    }
+                },
                 {
                     "data": "status",
                     "render": function(data, type, row, meta) {

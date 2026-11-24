@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Traits\IncrementsScheduleCode;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use App\Models\PaymentSchedule;
@@ -10,6 +11,8 @@ use Carbon\Carbon;
 
 class RolloverSkimASchedule extends Command
 {
+    use IncrementsScheduleCode;
+
     protected $signature   = 'schedule:rollover-skim-a';
     protected $description = 'Auto-create next month payment schedule for SKIM A loans whose latest due_date is today';
 
@@ -109,22 +112,5 @@ class RolloverSkimASchedule extends Command
 
         $this->info("Done. Created: {$created}, Skipped: {$skipped}");
         Log::info("SKIM A Rollover — Created: {$created}, Skipped: {$skipped}, Date: {$today->toDateString()}");
-    }
-
-    private function incrementScheduleCode(string $code, string $loanCode): string
-    {
-
-        $suffix = substr($code, strlen($loanCode));
-
-        $suffix = preg_replace('/-\d+$/', '', $suffix);
-
-        if (preg_match('/^(.*?)(\d+)$/', $suffix, $matches)) {
-            $suffixPrefix = $matches[1]; // e.g. -SM or -S
-            $number       = (int) $matches[2];
-            $padded       = str_pad($number + 1, strlen($matches[2]), '0', STR_PAD_LEFT);
-            return $loanCode . $suffixPrefix . $padded;
-        }
-
-        return $loanCode . '-S001';
     }
 }

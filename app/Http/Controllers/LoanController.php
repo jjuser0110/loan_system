@@ -3,21 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Spatie\Browsershot\Browsershot;
 use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\Company;
 use App\Models\Customer;
 use App\Models\Loan;
 use App\Models\Payment;
 use App\Models\PaymentMethod;
 use App\Models\PaymentSchedule;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
-use Bouncer;
 use Carbon\Carbon;
 
 class LoanController extends Controller
@@ -89,7 +84,11 @@ class LoanController extends Controller
             ->with('total_interest', $loans->total_interest ?? 0);
     }
 
-    public function fetch_profit(Request $request)
+    /**
+     * Loans table scoped to the logged-in user, optionally filtered by loan_code.
+     * Shared by the fetch_* totals and the overdue / incoming lists.
+     */
+    private function scopedLoansTable(Request $request)
     {
         switch(Auth::user()->role_id){
             case 1:
@@ -97,8 +96,10 @@ class LoanController extends Controller
                 break;
 
             case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
+                $query = DB::table('loans')
+                    ->join('companies', 'companies.id', '=', 'loans.company_id')
+                    ->where('companies.branch_id', Auth::user()->branch_id)
+                    ->select('loans.*');
                 break;
 
             default:
@@ -107,9 +108,36 @@ class LoanController extends Controller
                 break;
         }
         if(isset($request->loan_code)){
-            $query->where('loan_code', $request->loan_code);
+            $query->where('loans.loan_code', $request->loan_code);
         }
-        $loans = $query->get();
+        return $query;
+    }
+
+    /** JSON response with the formatted SUM of one loans column. */
+    private function loanColumnTotal(Request $request, string $column, string $key)
+    {
+        $total = $this->scopedLoansTable($request)->sum('loans.'.$column);
+        return response()->json(['success'=>true, $key=>number_format($total,2,'.',',')]);
+    }
+
+    /** DataTables response for the overdue / incoming lists. */
+    private function loanListResponse(Request $request, callable $filter)
+    {
+        $query = $this->scopedLoansTable($request);
+        $recordsTotal = $query->count();
+        $loans = $filter($query)->get();
+        return response()->json([
+            "success" => true,
+            "draw" => intval($request->input('draw')),
+            "recordsTotal" => $recordsTotal,
+            "recordsFiltered" => $recordsTotal,
+            "data" => $loans,
+        ]);
+    }
+
+    public function fetch_profit(Request $request)
+    {
+        $loans = $this->scopedLoansTable($request)->get();
         $total_profit = 0;
         foreach($loans as $l){
             // DONT DELETE THIS CALCUALTION
@@ -117,7 +145,7 @@ class LoanController extends Controller
             //     $total_profit += max(0,(($l->interest_paid + $l->late_paid) - ($l->capital - $l->paid)) - $l->discount);
             // }
             // if($l->interest_group == "SKIM B"){
-    
+
             //     $total_loan = $l->first_payment + $l->last_payment + ($l->installment * ($l->loan_term - 2));
             //     $profit_ratio = ($total_loan - $l->capital) / $total_loan;
             //     $total_profit += ((($l->paid + $l->discount) * $profit_ratio) + $l->late_paid + $l->interest_paid) - $l->discount;
@@ -134,196 +162,41 @@ class LoanController extends Controller
 
     public function fetch_outstanding(Request $request)
     {
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('loans');
-                break;
-
-            case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
-                break;
-
-            default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('loans')->where('company_id',$companyId);
-                break;
-        }
-        if(isset($request->loan_code)){
-            $query->where('loan_code', $request->loan_code);
-        }
-        $total = $query->sum('outstanding');
-        return response()->json(['success'=>true,'total_outstanding'=>number_format($total,2,'.',',')]);
+        return $this->loanColumnTotal($request, 'outstanding', 'total_outstanding');
     }
 
     public function fetch_loan_amount(Request $request)
     {
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('loans');
-                break;
-
-            case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
-                break;
-
-            default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('loans')->where('company_id',$companyId);
-                break;
-        }
-        if(isset($request->loan_code)){
-            $query->where('loan_code', $request->loan_code);
-        }
-        $total = $query->sum('loan_amount');
-        return response()->json(['success'=>true,'total_loan_amount'=>number_format($total,2,'.',',')]);
+        return $this->loanColumnTotal($request, 'loan_amount', 'total_loan_amount');
     }
 
     public function fetch_balance(Request $request)
     {
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('loans');
-                break;
-
-            case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
-                break;
-
-            default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('loans')->where('company_id',$companyId);
-                break;
-        }
-        if(isset($request->loan_code)){
-            $query->where('loan_code', $request->loan_code);
-        }
-        $total = $query->sum('balance');
-        return response()->json(['success'=>true,'total_balance'=>number_format($total,2,'.',',')]);
+        return $this->loanColumnTotal($request, 'balance', 'total_balance');
     }
 
     public function fetch_capital(Request $request)
     {
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('loans');
-                break;
-
-            case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
-                break;
-
-            default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('loans')->where('company_id',$companyId);
-                break;
-        }
-        if(isset($request->loan_code)){
-            $query->where('loan_code', $request->loan_code);
-        }
-        $total = $query->sum('capital');
-        return response()->json(['success'=>true,'total_capital'=>number_format($total,2,'.',',')]);
+        return $this->loanColumnTotal($request, 'capital', 'total_capital');
     }
 
     public function fetch_paid(Request $request)
     {
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('loans');
-                break;
-
-            case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
-                break;
-
-            default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('loans')->where('company_id',$companyId);
-                break;
-        }
-        if(isset($request->loan_code)){
-            $query->where('loan_code', $request->loan_code);
-        }
-        $total = $query->sum('paid');
-        return response()->json(['success'=>true,'total_paid'=>number_format($total,2,'.',',')]);
+        return $this->loanColumnTotal($request, 'paid', 'total_paid');
     }
 
     public function load_overdue_loan(Request $request)
     {
-        $draw = $request->input('draw');
-        $search = $request->input('search.value');
-        $start = $request->input('start', 0);
-        $length = $request->input('length', 10);
-        $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
-        $orderByDirection = $request->input('order.0.dir');
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('loans');
-                break;
-
-            case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
-                break;
-
-            default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('loans')->where('company_id',$companyId);
-                break;
-        }
-        if(isset($request->loan_code)){
-            $query->where('loan_code', $request->loan_code);
-        }
-        $recordsTotal = $query->count();
-        $loans = $query->whereDate('next_due_date', '<', now())->get();
-        return response()->json([
-            "success" => true,
-            "draw" => intval($draw),
-            "recordsTotal" => $recordsTotal,
-            "recordsFiltered" => $recordsTotal,
-            "data" => $loans,
-        ]);
+        return $this->loanListResponse($request, function ($query) {
+            return $query->whereDate('loans.next_due_date', '<', now());
+        });
     }
 
     public function load_incoming_loan(Request $request)
     {
-        $draw = $request->input('draw');
-        $search = $request->input('search.value');
-        $start = $request->input('start', 0);
-        $length = $request->input('length', 10);
-        $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
-        $orderByDirection = $request->input('order.0.dir');
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('loans');
-                break;
-
-            case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('loans')->join('companies.id','=','loans.company_id')->where('compaines.branch_id',$userBranchId);
-                break;
-
-            default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('loans')->where('company_id',$companyId);
-                break;
-        }
-        if(isset($request->loan_code)){
-            $query->where('loan_code', $request->loan_code);
-        }
-        $recordsTotal = $query->count();
-        $loans = $query->whereBetween('next_due_date', [Carbon::today()->startOfDay(),Carbon::today()->addDays(7)->endOfDay()])->get();
-        return response()->json([
-            "success" => true,
-            "draw" => intval($draw),
-            "recordsTotal" => $recordsTotal,
-            "recordsFiltered" => $recordsTotal,
-            "data" => $loans,
-        ]);
+        return $this->loanListResponse($request, function ($query) {
+            return $query->whereBetween('loans.next_due_date', [Carbon::today()->startOfDay(),Carbon::today()->addDays(7)->endOfDay()]);
+        });
     }
 
     public function load_loan(Request $request){
@@ -472,11 +345,7 @@ class LoanController extends Controller
     public function create(Request $request)
     {
         $customer = Customer::where('customer_code', $request->customer_code)->first();
-        
-        if(isset($request->loan_code)){
-            $query->where('loan_code', $request->loan_code);
-        }
-        
+
         if(isset($customer) && $this->accessToCustomer($customer)){
             $company = $customer->company;
         }
@@ -597,46 +466,7 @@ class LoanController extends Controller
 
     public function search_customer(Request $request)
     {
-        $search = $request->get('search');
-        switch(Auth::user()->role_id){
-            case 1:
-                $customers = Customer::where(function($query) use ($search) {
-                    $query->where('customer_code', 'LIKE', "%{$search}%")
-                        ->orWhere('customer_name', 'LIKE', "%{$search}%")
-                        ->orWhere('nric_number', 'LIKE', "%{$search}%");
-                })
-                ->select('customer_code', 'customer_name', 'nric_number', 'company_code')
-                ->limit(10)
-                ->get();
-            break;
-
-            case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $customers = Customer::join('companies', 'customers.company_id', '=', 'companies.id')
-                    ->where('companies.branch_id', $userBranchId)
-                    ->where(function($query) use ($search) {
-                        $query->where('customers.customer_code', 'LIKE', "%{$search}%")
-                            ->orWhere('customers.customer_name', 'LIKE', "%{$search}%")
-                            ->orWhere('customers.nric_number', 'LIKE', "%{$search}%");
-                    })
-                    ->select('customers.customer_code', 'customers.customer_name', 'customers.nric_number', 'company_code')
-                    ->limit(10)
-                    ->get();
-            break;
-
-            default:
-                $companyId = Auth::user()->company_id;
-                $customers = Customer::where('company_id', $companyId)
-                ->where(function($query) use ($search) {
-                    $query->where('customer_code', 'LIKE', "%{$search}%")
-                        ->orWhere('customer_name', 'LIKE', "%{$search}%")
-                        ->orWhere('nric_number', 'LIKE', "%{$search}%");
-                })
-                ->select('customer_code', 'customer_name', 'nric_number', 'company_code')
-                ->limit(10)
-                ->get();
-        }
-        return response()->json($customers);
+        return response()->json($this->searchCustomersForUser($request->get('search')));
     }
 
     public function search_loan(Request $request)
@@ -721,7 +551,7 @@ class LoanController extends Controller
                 }
             }
 
-            $prefix = $customer->customer_code.'-' ?? $customer->company_code."LN";
+            $prefix = $customer->customer_code.'-';
             $loan_code = $this->getSequenceNumber($prefix,'loan_code');
             
             $processing_fee = $v['processing_fee'] ?? 0;
@@ -884,7 +714,7 @@ class LoanController extends Controller
         try{
             switch($loan->interest_group){
                 case 'SKIM A':
-                    $prefix = $loan->loan_code.'-S' ?? $customer->company_code."LN";
+                    $prefix = $loan->loan_code.'-S';
                     $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
                     $start_date = Carbon::parse($loan->year_month);
                     PaymentSchedule::create([

@@ -54,6 +54,7 @@
                                 <th>{{ __('table.expenses_description') }}</th>
                                 <th>{{ __('table.remark') }}</th>
                                 <th>{{ __('table.late_paid') }}</th> 
+                                <th>{{ __('table.discount') }}</th>
                                 <th>{{ __('table.interest_paid') }}</th>
                                 <th>{{ __('table.customer_payment') }}</th>
                                 <th>{{ __('table.top_up_capital') }}</th>
@@ -65,7 +66,7 @@
                         <tfoot>
                             <tr>
                                 <th colspan="6" class="text-right">Total</th>
-                                <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
+                                <th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th><th></th>
                             </tr>
                         </tfoot>
                         <tbody></tbody>
@@ -132,7 +133,7 @@ $(document).ready(function () {
                     }
                     if (data.startsWith('Payment #') || data.startsWith('Loan TopUp - Payment #')) {
                         let paymentCode = data.replace('Loan TopUp - Payment #', '').replace('Payment #', '').trim();
-                        let match = paymentCode.match(/^(.+)-P\d+$/);
+                        let match = paymentCode.match(/^(.+?)-P\d+/);
                         if (match) {
                             return '<a href="{{ url("loan/single_loan") }}/' + match[1] + '#payment">' + data + '</a>';
                         }
@@ -178,7 +179,15 @@ $(document).ready(function () {
                 render: function (data) {
                     let v = parseFloat(data || 0);
                     if (!v) return '-';
-                    return '<span style="color:#e6b800;font-weight:bold">' + v.toFixed(2) + '</span>';
+                    return '<span style="color:#ff8c00;font-weight:bold">' + v.toFixed(2) + '</span>';
+                }
+            },
+            {
+                data: "discount", name: "discount", width: "80px",
+                render: function (data) {
+                    let v = parseFloat(data || 0);
+                    if (!v) return '-';
+                    return '<span style="color:green;font-weight:bold">' + v.toFixed(2) + '</span>';
                 }
             },
             {
@@ -257,10 +266,11 @@ $(document).ready(function () {
                     + parseFloat(latest.expenses || 0);
             }
 
-            let totLP = 0, totIP = 0, totCP = 0, totTUC = 0, totNCL = 0, totEXP = 0, lastAT = 0;
+            let totLP = 0, totDC = 0, totIP = 0, totCP = 0, totTUC = 0, totNCL = 0, totEXP = 0, lastAT = 0;
 
             allRows.each(function (r) {
                 totLP  += parseFloat(r.late_paid        || 0);
+                totDC  += parseFloat(r.discount         || 0);
                 totIP  += parseFloat(r.interest_paid    || 0);
                 totCP  += parseFloat(r.customer_payment || 0);
                 totTUC -= parseFloat(r.top_up_capital   || 0);
@@ -276,19 +286,24 @@ $(document).ready(function () {
                 return '<span style="color:' + (v >= 0 ? 'green' : 'red') + '">' + v.toFixed(2) + '</span>';
             }
 
-            function yellowBold(v) {
-                return '<span style="color:#e6b800;font-weight:bold">' + v.toFixed(2) + '</span>';
+            function orangeBold(v) {
+                return '<span style="color:#ff8c00;font-weight:bold">' + v.toFixed(2) + '</span>';
+            }
+
+            function greenBold(v) {
+                return '<span style="color:green;font-weight:bold">' + v.toFixed(2) + '</span>';
             }
 
             $(api.column(6).footer()).html('<span style="font-weight:bold">Opening Balance: </span>');
             $(api.column(7).footer()).html(colorValue(openingBalance));
-            $(api.column(8).footer()).html(yellowBold(totLP));  
-            $(api.column(9).footer()).html(colorValue(totIP));     
-            $(api.column(10).footer()).html(colorValue(totCP)); 
-            $(api.column(11).footer()).html(colorValue(totTUC));   
-            $(api.column(12).footer()).html(colorValue(totNCL));  
-            $(api.column(13).footer()).html(colorValue(totEXP));   
-            $(api.column(14).footer()).html(colorValue(lastAT));
+            $(api.column(8).footer()).html(orangeBold(totLP));
+            $(api.column(9).footer()).html(greenBold(totDC));
+            $(api.column(10).footer()).html(colorValue(totIP));
+            $(api.column(11).footer()).html(colorValue(totCP));
+            $(api.column(12).footer()).html(colorValue(totTUC));
+            $(api.column(13).footer()).html(colorValue(totNCL));
+            $(api.column(14).footer()).html(colorValue(totEXP));
+            $(api.column(15).footer()).html(colorValue(lastAT));
         },
     });
 
@@ -346,14 +361,15 @@ $(document).ready(function () {
                     const PH  = doc.internal.pageSize.height;
                     const ML  = 10;
 
-                    const CW = [8, 25, 18, 25, 20, 20, 16, 18, 20, 18, 18, 18, 22];
+                    const CW = [8, 25, 18, 25, 20, 20, 16, 16, 18, 20, 18, 18, 18, 22];
                     let CL = [], cx = ML;
                     CW.forEach(function (w) { CL.push(cx); cx += w; });
                     const TW = CW.reduce(function (a, b) { return a + b; }, 0);
 
                     function numColor(colIdx, val) {
-                        if (colIdx === 6)  return [230,184,0];   // Late Paid 黄色
-                        if (colIdx === 11) return val > 0 ? [200,0,0] : (val < 0 ? [0,140,0] : [0,0,0]);
+                        if (colIdx === 6)  return [255,140,0];   // Late Paid orange
+                        if (colIdx === 7)  return [0,140,0];     // Discount green
+                        if (colIdx === 12) return val > 0 ? [200,0,0] : (val < 0 ? [0,140,0] : [0,0,0]);
                         return val < 0 ? [200,0,0] : (val > 0 ? [0,140,0] : [0,0,0]);
                     }
 
@@ -379,11 +395,12 @@ $(document).ready(function () {
                     doc.setDrawColor(180, 210, 180); doc.rect(ML, obY, TW, 6, 'S');
                     doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(0, 140, 0);
                     doc.text('Opening Balance', ML + 2, obY + 4);
-                    doc.text(ob.toFixed(2), CL[12] + CW[12] - 2, obY + 4, { align: 'right' });
+                    doc.text(ob.toFixed(2), CL[13] + CW[13] - 2, obY + 4, { align: 'right' });
                     doc.setTextColor(0, 0, 0); doc.setFont('helvetica', 'normal');
 
                     let bodyRows = rows.map(function (row, i) {
                         let lp  = parseFloat(row.late_paid || 0);
+                        let dc  = parseFloat(row.discount             || 0);
                         let ip  = parseFloat(row.interest_paid        || 0);
                         let cp  = parseFloat(row.customer_payment     || 0);
                         let tuc = parseFloat(row.top_up_capital       || 0);
@@ -398,7 +415,8 @@ $(document).ready(function () {
                             row.customer_name        || '-',
                             row.expenses_name        || '-',
                             row.expenses_description || '-',
-                            lp  !== 0 ? lp.toFixed(2)  : '-', 
+                            lp  !== 0 ? lp.toFixed(2)  : '-',
+                            dc  !== 0 ? dc.toFixed(2)  : '-', 
                             ip  !== 0 ? ip.toFixed(2)  : '-',
                             cp  !== 0 ? cp.toFixed(2)  : '-',
                             tuc !== 0 ? tuc.toFixed(2) : '-',
@@ -409,6 +427,7 @@ $(document).ready(function () {
                     });
 
                     let totLP  = rows.reduce(function (s, r) { return s + parseFloat(r.late_paid || 0); }, 0);
+                    let totDC  = rows.reduce(function (s, r) { return s + parseFloat(r.discount         || 0); }, 0);
                     let totIP  = rows.reduce(function (s, r) { return s + parseFloat(r.interest_paid    || 0); }, 0);
                     let totCP  = rows.reduce(function (s, r) { return s + parseFloat(r.customer_payment || 0); }, 0);
                     let totTUC = rows.reduce(function (s, r) { return s + parseFloat(r.top_up_capital   || 0); }, 0);
@@ -419,7 +438,7 @@ $(document).ready(function () {
                     doc.autoTable({
                         startY: 34,
                         margin: { left: ML, right: ML },
-                        head: [['No', 'Description', 'Date', 'Customer Name', 'Expenses Name', 'Expenses Desc', 'Late Paid', 'Interest Paid', 'Customer Payment', 'Top Up Capital', 'Loan Top Up', 'Expenses', 'Account Total']],
+                        head: [['No', 'Description', 'Date', 'Customer Name', 'Expenses Name', 'Expenses Desc', 'Late Paid', 'Discount', 'Interest Paid', 'Customer Payment', 'Top Up Capital', 'Loan Top Up', 'Expenses', 'Account Total']],
                         body: bodyRows,
                         theme: 'grid',
                         headStyles: { fillColor: [41, 128, 185], textColor: 255, fontStyle: 'bold', fontSize: 7, halign: 'center' },
@@ -431,17 +450,18 @@ $(document).ready(function () {
                             3:  { cellWidth: CW[3]  },
                             4:  { cellWidth: CW[4]  },
                             5:  { cellWidth: CW[5]  },
-                            6:  { halign: 'right',  cellWidth: CW[6]  },
-                            7:  { halign: 'right',  cellWidth: CW[7]  },
+                            6:  { halign: 'right',  cellWidth: CW[6],  fontStyle: 'bold' },
+                            7:  { halign: 'right',  cellWidth: CW[7],  fontStyle: 'bold' },
                             8:  { halign: 'right',  cellWidth: CW[8]  },
                             9:  { halign: 'right',  cellWidth: CW[9]  },
                             10: { halign: 'right',  cellWidth: CW[10] },
-                            11: { halign: 'right', cellWidth: CW[11] },
-                            12: { halign: 'right', cellWidth: CW[12] },
+                            11: { halign: 'right',  cellWidth: CW[11] },
+                            12: { halign: 'right',  cellWidth: CW[12] },
+                            13: { halign: 'right',  cellWidth: CW[13] },
                         },
                         didParseCell: function (data) {
                             if (data.section !== 'body') return;
-                            if (![6,7,8,9,10,11,12].includes(data.column.index)) return;
+                            if (![6,7,8,9,10,11,12,13].includes(data.column.index)) return;
                             let v = parseFloat(data.cell.raw);
                             if (isNaN(v)) return;
                             data.cell.styles.textColor = numColor(data.column.index, v);
@@ -465,7 +485,7 @@ $(document).ready(function () {
                     doc.setFontSize(7.5); doc.setFont('helvetica', 'bold'); doc.setTextColor(0, 0, 0);
                     doc.text('Total', CL[4] + 2, fy + 4.8);
 
-                    [[6,totLP],[7,totIP],[8,totCP],[9,totTUC],[10,totLTU],[11,totEXP],[12,totAT]].forEach(function (pair) {
+                    [[6,totLP],[7,totDC],[8,totIP],[9,totCP],[10,totTUC],[11,totLTU],[12,totEXP],[13,totAT]].forEach(function (pair) {
                         let c = numColor(pair[0], pair[1]);
                         doc.setTextColor(c[0], c[1], c[2]);
                         doc.text(pair[1].toFixed(2), CL[pair[0]] + CW[pair[0]] - 2, fy + 4.8, { align: 'right' });

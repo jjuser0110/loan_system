@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Spatie\Browsershot\Browsershot;
 use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\Company;
 use App\Models\EmployerType;
 use App\Models\Race;
@@ -18,9 +16,7 @@ use App\Models\HouseOwnership;
 use App\Models\Asset;
 use App\Models\Loan;
 use Exception;
-use Bouncer;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
@@ -179,23 +175,7 @@ class CustomerController extends Controller
 
     public function create()
     {
-         switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('companies');
-                break;
-
-            case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('companies')->where('branch_id',$userBranchId);
-                break;
-
-            default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('companies')->where('id',$companyId);
-                break;
-        }
-   
-        $company = $query->get();
+        $company = $this->scopedCompaniesTable()->get();
         $races = Race::all();
         $marital_statuses = MaritalStatuses::all();
         $states = State::all();
@@ -264,23 +244,13 @@ class CustomerController extends Controller
             
             // Handle NRIC image upload (OPTIONAL)
             if ($request->hasFile('nric_image')) { 
-                $file = $request->file('nric_image');
-                $folder = 'customers/'.$customer_code;
-                $randomCode = $customer_code.Str::upper(Str::random(12));
-                $extension  = $file->getClientOriginalExtension();
-                $filename = $randomCode . '.' . $extension;
-                $nric_path = $file->storeAs($folder, $filename, 'public');
+                $nric_path = $this->storeCustomerImage($request->file('nric_image'), $customer_code);
                 $customer->update(['nric_path' => $nric_path]);
             }
             
             // Handle PROFILE image upload (OPTIONAL)
             if ($request->hasFile('profile_image')) { 
-                $file = $request->file('profile_image');
-                $folder = 'customers/'.$customer_code.'/profile';
-                $randomCode = 'profile_'.$customer_code.Str::upper(Str::random(12));
-                $extension  = $file->getClientOriginalExtension();
-                $filename = $randomCode . '.' . $extension;
-                $profile_path = $file->storeAs($folder, $filename, 'public');
+                $profile_path = $this->storeCustomerImage($request->file('profile_image'), $customer_code, true);
                 $customer->update(['profile_image' => $profile_path]);
             }
             
@@ -306,19 +276,7 @@ class CustomerController extends Controller
 
     public function storeReference(Request $request)
     {
-        $referenceData = $request->all();
-        $referenceData['city'] = strtolower($request->city);
-        $referenceData['company_city'] = strtolower($request->company_city);
-
-        if ($request->phone_type == 'mobile') {
-            $referenceData['mobile'] = $request->phone_number;
-            $referenceData['telephone'] = null;
-        } else {
-            $referenceData['telephone'] = $request->phone_number;
-            $referenceData['mobile'] = null;
-        }
-        
-        Reference::create($referenceData);
+        Reference::create($this->referenceDataFromRequest($request));
         
         return redirect()->to(url()->previous() . '#reference')->withSuccess('Reference information saved successfully');
     }
@@ -345,42 +303,14 @@ class CustomerController extends Controller
     {
         $reference = Reference::findOrFail($id);
         
-        $referenceData = $request->all();
-        $referenceData['city'] = strtolower($request->city);
-        $referenceData['company_city'] = strtolower($request->company_city);
-
-        if ($request->phone_type == 'mobile') {
-            $referenceData['mobile'] = $request->phone_number;
-            $referenceData['telephone'] = null;
-        } else {
-            $referenceData['telephone'] = $request->phone_number;
-            $referenceData['mobile'] = null;
-        }
-
-        $reference->update($referenceData); // update AFTER phone logic
+        $reference->update($this->referenceDataFromRequest($request));
 
         return redirect()->to(url()->previous() . '#reference')->withSuccess('Reference information updated successfully');
     }
 
     public function edit($customer)
     {
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('companies');
-                break;
-
-            case 2:
-                $userBranchId = Auth::user()->branch_id;
-                $query = DB::table('companies')->where('branch_id',$userBranchId);
-                break;
-
-            default:
-                $companyId = Auth::user()->company_id;
-                $query = DB::table('companies')->where('id',$companyId);
-                break;
-        }
-
-        $company = $query->get();
+        $company = $this->scopedCompaniesTable()->get();
         $customer = Customer::findOrFail($customer);
         $races = Race::all();
         $states = State::all();
@@ -388,8 +318,7 @@ class CustomerController extends Controller
         $marital_statues = MaritalStatuses::all();
         $reference_types = ReferenceType::all();
         $house_ownership = HouseOwnership::all();
-        $assets = Asset::all();
-        
+
         $references = Reference::where('customer_id', $customer->id)->get();
         $assets = Asset::where('customer_id', $customer->id)->get();
         $loans = Loan::where('customer_id', $customer->id)->get();
@@ -517,12 +446,7 @@ class CustomerController extends Controller
 
             // Handle NRIC image update
             if ($request->hasFile('new_nric_image')) { 
-                $file = $request->file('new_nric_image');
-                $folder = 'customers/'.$customer->customer_code;
-                $randomCode = $customer->customer_code.Str::upper(Str::random(12));
-                $extension  = $file->getClientOriginalExtension();
-                $filename = $randomCode . '.' . $extension;
-                $path = $file->storeAs($folder, $filename, 'public');
+                $path = $this->storeCustomerImage($request->file('new_nric_image'), $customer->customer_code);
                 $customer->update(['nric_path'=>$path]);
                 
                 // Only delete if old path exists and is not null
@@ -533,12 +457,7 @@ class CustomerController extends Controller
             
             // Handle PROFILE image update
             if ($request->hasFile('new_profile_image')) { 
-                $file = $request->file('new_profile_image');
-                $folder = 'customers/'.$customer->customer_code.'/profile';
-                $randomCode = 'profile_'.$customer->customer_code.Str::upper(Str::random(12));
-                $extension  = $file->getClientOriginalExtension();
-                $filename = $randomCode . '.' . $extension;
-                $profile_path = $file->storeAs($folder, $filename, 'public');
+                $profile_path = $this->storeCustomerImage($request->file('new_profile_image'), $customer->customer_code, true);
                 $customer->update(['profile_image' => $profile_path]);
                 
                 // Only delete if old profile path exists and is not null
@@ -647,6 +566,39 @@ class CustomerController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->withError('Failed to delete asset');
         }
+    }
+
+    /**
+     * Store an uploaded NRIC / profile image under customers/{code}[/profile]
+     * with a random file name. Returns the stored path on the public disk.
+     */
+    private function storeCustomerImage($file, $customerCode, bool $isProfile = false)
+    {
+        $folder     = 'customers/'.$customerCode.($isProfile ? '/profile' : '');
+        $randomCode = ($isProfile ? 'profile_' : '').$customerCode.Str::upper(Str::random(12));
+        $filename   = $randomCode . '.' . $file->getClientOriginalExtension();
+        return $file->storeAs($folder, $filename, 'public');
+    }
+
+    /**
+     * Reference form data: lower-case cities and put the phone number
+     * into mobile or telephone depending on phone_type.
+     */
+    private function referenceDataFromRequest(Request $request)
+    {
+        $referenceData = $request->all();
+        $referenceData['city'] = strtolower($request->city);
+        $referenceData['company_city'] = strtolower($request->company_city);
+
+        if ($request->phone_type == 'mobile') {
+            $referenceData['mobile'] = $request->phone_number;
+            $referenceData['telephone'] = null;
+        } else {
+            $referenceData['telephone'] = $request->phone_number;
+            $referenceData['mobile'] = null;
+        }
+
+        return $referenceData;
     }
 
     public function single_customer(Request $request)

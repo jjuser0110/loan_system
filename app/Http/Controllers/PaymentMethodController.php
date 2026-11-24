@@ -3,50 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Spatie\Browsershot\Browsershot;
 use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\Company;
 use App\Models\Bank;
 use App\Models\PaymentMethod;
 use App\Models\PaymentMethodLog;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use App\Http\Controllers\LoanController;
 use Exception;
-use Bouncer;
-use Carbon\Carbon;
 
 class PaymentMethodController extends Controller
 {
-    protected $loanController;
-    
-    public function __construct(LoanController $loanController, ScheduleController $scheduleController)
-    {
-        $this->loanController = $loanController;
-        $this->scheduleController = $scheduleController;
-    }
-
     public function index(Request $request)
     {
         $banks = Bank::all();
         
-        switch(Auth::user()->role_id){
-            case 1:
-                $query = DB::table('companies');
-                break;
-
-            case 2:
-                $query = DB::table('companies')->where('branch_id', Auth::user()->branch_id);
-                break;
-
-            default:
-                $query = DB::table('companies')->where('id', Auth::user()->company_id);
-                break;
-        }
-        $companies = $query->get();
+        $companies = $this->scopedCompaniesTable()->get();
         return view('payment_method.index')->with('companies',$companies)->with('banks',$banks);
     }
 
@@ -85,38 +57,11 @@ class PaymentMethodController extends Controller
             $length = $request->input('length', 10);
             $orderByColumn = $request->input('columns')[$request->input('order.0.column')]['data'];
             $orderByDirection = $request->input('order.0.dir');
-            $query = PaymentMethod::query()
-                ->select([
-                    'payment_methods.*',
-                    'banks.bank_name',
-                    'companies.company_name as company_name',
-                    'companies.company_code as company_code',
-                    'branches.branch_name as branch_name',
-                    'branches.branch_code as branch_code',
-                ])
-                ->join('branches', 'payment_methods.branch_id', '=', 'branches.id')
-                ->join('banks', 'payment_methods.bank_id', '=', 'banks.id')
-                ->join('companies', 'payment_methods.company_id', '=', 'companies.id');
-            switch (Auth::user()->role_id) {
-                case 1:
-                    break;
-
-                case 2:
-                    $query->where('companies.branch_id', Auth::user()->branch_id);
-                    break;
-
-                case 3:
-                case 4:
-                    $query->where('payment_methods.company_id', Auth::user()->company_id);
-                    break;
-
-                default:
-                    throw new Exception('Invalid role id.');
-            }
+            $query = $this->scopedPaymentMethodQuery();
             if (!empty($search)) {
                 $query->where(function ($q) use ($search) {
                     $q->where('payment_methods.account_no', 'like', "%{$search}%")
-                    ->orWhere('payment_method.owner_name', 'like', "%{$search}%")
+                    ->orWhere('payment_methods.owner_name', 'like', "%{$search}%")
                     ->orWhere('companies.company_name', 'like', "%{$search}%")
                     ->orWhere('companies.company_code', 'like', "%{$search}%")
                     ->orWhere('branches.branch_code', 'like', "%{$search}%")
@@ -142,6 +87,15 @@ class PaymentMethodController extends Controller
     }
 
     public function load_payment_method_total_amount(Request $request){
+        $total = $this->scopedPaymentMethodQuery()->sum('payment_methods.amount');
+        return response()->json(['success'=>true,'total_payment_method_amount'=>number_format($total,2,'.',',')]);
+    }
+
+    /**
+     * Payment methods (with bank / company / branch names) the user can see.
+     */
+    private function scopedPaymentMethodQuery()
+    {
         $query = PaymentMethod::query()
             ->select([
                 'payment_methods.*',
@@ -170,8 +124,8 @@ class PaymentMethodController extends Controller
             default:
                 throw new Exception('Invalid role id.');
         }
-        $total = $query->sum('payment_methods.amount');
-        return response()->json(['success'=>true,'total_payment_method_amount'=>number_format($total,2,'.',',')]);
+
+        return $query;
     }
 
     public function store(Request $request)

@@ -52,7 +52,7 @@
             <th class="text-left">Customer Name</th>
             <th class="text-left">Loan Code</th>
             <th class="text-left">User</th>
-            <th>Loan Date</th>
+            <th>Created Date</th>
             <th>Next Date</th>
             <th>Last Pay</th>
             <th>Total to Collect</th>
@@ -63,6 +63,7 @@
             <th>Top Up</th>
             <th>Process Fee</th>
             <th>Capital</th>
+            <th>Late Paid</th>
             <th>Discount</th>
             <th>Loan Balance</th>
             <th class="text-left">Status</th>
@@ -71,7 +72,7 @@
     <tbody>
     @foreach($grouped as $groupName => $rows)
         <tr class="group-header">
-            <td colspan="18">{{ $groupName }} ({{ $rows->count() }} loans)</td>
+            <td colspan="19">{{ $groupName }} ({{ $rows->count() }} loans)</td>
         </tr>
         @foreach($rows as $row)
         <tr>
@@ -90,6 +91,7 @@
             <td>{{ number_format($row['top_up'], 2) }}</td>
             <td>{{ number_format($row['processing_fee'], 2) }}</td>
             <td>{{ number_format($row['capital'], 2) }}</td>
+            <td>{{ number_format($row['late_paid'] ?? 0, 2) }}</td>
             <td>{{ number_format($row['discount'], 2) }}</td>
             <td>{{ number_format($row['loan_balance'], 2) }}</td>
             <td class="text-left">{{ $row['status'] }}</td>
@@ -106,6 +108,7 @@
             <td>{{ number_format($subtotal['top_up'], 2) }}</td>
             <td>{{ number_format($subtotal['processing_fee'], 2) }}</td>
             <td>{{ number_format($subtotal['capital'], 2) }}</td>
+            <td>{{ number_format($subtotal['late_paid'] ?? 0, 2) }}</td>
             <td>{{ number_format($subtotal['discount'], 2) }}</td>
             <td>{{ number_format($subtotal['loan_balance'], 2) }}</td>
             <td></td>
@@ -122,6 +125,7 @@
         <td>{{ number_format($grandTotals['top_up'], 2) }}</td>
         <td>{{ number_format($grandTotals['processing_fee'], 2) }}</td>
         <td>{{ number_format($grandTotals['capital'], 2) }}</td>
+        <td>{{ number_format($grandTotals['late_paid'] ?? 0, 2) }}</td>
         <td>{{ number_format($grandTotals['discount'], 2) }}</td>
         <td>{{ number_format($grandTotals['loan_balance'], 2) }}</td>
         <td></td>

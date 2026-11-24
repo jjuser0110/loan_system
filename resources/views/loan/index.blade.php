@@ -194,6 +194,7 @@
                             <th>{{ __('table.interest_rate') }}</th>
                             <th>{{ __('table.int') }}</th>
                             <th>{{ __('table.late') }}</th>
+                            <th>Dis</th>
                             <th>{{ __('table.status') }}</th>
                             <th>{{ __('table.actions') }}</th>
                         </tr>
@@ -249,8 +250,8 @@
                     "name": "interest_group"
                 },
                 {
-                    "data": "created_at",
-                    "name": "created_at",
+                    "data": "year_month",
+                    "name": "year_month",
                     "render": function(data, type, row, meta) {
                         if (!data) return '-';
                         const parts = data.substring(0, 10).split('-');
@@ -263,7 +264,7 @@
                     "render": function(data, type, row, meta) {
                         if (!data) return '-';
                         const parts = data.substring(0, 10).split('-');
-                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                        return `<strong style="color:#000">${parts[2]}-${parts[1]}-${parts[0]}</strong>`;
                     }
                 },
                 {
@@ -325,11 +326,24 @@
                 },
                 {
                     "data": "interest_paid",
-                    "name": "interest_paid"
+                    "name": "interest_paid",
+                    "render": function(data) {
+                        return `<strong style="color:#000">${data}</strong>`;
+                    }
                 },
                 {
                     "data": "late_paid",
-                    "name": "late_paid"
+                    "name": "late_paid",
+                    "render": function(data) {
+                        return `<strong style="color:#ff8c00">${data}</strong>`;
+                    }
+                },
+                {
+                    "data": "discount",
+                    "name": "discount",
+                    "render": function(data) {
+                        return `<strong style="color:green">${data ?? '0.00'}</strong>`;
+                    }
                 },
                 {
                     "data": "status",

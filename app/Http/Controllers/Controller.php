@@ -5,8 +5,8 @@ namespace App\Http\Controllers;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use App\Traits\IncrementsScheduleCode;
 use Carbon\Carbon;
-use App\Jobs\DoClosing;
 use App\Models\Sequence;
 use App\Models\Customer;
 use App\Models\Company;
@@ -19,172 +19,162 @@ use Exception;
 
 class Controller extends BaseController
 {
-    use AuthorizesRequests, ValidatesRequests;
-    
-    
-    public function daily_closing()
+    use AuthorizesRequests, ValidatesRequests, IncrementsScheduleCode;
+
+    /* =========================================================
+       SEQUENCE NUMBERS
+       ========================================================= */
+
+    public function getSequenceNumber($prefix, $type)
     {
-        DoClosing::dispatch();
-        return true;
+        return $this->nextSequence($prefix, $type, 3);
     }
 
-    public function getSequenceNumber($prefix, $type){
-        return DB::transaction(function () use ($prefix, $type){
-            $s = Sequence::lockForUpdate()->firstOrCreate(['prefix'=>$prefix,'type'=>$type],['last_number'=>0]);
-            $s->last_number += 1;
-            $s->save();
-            return $prefix.str_pad($s->last_number, 3, '0', STR_PAD_LEFT);
-        });
-    }
-
-    
     public function getSystemCode()
     {
-        $year = Carbon::now()->format('y');
-        $prefix = 'S' . $year;
-        $type = "system_code";
-        return DB::transaction(function () use ($prefix, $type){
-            $s = Sequence::lockForUpdate()->firstOrCreate(['prefix'=>$prefix,'type'=>$type],['last_number'=>0]);
+        $prefix = 'S' . Carbon::now()->format('y');
+        return $this->nextSequence($prefix, 'system_code', 4);
+    }
+
+    private function nextSequence($prefix, $type, int $padLength)
+    {
+        return DB::transaction(function () use ($prefix, $type, $padLength) {
+            $s = Sequence::lockForUpdate()->firstOrCreate(['prefix' => $prefix, 'type' => $type], ['last_number' => 0]);
             $s->last_number += 1;
             $s->save();
-            return $prefix.str_pad($s->last_number, 4, '0', STR_PAD_LEFT);
+            return $prefix . str_pad($s->last_number, $padLength, '0', STR_PAD_LEFT);
         });
     }
 
-    public function accessToCustomer(Customer $customer){
-        try{
-            switch(Auth::user()->role_id){
+    /* =========================================================
+       ROLE-SCOPED QUERIES
+       Role 1 = all, Role 2 = own branch, other roles = own company
+       ========================================================= */
+
+    /**
+     * Companies table limited to what the logged-in user can see.
+     */
+    protected function scopedCompaniesTable()
+    {
+        $query = DB::table('companies');
+
+        switch (Auth::user()->role_id) {
+            case 1:
+                break;
+
+            case 2:
+                $query->where('branch_id', Auth::user()->branch_id);
+                break;
+
+            default:
+                $query->where('id', Auth::user()->company_id);
+                break;
+        }
+
+        return $query;
+    }
+
+    /**
+     * Customer autocomplete (code / name / NRIC), limited to 10 results.
+     * Shared by LoanController and PaymentController.
+     */
+    protected function searchCustomersForUser($search)
+    {
+        switch (Auth::user()->role_id) {
+            case 1:
+                $query = Customer::query();
+                $prefix = '';
+                break;
+
+            case 2:
+                $query = Customer::join('companies', 'customers.company_id', '=', 'companies.id')
+                    ->where('companies.branch_id', Auth::user()->branch_id);
+                $prefix = 'customers.';
+                break;
+
+            default:
+                $query = Customer::where('company_id', Auth::user()->company_id);
+                $prefix = '';
+        }
+
+        return $query
+            ->where(function ($q) use ($search, $prefix) {
+                $q->where($prefix . 'customer_code', 'LIKE', "%{$search}%")
+                    ->orWhere($prefix . 'customer_name', 'LIKE', "%{$search}%")
+                    ->orWhere($prefix . 'nric_number', 'LIKE', "%{$search}%");
+            })
+            ->select($prefix . 'customer_code', $prefix . 'customer_name', $prefix . 'nric_number', $prefix . 'company_code')
+            ->limit(10)
+            ->get();
+    }
+
+    /* =========================================================
+       ACCESS CHECKS
+       ========================================================= */
+
+    /**
+     * Common role check. The callbacks are only evaluated for the role
+     * that needs them, so relations are loaded lazily as before.
+     */
+    private function hasScopedAccess(callable $branchId, callable $companyId): bool
+    {
+        try {
+            switch (Auth::user()->role_id) {
                 case 1:
                     return true;
-                break;
-                
+
                 case 2:
-                    return Auth::user()->branch_id == $customer->company->branch_id;
-                break;
+                    return Auth::user()->branch_id == $branchId();
 
                 case 3:
                 case 4:
-                    return Auth::user()->company_id == $customer->company_id;
-                break;
-                
+                    return Auth::user()->company_id == $companyId();
+
                 default:
                     return false;
             }
-        }
-        catch(Exception $e){
+        } catch (Exception $e) {
             return false;
         }
     }
 
-    public function accessToCompany(Company $company){
-         try{
-            switch(Auth::user()->role_id){
-                case 1:
-                    return true;
-                break;
-                
-                case 2:
-                    return Auth::user()->branch_id == $company->branch_id;
-                break;
-
-                case 3:
-                case 4:
-                    return Auth::user()->company_id == $company->company_id;
-                break;
-                
-                default:
-                    return false;
-            }
-        }
-        catch(Exception $e){
-            return false;
-        }
+    public function accessToCustomer(Customer $customer)
+    {
+        return $this->hasScopedAccess(
+            fn () => $customer->company->branch_id,
+            fn () => $customer->company_id
+        );
     }
 
-    public function accessToLoan(Loan $loan){
-        try{
-            switch (Auth::user()->role_id) {
-                case 1:
-                    break;
-
-                case 2:
-                    if($loan->company->branch_id != Auth::user()->branch_id){
-                        return false;
-                    }
-                    break;
-
-                case 3:
-                case 4:
-                    if($loan->company_id != Auth::user()->company_id){
-                        return false;
-                    }
-                    break;
-
-                default:
-                    return false;
-            }
-            return true;
-        }
-        catch(Exception $e){
-            return false;
-        }
+    public function accessToCompany(Company $company)
+    {
+        return $this->hasScopedAccess(
+            fn () => $company->branch_id,
+            fn () => $company->company_id // NOTE: kept exactly as before; probably meant $company->id
+        );
     }
 
-    public function accessToSchedule(PaymentSchedule $schedule){
-        try{
-            switch (Auth::user()->role_id) {
-                case 1:
-                    break;
-
-                case 2:
-                    if($schedule->company->branch_id != Auth::user()->branch_id){
-                        return false;
-                    }
-                    break;
-
-                case 3:
-                case 4:
-                    if($schedule->company_id != Auth::user()->company_id){
-                        return false;
-                    }
-                    break;
-
-                default:
-                    return false;
-            }
-            return true;
-        }
-        catch(Exception $e){
-            return false;
-        }
+    public function accessToLoan(Loan $loan)
+    {
+        return $this->hasScopedAccess(
+            fn () => $loan->company->branch_id,
+            fn () => $loan->company_id
+        );
     }
 
-    public function accessToPayment(Payment $payment){
-        try{
-            switch (Auth::user()->role_id) {
-                case 1:
-                    break;
+    public function accessToSchedule(PaymentSchedule $schedule)
+    {
+        return $this->hasScopedAccess(
+            fn () => $schedule->company->branch_id,
+            fn () => $schedule->company_id
+        );
+    }
 
-                case 2:
-                    if($payment->company->branch_id != Auth::user()->branch_id){
-                        return false;
-                    }
-                    break;
-
-                case 3:
-                case 4:
-                    if($payment->loan->company_id != Auth::user()->company_id){
-                        return false;
-                    }
-                    break;
-
-                default:
-                    return false;
-            }
-            return true;
-        }
-        catch(Exception $e){
-            return false;
-        }
+    public function accessToPayment(Payment $payment)
+    {
+        return $this->hasScopedAccess(
+            fn () => $payment->company->branch_id,
+            fn () => $payment->loan->company_id
+        );
     }
 }

@@ -3,22 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use Spatie\Browsershot\Browsershot;
 use Illuminate\Http\Request;
-use App\Models\User;
 use App\Models\Company;
-use App\Models\Customer;
 use App\Models\Loan;
-use App\Models\Payment;
 use App\Models\PaymentSchedule;
-use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\LoanController;
 use Exception;
-use Bouncer;
-use Carbon\Carbon;
 
 class ScheduleController extends Controller
 {
@@ -160,7 +152,7 @@ class ScheduleController extends Controller
             //     throw new Exception('Total amount is 0.');
             // }
             
-            $prefix = $loan->loan_code.'-SM' ?? $customer->company_code."LN";
+            $prefix = $loan->loan_code.'-SM';
             $schedule_code = $this->getSequenceNumber($prefix,'schedule_code');
             $new = PaymentSchedule::create([
                 'schedule_code' => $schedule_code,
@@ -247,7 +239,8 @@ class ScheduleController extends Controller
                 'due_date' =>  $v['due_date']
             ]);
 
-            // $paymentDiff = $schedule->payment_amount - $old->payment_amount;
+            // payment_amount is not editable here, so this is normally 0 (was commented out, causing "Undefined variable")
+            $paymentDiff = $schedule->payment_amount - $old->payment_amount;
             $paidDiff = $schedule->paid_amount - $old->paid_amount;
             $interestDiff = $schedule->interest_amount - $old->interest_amount;
             $interestPaidDiff = $schedule->interest_paid_amount - $old->interest_paid_amount;
