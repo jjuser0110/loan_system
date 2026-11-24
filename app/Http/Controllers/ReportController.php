@@ -246,7 +246,8 @@ class ReportController extends Controller
                         ) as collection_type
                     "),
                     \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
-                    \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN payment_method_logs.amount ELSE 0 END as expenses"),
+                    // Cash book report shows the expense's CURRENT amount (after any edits), not the amount first keyed in
+                    \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN COALESCE(expenses.amount, payment_method_logs.amount) ELSE 0 END as expenses"),
                     \DB::raw("
                         CASE
                             WHEN payment_method_logs.type = 'payment' AND payments.top_up IS NOT NULL AND payments.top_up > 0
