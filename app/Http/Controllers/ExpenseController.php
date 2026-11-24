@@ -297,7 +297,8 @@ class ExpenseController extends Controller
             $ppm_before = $ppm->amount;
             $ppm_after  = $ppm_before - $expense->amount;
             $ppm->update(['amount' => $ppm_after]);
-            $ppm->payment_method_logs()->create([
+            // saved against the expense itself, so reports can always find which expense it belongs to
+            $expense->payment_method_logs()->create([
                 'type'              => 'expense',
                 'description'       => 'Expense Updated',
                 'prev_amount'       => $ppm_before,
@@ -310,7 +311,8 @@ class ExpenseController extends Controller
             $pm_before = $pm->id == $ppm->id ? $ppm_after : $pm->amount;
             $pm_after  = $pm_before + $amount;
             $pm->update(['amount' => $pm_after]);
-            $pm->payment_method_logs()->create([
+            // saved against the expense itself, so reports can always find which expense it belongs to
+            $expense->payment_method_logs()->create([
                 'type'              => 'expense',
                 'description'       => 'Expense Updated',
                 'prev_amount'       => $pm_before,
@@ -370,7 +372,8 @@ class ExpenseController extends Controller
             $pm_before = $pm->amount;
             $pm_after  = $pm_before - $expense->amount;
             $pm->update(['amount' => $pm_after]);
-            $pm->payment_method_logs()->create([
+            // saved against the expense itself, so reports can always find which expense it belongs to
+            $expense->payment_method_logs()->create([
                 'type'              => 'expense',
                 'description'       => 'Expense Deleted',
                 'prev_amount'       => $pm_before,

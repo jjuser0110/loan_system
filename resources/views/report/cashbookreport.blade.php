@@ -252,19 +252,8 @@ $(document).ready(function () {
         footerCallback: function () {
             let api     = this.api();
             let allRows = api.rows({ search: 'applied' }).data();
-            let openingBalance = 0;
-
-            if (allRows.length > 0) {
-                let latest = allRows[0];
-
-                openingBalance =
-                    parseFloat(latest.account_total_amount || 0)
-                    - parseFloat(latest.interest_paid || 0)
-                    - parseFloat(latest.customer_payment || 0)
-                    + parseFloat(latest.top_up_capital || 0)
-                    + parseFloat(latest.new_capital_loan || 0)
-                    + parseFloat(latest.expenses || 0);
-            }
+            // Balance just before the selected date range (worked out on the server)
+            let openingBalance = parseFloat(window.cashBookOpeningBalance || 0);
 
             let totLP = 0, totDC = 0, totIP = 0, totCP = 0, totTUC = 0, totNCL = 0, totEXP = 0, lastAT = 0;
 
@@ -373,11 +362,8 @@ $(document).ready(function () {
                         return val < 0 ? [200,0,0] : (val > 0 ? [0,140,0] : [0,0,0]);
                     }
 
-                    let fr = rows[0];
-                    let ob = parseFloat(fr.account_total_amount || 0)
-                           - parseFloat(fr.customer_payment     || 0)
-                           - parseFloat(fr.loan_top_up          || 0)
-                           + parseFloat(fr.expenses             || 0);
+                    // Balance just before the selected date range (worked out on the server)
+                    let ob = parseFloat(response.opening_balance || 0);
 
                     doc.setFontSize(14); doc.setFont('helvetica', 'bold');
                     doc.text('Cash Book Report', PW / 2, 12, { align: 'center' });

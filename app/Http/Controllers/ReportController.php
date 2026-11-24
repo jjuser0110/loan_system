@@ -222,6 +222,17 @@ class ReportController extends Controller
             $expenseCodeExpr = "COALESCE(expenses.expense_code, {$lookupCode}, '-')";
             $expenseTypeExpr = "COALESCE(expenses.expense_type, {$lookupType})";
 
+            // Latest loan amount: the amount first saved plus every later "Loan Updated" change of the
+            // same loan (the edit logs themselves are hidden in this report)
+            $loanLatestAmount = "(payment_method_logs.amount + COALESCE((
+                SELECT SUM(lu.amount)
+                FROM payment_method_logs lu
+                WHERE lu.type = 'loan'
+                  AND lu.description = 'Loan Updated'
+                  AND lu.content_type = payment_method_logs.content_type
+                  AND lu.content_id = payment_method_logs.content_id
+            ), 0))";
+
             $query = \DB::table(\DB::raw("({$collapsedSubquery}) as payment_method_logs"))
                 ->select([
                     'payment_method_logs.*',
@@ -245,7 +256,10 @@ class ReportController extends Controller
                             CASE WHEN payment_method_logs.type = 'payment' THEN payment_loans.interest_group END
                         ) as collection_type
                     "),
-                    \DB::raw("CASE WHEN payment_method_logs.type = 'loan'    THEN payment_method_logs.amount ELSE 0 END as loan_top_up"),
+                    \DB::raw("CASE
+                        WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN payment_method_logs.amount
+                        WHEN payment_method_logs.type = 'loan' THEN {$loanLatestAmount}
+                        ELSE 0 END as loan_top_up"),
                     // Cash book report shows the expense's CURRENT amount (after any edits), not the amount first keyed in
                     \DB::raw("CASE WHEN payment_method_logs.type = 'expense' THEN COALESCE(expenses.amount, payment_method_logs.amount) ELSE 0 END as expenses"),
                     \DB::raw("
@@ -348,7 +362,7 @@ class ReportController extends Controller
                                 payment_method_logs.grouped_amount
 
                             WHEN payment_method_logs.type = 'loan' THEN
-                                payment_method_logs.grouped_amount
+                                {$loanLatestAmount}
 
                             ELSE NULL
                         END as new_capital_loan
@@ -387,10 +401,12 @@ class ReportController extends Controller
                     $q->where('payment_method_logs.type', '!=', 'payment')
                     ->orWhereNotNull('payments.payment_code');
                 })
-                // Deleted payments are not shown in the cash book report (only in the history)
+                // Deleted payments are not shown in the cash book report (only in the history).
+                // Payments of a deleted loan stay, because the "Loan Deleted" row reverses them.
                 ->where(function ($q) {
                     $q->where('payment_method_logs.type', '!=', 'payment')
-                    ->orWhereNull('payments.deleted_at');
+                    ->orWhereNull('payments.deleted_at')
+                    ->orWhereNotNull('payment_loans.deleted_at');
                 });
 
             switch (Auth::user()->role_id) {
@@ -427,15 +443,18 @@ class ReportController extends Controller
                 });
             });
 
+            if ($companyId) {
+                $query->where('payment_methods.company_id', $companyId);
+            }
+
+            // All visible rows of these accounts (every date) -> used for the running Account Total
+            $allDatesQuery = clone $query;
+
             if ($fromDate) {
                 $query->whereRaw("({$dateExpr}) >= ?", [$fromDate]);
             }
             if ($toDate) {
                 $query->whereRaw("({$dateExpr}) <= ?", [$toDate]);
-            }
-
-            if ($companyId) {
-                $query->where('payment_methods.company_id', $companyId);
             }
 
             $total = $query->count();
@@ -463,8 +482,6 @@ class ReportController extends Controller
             $orderDir    = $request->input('order.0.dir', 'asc') === 'desc' ? 'desc' : 'asc';
             $orderCol    = $columnMap[$orderColIdx] ?? 'payment_method_logs.created_at';
 
-            $baseQuery = clone $query;
-
             if ($orderColIdx === 2) {
                 $query->orderBy(\DB::raw("({$dateExpr})"), $orderDir)
                     ->orderBy('payment_method_logs.id', $orderDir);
@@ -477,13 +494,24 @@ class ReportController extends Controller
                 ->take($length)
                 ->get();
 
-            $firstRow = $baseQuery
-                ->orderBy(\DB::raw("({$dateExpr})"), 'asc')
-                ->orderBy('payment_method_logs.id', 'asc')
-                ->select('payment_method_logs.total')
-                ->first();
+            // Money effect of each row, using the same LATEST amounts the report shows
+            $netExpr = "CASE
+                WHEN payment_method_logs.type = 'payment' THEN
+                    COALESCE(payments.payment_amount, 0) + COALESCE(payments.interest_paid_amount, 0)
+                    + COALESCE(payments.late_paid_amount, 0) - COALESCE(payments.top_up_capital, 0)
+                WHEN payment_method_logs.description LIKE 'Loan Deleted%' THEN payment_method_logs.grouped_amount
+                WHEN payment_method_logs.type = 'loan' THEN {$loanLatestAmount}
+                WHEN payment_method_logs.type = 'expense' THEN COALESCE(expenses.amount, payment_method_logs.amount)
+                ELSE payment_method_logs.amount
+            END";
 
-            $openingBalance = (float) ($firstRow->total ?? 0);
+            [$balances, $openingBalance] = $this->runningAccountTotals($allDatesQuery, $dateExpr, $netExpr, $fromDate, $toDate);
+
+            foreach ($data as $row) {
+                if (isset($balances[$row->id])) {
+                    $row->account_total_amount = $balances[$row->id];
+                }
+            }
 
             return response()->json([
                 'draw'            => intval($draw),
@@ -497,6 +525,58 @@ class ReportController extends Controller
             \Log::error('Cash Book Reports Load Error: ' . $e->getMessage());
             return response()->json(['error' => 'Server error occurred', 'message' => $e->getMessage()], 500);
         }
+    }
+
+    /**
+     * Running Account Total for the cash book report.
+     *
+     * Rows are taken in date order per bank account. The balance after the LAST row equals the
+     * account's real current balance, and each earlier row is worked back from it using the
+     * latest (edited) amounts, so every row = previous row + this row's amount.
+     *
+     * Returns [ [log id => balance after that row], opening balance before the date range ].
+     */
+    private function runningAccountTotals($allDatesQuery, string $dateExpr, string $netExpr, $fromDate, $toDate): array
+    {
+        $rows = (clone $allDatesQuery)
+            ->select([
+                'payment_method_logs.id',
+                'payment_method_logs.payment_method_id',
+                DB::raw("({$dateExpr}) as row_date"),
+                DB::raw("({$netExpr}) as net_amount"),
+            ])
+            ->get()
+            ->sortBy(fn ($r) => [$r->row_date, $r->id])
+            ->values();
+
+        $current = DB::table('payment_methods')
+            ->whereIn('id', $rows->pluck('payment_method_id')->unique())
+            ->pluck('amount', 'id');
+
+        // work backwards from today's real balance of each account
+        $balances = [];
+        $running  = [];
+        foreach ($rows->reverse() as $r) {
+            $pm = $r->payment_method_id;
+            if (!array_key_exists($pm, $running)) {
+                $running[$pm] = (float) ($current[$pm] ?? 0);
+            }
+            $balances[$r->id] = round($running[$pm], 2);
+            $running[$pm] -= (float) $r->net_amount;
+        }
+
+        // opening balance = balance of each account just before its first row inside the range
+        $opening = 0;
+        $seen    = [];
+        foreach ($rows as $r) {
+            if ($fromDate && $r->row_date < $fromDate) continue;
+            if ($toDate && $r->row_date > $toDate) continue;
+            if (isset($seen[$r->payment_method_id])) continue;
+            $seen[$r->payment_method_id] = true;
+            $opening += $balances[$r->id] - (float) $r->net_amount;
+        }
+
+        return [$balances, round($opening, 2)];
     }
 
     public function cash_book_report_history(Request $request)
